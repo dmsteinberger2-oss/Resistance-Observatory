@@ -69,6 +69,14 @@ export interface GraphFinding {
   paper: GraphPaperMeta;
   verification?: GraphVerification | null; // null or absent = not checked against the paper
   inVettedCsv?: boolean | null; // true = in System's vetted associations CSV; false = served by the API only; null = not determined
+  /** Natural log of the statistic value. Only for ratio statistics with a positive value. Otherwise null. */
+  logEffect?: number | null;
+  /** Standard error on the log scale, from the interval: (ln(ciUpper) - ln(ciLower)) / (2 * 1.96). Only for ratio statistics with 0 < ciLower < ciUpper. Otherwise null. */
+  se?: number | null;
+  /** 1 / se. Null when se is null or 0. */
+  precision?: number | null;
+  /** True when se was computed: the formula ASSUMES a 95% interval, because the Graph does not record the interval level for these records. */
+  seAssumes95?: boolean;
 }
 
 /* ===== PAPER SPOT-CHECK — data/forecast/graph-verification.json (AI-assisted, not human-reviewed). ===== */

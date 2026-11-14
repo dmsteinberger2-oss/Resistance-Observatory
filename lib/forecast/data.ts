@@ -75,6 +75,41 @@ const VETTED_IDS: Record<string, unknown> =
 const vettedFlag = (id: string): boolean | null =>
   typeof VETTED_IDS[id] === "boolean" ? (VETTED_IDS[id] as boolean) : null;
 
+/* ----- Ratio precision (log scale). Pure; no rounding, no p-value fallback; never used to sort or filter. ----- */
+/** Ratio-type statisticType values that occur in graph-findings.json. Excluded on purpose:
+ *  mean_difference_unstandardized, risk_difference, coefficient, pearson_r (not ratios). */
+export const RATIO_STATISTIC_TYPES: ReadonlySet<string> = new Set([
+  "odds_ratio",
+  "adjusted_odds_ratio",
+  "relative_risk_ratio",
+  "hazard_ratio",
+  "prevalence_ratio",
+  "incident_rate_ratio",
+]);
+
+export function ratioPrecision(
+  statisticType: string,
+  value: number | null,
+  ciLower: number | null,
+  ciUpper: number | null,
+): { logEffect: number | null; se: number | null; precision: number | null } {
+  const isRatio = RATIO_STATISTIC_TYPES.has(statisticType);
+  const logEffect = isRatio && value !== null && value > 0 ? Math.log(value) : null;
+  const se =
+    isRatio && ciLower !== null && ciUpper !== null && ciLower > 0 && ciLower < ciUpper
+      ? (Math.log(ciUpper) - Math.log(ciLower)) / (2 * 1.96)
+      : null;
+  const precision = se !== null && se > 0 ? 1 / se : null;
+  return { logEffect, se, precision };
+}
+
+function withRatioPrecision(
+  f: GraphFinding,
+): { logEffect: number | null; se: number | null; precision: number | null; seAssumes95: boolean } {
+  const r = ratioPrecision(f.statisticType, f.statisticValue, f.ciLower, f.ciUpper);
+  return { ...r, seAssumes95: r.se !== null };
+}
+
 const graphBase = graphJson as GraphDataset;
 /** Codon-540 findings checked against their source paper and found mis-extracted (two by a human check
  *  of the abstract plus the vetted CSV, two by the AI-assisted spot-check). Same exclusion as the Data tab
@@ -88,6 +123,7 @@ export const GRAPH: GraphDataset = {
     ...f,
     verification: VERIFICATION_BY_ID.get(f.systemId) ?? null,
     inVettedCsv: vettedFlag(f.systemId),
+    ...withRatioPrecision(f),
   })),
 };
 

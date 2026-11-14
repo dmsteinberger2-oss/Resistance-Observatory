@@ -76,6 +76,18 @@ export type Marker = {
   /** The point to carry into the other tabs, shown above the mechanism. */
   keyPoint?: { heading: string; body: string };
   diagram: Reviewable<Diagram>;
+  /**
+   * OUR definition of where this marker lives in each source. This is the only
+   * thing that connects the structure viewer to the graph findings: RCSB does
+   * not reference the System graph and the graph does not reference PDB.
+   */
+  sources?: {
+    /** Residue number of the marker in the PDB entries the viewer loads. */
+    pdbResidue: number;
+    /** System Public Graph variable ids whose name mentions this codon
+     *  (data/graph-stats.json, marker.variables). */
+    graphVariableIds: string[];
+  };
   /** "What this doesn't tell you" bullets. Omitted = the page's default three. */
   limits?: [string, string, string];
 };
@@ -157,6 +169,19 @@ export const MARKERS: Record<string, Marker> = {
       body: "The literature usually reports it alongside A437G as a double mutant, with resistance increasing as further changes accumulate. So a finding about K540E is usually a finding about a combination that contains it. When another tab talks about a haplotype containing K540E, it is talking about this marker.",
     },
     diagram: ok(PFDHPS_LADDER),
+    sources: {
+      pdbResidue: 540,
+      graphVariableIds: [
+        "4PX5Wm7Ytz",
+        "5bJrK_wJcx",
+        "6nc-md3xWP",
+        "bkHgD5M-T3",
+        "r04Uj8fH3c",
+        "TaKS18jKT6",
+        "zFQpDYEjPr",
+        "w1ktrLk4Wc",
+      ],
+    },
     limits: [
       "Carrying this marker is not the same as a patient\u2019s treatment failing. Outcome depends on the drug, the rest of the parasite\u2019s genetic background, and the clinical setting.",
       "A marker not appearing in the evidence here does not mean it is absent in the world. It may mean nobody has published on it, or that the extraction missed it.",

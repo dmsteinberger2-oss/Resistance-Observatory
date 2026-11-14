@@ -15,7 +15,7 @@ import { getMarker, MARKERS } from "@/content/markers";
 import { Chip } from "@/components/Chip";
 import { ActionButtons } from "@/components/learn/ActionButtons";
 import { MarkerDiagram } from "@/components/learn/MarkerDiagram";
-import { StructureViewer } from "@/components/learn/StructureViewer";
+import { StructureEvidence } from "@/components/learn/StructureEvidence";
 
 /** Same side gutters as the nav and the story page, so left edges line up. */
 const WRAP = "mx-auto max-w-[1340px] px-[clamp(16px,5.4vw,100px)]";
@@ -126,7 +126,7 @@ export function LearnView({ structureFigure }: { structureFigure?: ReactNode }) 
       <div className={`${WRAP} pt-10`}>
       {/* 3b — Published crystal structures: live 3D viewer, then the static
           figure (rendered on the server; absent if its images are). */}
-      <StructureViewer />
+      <StructureEvidence marker={marker} />
       {structureFigure}
 
       {/* 4 — Plain-language mechanism */}

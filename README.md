@@ -283,6 +283,13 @@ What the viewer does and does not say (`components/learn/StructureViewer.tsx`):
 - It makes no claim about binding geometry or mechanism.
 - If the CDN or RCSB is unreachable, each panel shows a short message with a
   link to the RCSB page.
+- **The structure and the graph findings are not linked in either source.**
+  RCSB does not reference the System graph, and the graph does not reference
+  PDB. Learn shows the codon-540 findings next to the viewer and wires the two
+  together (choosing residue 540 highlights the findings; pointing at a finding
+  marks residue 540) only through our own marker definition in
+  `content/markers.ts` (`sources.pdbResidue`, `sources.graphVariableIds`). The
+  page says this above the findings panel.
 
 ### Alert sources (David)
 

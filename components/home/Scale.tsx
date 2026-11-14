@@ -54,8 +54,8 @@ export function Scale() {
             in the graph that name codon 540 of pfdhps directly
           </p>
         </Reveal>
-        <Reveal className="mt-10">
-          <p className="max-w-3xl font-display text-2xl leading-snug sm:text-3xl text-pretty">
+        <Reveal className="mt-8">
+          <p className="max-w-3xl text-base text-muted text-pretty">
             These are the findings the live API returns when a variable&rsquo;s name mentions codon 540. None
             of them is in System&rsquo;s vetted release. The Map and Alert tabs also draw on the vetted findings
             from the K540E papers the graph has read, so their counts differ.

@@ -89,7 +89,15 @@ function load3Dmol(): Promise<ThreeDmol> {
 type Status = "loading" | "ready" | "failed";
 type Site = { resi: number; wt: string; mut: string };
 
-export function StructureViewer() {
+export function StructureViewer({
+  onPick,
+  pulseResi = null,
+}: {
+  /** Called when a residue is chosen in either viewer (click or button). */
+  onPick?: (resi: number) => void;
+  /** Residue to emphasise in both viewers, e.g. while a finding is hovered. */
+  pulseResi?: number | null;
+} = {}) {
   const boxes = useRef<(HTMLDivElement | null)[]>([null, null]);
   const viewers = useRef<(Viewer | null)[]>([null, null]);
   const [status, setStatus] = useState<Status[]>(["loading", "loading"]);
@@ -97,6 +105,10 @@ export function StructureViewer() {
   const [sites, setSites] = useState<Site[]>([]);
   const [unresolved, setUnresolved] = useState<number[]>([]);
   const [picked, setPicked] = useState<number | null>(null);
+  const onPickRef = useRef(onPick);
+  onPickRef.current = onPick;
+  /** Site colours per viewer, kept so residues can be re-styled later. */
+  const siteColors = useRef<Record<number, string>[]>([{}, {}]);
 
   const animMs = () =>
     typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 700;
@@ -111,6 +123,7 @@ export function StructureViewer() {
       v.zoomTo(c ? { resi: around, chain: c } : { resi: around }, animMs());
     }
     setPicked(resi);
+    onPickRef.current?.(resi);
   }, []);
 
   const reset = useCallback(() => {
@@ -194,6 +207,7 @@ export function StructureViewer() {
           for (const site of found) {
             const isMarker = site.wt !== site.mut && Boolean(CHARGE[site.wt] || CHARGE[site.mut]);
             const c = isMarker ? color(STRUCTURES[i].siteColorVar) : color(CONTEXT_COLOR_VAR);
+            siteColors.current[i][site.resi] = c;
             v.addStyle({ resi: site.resi }, { stick: { color: c, radius: 0.32 } });
           }
           const sel = { resi: found.map((s) => s.resi) };
@@ -238,6 +252,41 @@ export function StructureViewer() {
       viewers.current = [null, null];
     };
   }, [compare]);
+
+  /* Pulse: emphasise one residue in BOTH viewers (thicker sticks plus a
+   * translucent sphere). One blink when motion is allowed; a steady emphasis
+   * under reduced motion. Restores the normal style when cleared. */
+  useEffect(() => {
+    const styleAll = (emphasis: number | null) => {
+      viewers.current.forEach((v, i) => {
+        if (!v) return;
+        for (const [resiStr, c] of Object.entries(siteColors.current[i])) {
+          const resi = Number(resiStr);
+          const on = resi === emphasis;
+          v.setStyle(
+            { resi, hetflag: false },
+            on
+              ? { cartoon: { color: CARTOON_COLOR }, stick: { color: c, radius: 0.55 }, sphere: { color: c, radius: 1.5, opacity: 0.45 } }
+              : { cartoon: { color: CARTOON_COLOR }, stick: { color: c, radius: 0.32 } },
+          );
+        }
+        v.render();
+      });
+    };
+    if (pulseResi === null) {
+      styleAll(null);
+      return;
+    }
+    styleAll(pulseResi);
+    if (animMs() === 0) return () => styleAll(null);
+    const off = window.setTimeout(() => styleAll(null), 260);
+    const on = window.setTimeout(() => styleAll(pulseResi), 520);
+    return () => {
+      window.clearTimeout(off);
+      window.clearTimeout(on);
+      styleAll(null);
+    };
+  }, [pulseResi, sites]);
 
   const pickedSite = sites.find((s) => s.resi === picked) ?? null;
   const anyReady = status.some((s) => s === "ready");

@@ -13,7 +13,11 @@ export type MarkerFinding = {
   doi: string | null;
   variable1: string;
   variable2: string;
+  variable1Id: string;
+  variable2Id: string;
   statisticType: string;
+  /** The statistic's value exactly as the graph records it; null if absent. */
+  statisticValue: number | null;
   population: string | null;
   /** study_type exactly as the graph's Studies table records it; null = not recorded. */
   studyType: string | null;
@@ -27,7 +31,10 @@ type RawAssociation = {
   pubmed_id?: number | null;
   variable_1_name: string;
   variable_2_name: string;
+  variable_1_id: string;
+  variable_2_id: string;
   statistic_type: string;
+  statistic_value?: number | null;
   vetted?: boolean;
   vetting_note?: string;
 };
@@ -44,6 +51,9 @@ const toFinding = (a: RawAssociation): MarkerFinding => {
       doi: study?.doi ?? null,
       variable1: a.variable_1_name,
       variable2: a.variable_2_name,
+      variable1Id: a.variable_1_id,
+      variable2Id: a.variable_2_id,
+      statisticValue: typeof a.statistic_value === "number" ? a.statistic_value : null,
       statisticType: a.statistic_type.replaceAll("_", " "),
       population: study?.population ?? null,
       studyType: (study?.study_type as string | null | undefined)?.trim() || null,

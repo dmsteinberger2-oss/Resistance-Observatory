@@ -143,3 +143,23 @@ body {
     transform: none !important;
   }
 }
+
+/* --------------------------------------------------------- Home backdrop --- */
+@keyframes ro-spin { to { transform: rotate(360deg); } }
+@keyframes ro-spin-rev { to { transform: rotate(-360deg); } }
+@keyframes ro-drift {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -14px, 0); }
+}
+@keyframes ro-sweep {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes ro-travel {
+  from { offset-distance: 0%; }
+  to { offset-distance: 100%; }
+}
+.ro-spin { animation: ro-spin 120s linear infinite; transform-origin: center; transform-box: fill-box; }
+.ro-spin-rev { animation: ro-spin-rev 160s linear infinite; transform-origin: center; transform-box: fill-box; }
+.ro-sweep { animation: ro-sweep 18s linear infinite; transform-origin: 600px 600px; }
+.ro-drift { animation: ro-drift 9s ease-in-out infinite; }

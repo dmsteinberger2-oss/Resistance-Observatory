@@ -1,66 +1,31 @@
-/* Alert tab only. Motion is spent on the replay and the moment an alert
- * fires; under prefers-reduced-motion the global rule in app/globals.css
- * collapses every animation here to its end state. */
+/* Alert Observatory styles — dark ocean (#050d17), bioluminescent mint (#8cf2dc),
+ * warm amber (#e8964b), crisp hairlines (#ffffff18).
+ * Under prefers-reduced-motion, app/globals.css collapses animations cleanly. */
 
-.token {
-  appearance: none;
-  background: transparent;
-  color: var(--fg);
-  font: inherit;
-  font-weight: 600;
-  border: 0;
-  border-bottom: 2px solid var(--signal);
-  border-radius: 0;
-  padding: 0 0.15em 0.05em;
-  margin: 0 0.1em;
-  cursor: pointer;
-  max-width: 100%;
-  transition: background-color 160ms ease, border-color 160ms ease;
-}
-.token:hover,
-.token:focus-visible {
-  background: var(--signal-soft);
-}
-.tokenWrap {
+.watchSelectWrap {
   position: relative;
-  display: inline;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 0.5rem;
+  border: 1px solid #ffffff29;
+  background: #16344a99;
+  padding: 0.25rem 0.65rem;
   font-weight: 600;
-  border-bottom: 2px solid var(--signal);
-  padding: 0 0.1em 0.05em;
-  transition: background-color 160ms ease;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
+  color: var(--fg);
+  transition: border-color 150ms ease, background-color 150ms ease;
 }
-.tokenWrap:hover,
-.tokenWrap:focus-within {
-  background: var(--signal-soft);
+.watchSelectWrap:hover,
+.watchSelectWrap:focus-within {
+  border-color: var(--drug);
+  background: #16344aee;
 }
-.tokenWrap:focus-within {
+.watchSelectWrap:focus-within {
   outline: 2px solid var(--focus);
-  outline-offset: 3px;
-  border-radius: 4px;
+  outline-offset: 2px;
 }
-.tokenButton {
-  font: inherit;
-  font-weight: 600;
-  color: inherit;
-  background: transparent;
-  border: 0;
-  border-bottom: 2px solid var(--signal);
-  padding: 0 0.1em 0.05em;
-  cursor: pointer;
-  transition: background-color 160ms ease;
-}
-.tokenButton:hover,
-.tokenButton[aria-expanded="true"] {
-  background: var(--signal-soft);
-}
-.tokenCaret {
-  font-size: 0.6em;
-  color: var(--signal);
-  vertical-align: 0.15em;
-}
-.tokenSelect {
+
+.watchSelect {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -68,16 +33,33 @@
   opacity: 0;
   cursor: pointer;
   font-family: var(--font-sans);
-  font-size: 1rem;
+  font-size: 0.875rem;
 }
-input.token {
-  width: 3.2em;
-  text-align: center;
-  cursor: text;
+
+.watchNumber {
+  appearance: none;
   -moz-appearance: textfield;
+  width: 3.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e8964b66;
+  background: #3a2e1c88;
+  padding: 0.2rem 0.45rem;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--signal);
+  transition: border-color 150ms ease, background-color 150ms ease;
 }
-input.token::-webkit-outer-spin-button,
-input.token::-webkit-inner-spin-button {
+.watchNumber:hover,
+.watchNumber:focus-visible {
+  border-color: var(--signal);
+  background: #3a2e1ccc;
+  outline: none;
+}
+.watchNumber::-webkit-outer-spin-button,
+.watchNumber::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
@@ -85,13 +67,13 @@ input.token::-webkit-inner-spin-button {
 @keyframes fire-in {
   0% {
     opacity: 0;
-    transform: translate3d(0, -10px, 0) scale(0.985);
+    transform: translate3d(0, -6px, 0);
     box-shadow: 0 0 0 0 var(--signal);
   }
   45% {
     opacity: 1;
     transform: none;
-    box-shadow: 0 0 0 6px color-mix(in srgb, var(--signal) 28%, transparent);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--signal) 24%, transparent);
   }
   100% {
     opacity: 1;
@@ -100,89 +82,97 @@ input.token::-webkit-inner-spin-button {
   }
 }
 .fresh {
-  animation: fire-in 900ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation: fire-in 800ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
 @keyframes ring-out {
   from {
     r: 6;
-    opacity: 0.9;
+    opacity: 0.88;
   }
   to {
-    r: 26;
+    r: 24;
     opacity: 0;
   }
 }
 .pulse {
-  animation: ring-out 1100ms ease-out both;
+  animation: ring-out 1050ms ease-out both;
   fill: none;
   stroke: var(--signal);
-  stroke-width: 2;
+  stroke-width: 1.8;
 }
 
 .mark {
-  transition: opacity 400ms ease, transform 400ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition: opacity 320ms ease, transform 320ms cubic-bezier(0.2, 0.7, 0.2, 1);
   transform-box: fill-box;
   transform-origin: center;
 }
 .markHidden {
   opacity: 0;
-  transform: scale(0.4);
+  transform: scale(0.45);
   pointer-events: none;
 }
 
 .playhead {
-  transition: transform 500ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition: transform 380ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 .scrub {
   appearance: none;
   width: 100%;
-  height: 28px;
+  height: 24px;
   background: transparent;
   cursor: pointer;
   margin: 0;
 }
 .scrub::-webkit-slider-runnable-track {
   height: 4px;
-  border-radius: 2px;
-  background: var(--line-strong);
+  border-radius: 999px;
+  background: #ffffff28;
 }
 .scrub::-moz-range-track {
   height: 4px;
-  border-radius: 2px;
-  background: var(--line-strong);
+  border-radius: 999px;
+  background: #ffffff28;
 }
 .scrub::-webkit-slider-thumb {
   appearance: none;
-  width: 18px;
-  height: 18px;
-  margin-top: -7px;
+  width: 15px;
+  height: 15px;
+  margin-top: -5.5px;
   border-radius: 50%;
-  background: var(--fg);
-  border: 3px solid var(--surface);
-  box-shadow: 0 0 0 1px var(--fg);
+  background: var(--drug);
+  border: 2px solid var(--bg);
+  box-shadow: 0 0 0 1px var(--drug), 0 0 12px #8cf2dc66;
+  transition: transform 120ms ease;
+}
+.scrub::-webkit-slider-thumb:hover {
+  transform: scale(1.12);
 }
 .scrub::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
-  background: var(--fg);
-  border: 3px solid var(--surface);
-  box-shadow: 0 0 0 1px var(--fg);
+  background: var(--drug);
+  border: 2px solid var(--bg);
+  box-shadow: 0 0 0 1px var(--drug);
 }
 
 .quote {
-  border-left: 3px solid var(--gap);
-  padding: 0.15rem 0 0.15rem 0.85rem;
-  font-family: var(--font-display);
-  font-size: 1.02rem;
-  line-height: 1.5;
+  border-left: 2px solid var(--drug);
+  padding: 0.2rem 0 0.2rem 0.75rem;
+  color: #c4cdd6;
+  line-height: 1.55;
 }
 
 @keyframes live-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.35; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
 }
 .liveDot {
   animation: live-blink 2.4s ease-in-out infinite;
@@ -195,5 +185,7 @@ input.token::-webkit-inner-spin-button {
   border-radius: 6px;
 }
 @keyframes shimmer {
-  to { background-position: -200% 0; }
+  to {
+    background-position: -200% 0;
+  }
 }

@@ -10,8 +10,8 @@ export function GenomeYears({ years }: { years: GenomeYear[] }) {
       const b = y.year - 1;
       rows.push(
         <tr key={`gap-${a}`}>
-          <td colSpan={3} className="py-1 text-center text-[0.8125rem] italic text-muted">
-            <span className="border-y border-dashed border-line-strong px-2">
+          <td colSpan={3} className="py-1.5 text-center text-[0.8125rem] italic tabular-nums text-muted">
+            <span className="rounded-[4px] border border-dashed border-white/[0.14] bg-[#040c16]/60 px-2.5 py-0.5">
               not sampled {a === b ? a : `${a}–${b}`}
             </span>
           </td>
@@ -21,16 +21,16 @@ export function GenomeYears({ years }: { years: GenomeYear[] }) {
     const frac = y.tested > 0 ? Math.min(1, y.withE / y.tested) : 0;
     rows.push(
       <tr key={y.year}>
-        <th scope="row" className="py-1 pr-2 text-left text-[0.8125rem] font-normal tabular-nums text-fg">
+        <th scope="row" className="py-1 pr-3 text-left text-[0.8125rem] font-normal tabular-nums text-fg">
           {y.year}
         </th>
         <td className="w-full py-1 pr-2">
           <div
-            className="h-2.5 w-full rounded-[2px] border border-line-strong"
+            className="h-2.5 w-full overflow-hidden rounded-[3px] border border-white/[0.15] bg-[#040c16]/80"
             aria-hidden
           >
             {y.withE > 0 && (
-              <div className="h-full bg-drug" style={{ width: `${Math.max(frac * 100, 2)}%` }} />
+              <div className="h-full rounded-[2px] bg-drug" style={{ width: `${Math.max(frac * 100, 2)}%` }} />
             )}
           </div>
         </td>
@@ -51,10 +51,10 @@ export function GenomeYears({ years }: { years: GenomeYear[] }) {
         samples are listed as not sampled.
       </caption>
       <thead>
-        <tr className="text-[0.75rem] uppercase tracking-[0.18em] text-muted">
-          <th scope="col" className="pb-1 text-left font-normal">Year</th>
-          <th scope="col" className="pb-1 text-left font-normal">Share</th>
-          <th scope="col" className="whitespace-nowrap pb-1 text-right font-normal">K540E / tested</th>
+        <tr className="text-[0.75rem] uppercase tracking-[0.16em] text-muted">
+          <th scope="col" className="pb-1.5 pr-3 text-left font-semibold">Year</th>
+          <th scope="col" className="pb-1.5 pr-2 text-left font-semibold">Share</th>
+          <th scope="col" className="whitespace-nowrap pb-1.5 text-right font-semibold">K540E / tested</th>
         </tr>
       </thead>
       <tbody>{rows}</tbody>

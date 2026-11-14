@@ -69,39 +69,52 @@ export function SearchBox(props: {
     <div className={`relative ${className}`}>
       <label
         htmlFor={`${uid}-input`}
-        className="mb-1 block text-[0.75rem] uppercase tracking-[0.18em] text-muted"
+        className="mb-1.5 block text-[0.75rem] font-semibold uppercase tracking-[0.15em] text-muted"
       >
         Search a country or city
       </label>
-      <input
-        id={`${uid}-input`}
-        type="text"
-        role="combobox"
-        aria-expanded={showList}
-        aria-controls={listId}
-        aria-autocomplete="list"
-        aria-activedescendant={showList && active >= 0 ? `${uid}-opt-${active}` : undefined}
-        autoComplete="off"
-        spellCheck={false}
-        value={value}
-        placeholder="For example Nigeria or Lagos"
-        onFocus={(e) => {
-          e.currentTarget.select();
-          ensurePlaces();
-          setOpen(true);
-        }}
-        onBlur={() => setOpen(false)}
-        onChange={(e) => {
-          setValue(e.target.value);
-          setOpen(true);
-          setActive(-1);
-        }}
-        onKeyDown={onKeyDown}
-        className="w-full rounded-[5px] border border-line-strong bg-surface px-3 py-2 text-sm text-fg placeholder:text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-drug"
-      />
+      <div className="relative">
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 20 20"
+          fill="none"
+          aria-hidden
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted"
+        >
+          <circle cx="8.5" cy="8.5" r="5.75" stroke="currentColor" strokeWidth="1.6" />
+          <path d="M13 13L17 17" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
+        <input
+          id={`${uid}-input`}
+          type="text"
+          role="combobox"
+          aria-expanded={showList}
+          aria-controls={listId}
+          aria-autocomplete="list"
+          aria-activedescendant={showList && active >= 0 ? `${uid}-opt-${active}` : undefined}
+          autoComplete="off"
+          spellCheck={false}
+          value={value}
+          placeholder="For example Nigeria or Lagos"
+          onFocus={(e) => {
+            e.currentTarget.select();
+            ensurePlaces();
+            setOpen(true);
+          }}
+          onBlur={() => setOpen(false)}
+          onChange={(e) => {
+            setValue(e.target.value);
+            setOpen(true);
+            setActive(-1);
+          }}
+          onKeyDown={onKeyDown}
+          className="fc-input w-full py-2 pl-9 pr-3 text-sm text-fg placeholder:text-muted/75 focus:outline-none"
+        />
+      </div>
       <div role="status" aria-live="polite">
         {showList && results.length === 0 && (
-          <p className="absolute left-0 right-0 z-20 mt-1 rounded-[10px] border border-line-strong bg-surface-2 px-3 py-2 text-sm text-muted">
+          <p className="fc-dropdown absolute left-0 right-0 z-20 mt-1.5 px-3.5 py-2.5 text-sm text-muted">
             No country or city matches. Try a country name.
           </p>
         )}
@@ -111,7 +124,7 @@ export function SearchBox(props: {
         role="listbox"
         aria-label="Search results"
         hidden={!showList || results.length === 0}
-        className="absolute left-0 right-0 z-20 mt-1 overflow-hidden rounded-[10px] border border-line-strong bg-surface-2 shadow-lg"
+        className="fc-dropdown absolute left-0 right-0 z-20 mt-1.5 max-h-72 overflow-y-auto"
       >
         {showList &&
           results.map((r, i) => (
@@ -123,12 +136,12 @@ export function SearchBox(props: {
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => choose(r)}
               onMouseEnter={() => setActive(i)}
-              className={`cursor-pointer border-b border-line px-3 py-2 last:border-b-0 ${
-                i === active ? "bg-drug-soft" : ""
+              className={`cursor-pointer border-b border-white/[0.08] px-3.5 py-2 transition-colors last:border-b-0 ${
+                i === active ? "bg-drug-soft" : "hover:bg-white/[0.04]"
               }`}
             >
-              <span className="block text-sm text-fg">{r.label}</span>
-              <span className="block text-[0.8125rem] text-muted">{r.sublabel}</span>
+              <span className="block text-sm font-medium text-fg">{r.label}</span>
+              <span className="block text-[0.8125rem] tabular-nums text-muted">{r.sublabel}</span>
             </li>
           ))}
       </ul>

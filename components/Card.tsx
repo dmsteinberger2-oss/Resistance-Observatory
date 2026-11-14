@@ -7,16 +7,22 @@ type CardProps = {
 } & HTMLAttributes<HTMLElement>;
 
 const TONES = {
-  default: "border-line bg-surface",
-  drug: "border-drug/40 bg-drug-soft/50",
-  signal: "border-signal/40 bg-signal-soft/50",
-  gap: "border-gap/40 bg-gap-soft/50",
+  default: "border-line bg-[#091826]/90",
+  drug: "border-drug/35 bg-drug-soft/35",
+  signal: "border-signal/35 bg-signal-soft/35",
+  gap: "border-gap/35 bg-gap-soft/35",
 } as const;
 
-export function Card({ as: Tag = "div", tone = "default", className = "", children, ...rest }: CardProps) {
+export function Card({
+  as: Tag = "div",
+  tone = "default",
+  className = "",
+  children,
+  ...rest
+}: CardProps) {
   return (
     <Tag
-      className={`rounded-[var(--radius)] border p-5 shadow-[var(--shadow)] ${TONES[tone]} ${className}`}
+      className={`rounded-[var(--radius)] border p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] ${TONES[tone]} ${className}`}
       {...rest}
     >
       {children}

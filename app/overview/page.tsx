@@ -8,5 +8,12 @@ export const metadata = { title: "Overview" };
 /** Overview. The body is a client component (it reads the shared selection). */
 export default function OverviewPage() {
   const papers = (literature as { papers: { in_graph?: boolean }[] }).papers;
-  return <OverviewView papers={{ read: papers.filter((p) => p.in_graph).length, total: papers.length }} />;
+  return (
+    <OverviewView
+      papers={{
+        read: papers.filter((p) => p.in_graph).length,
+        total: papers.length,
+      }}
+    />
+  );
 }

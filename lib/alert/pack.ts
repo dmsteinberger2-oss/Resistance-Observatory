@@ -207,6 +207,39 @@ export type Pack = {
   thresholds: ThresholdsFile;
   /** Sample-level study context per genome cell; null when the file is not installed. */
   studyContext: StudyContextFile | null;
+  /** Pre-joined country-tagged & spot-checked System Public Graph audit pool (loaded on the server). */
+  auditedGraph?: AuditedGraphRecord[];
+};
+
+export type VerificationStatus =
+  | "supported"
+  | "partly_supported"
+  | "contradicted"
+  | "not_verifiable"
+  | "unvetted_api";
+
+export type AuditedGraphRecord = {
+  systemId: string;
+  studyId?: string | null;
+  pmid: string;
+  year: number | null;
+  countriesIso3: string[];
+  countryNames?: Record<string, string>;
+  kind: "codon540" | "haplotype" | "sp";
+  spLooksLikeUptake?: boolean;
+  use?: string | null;
+  studyType?: string | null;
+  variable1: string;
+  variable2: string;
+  statisticType: string | null;
+  statisticValue: number | null;
+  ciLower: number | null;
+  ciUpper: number | null;
+  pValue?: number | null;
+  inVettedCsv: boolean;
+  verificationStatus: VerificationStatus;
+  verificationNote?: string | null;
+  verificationQuote?: string | null;
 };
 
 /** What the browser receives: the pack minus the long vetted-id list. */

@@ -6,7 +6,7 @@ import { countryName } from "@/lib/forecast/geo";
 import type { AlertFeed, GenomeChange } from "@/lib/forecast/types";
 
 const ROW =
-  "block w-full rounded-[5px] px-2 py-1.5 text-left text-[0.8125rem] leading-snug hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-drug";
+  "block w-full rounded-[7px] border border-transparent px-2.5 py-1.5 text-left text-[0.8125rem] leading-snug transition-colors hover:border-white/[0.1] hover:bg-white/[0.05] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-drug";
 
 interface Row {
   key: string;
@@ -72,99 +72,108 @@ export function WhatMoved(props: {
 
   const empty = now.length === 0 && alerts.length === 0;
   const anyPaper = paperN > 0;
-  
+
   return (
-    <section aria-label="What moved" className={`fc-card flex max-h-full min-h-0 w-full flex-col p-3 ${className ?? ""}`}>
-      <h2 className="text-xs uppercase tracking-[0.18em] text-muted">What moved</h2>
+    <section aria-label="What moved" className={`fc-card flex max-h-full min-h-0 w-full flex-col p-3.5 ${className ?? ""}`}>
+      <div className="flex items-center justify-between gap-2 pb-1">
+        <h2 className="fc-label">What moved</h2>
+        <span className="rounded-full border border-white/[0.12] bg-[#040c16]/75 px-2 py-0.5 text-xs font-semibold tabular-nums text-fg">
+          In {year}
+        </span>
+      </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-3 [mask-image:linear-gradient(to_bottom,black_calc(100%_-_20px),transparent)] [scrollbar-width:thin]" tabIndex={0} aria-label="Changes list, scrollable">
-      <h3 className="mt-2 text-xs font-semibold tabular-nums text-fg">In {year}</h3>
-      <div>
-        {empty ? (
-          <p className="px-2 py-1 text-[0.8125rem] text-muted">
-            {year > GENOME_MAX_YEAR
-              ? `The genome data ends in ${GENOME_MAX_YEAR}; nothing later is sampled.`
-              : `Nothing changed in ${year} in the genome data.`}
-          </p>
-        ) : null}
-        {!empty ? (
-          <ul className="space-y-0.5">
-            {now.map((r) => (
-              <li key={r.key}>
-                <button type="button" className={ROW} aria-label={`${r.text}, open country`} onClick={() => onSelectCountry(r.iso3)}>
-                  <span className="text-fg tabular-nums">{r.text}</span>
-                  <span className="mt-0.5 block text-xs text-muted">genome data · collection year</span>
-                </button>
-              </li>
-            ))}
-            {alerts.map((a) => {
-              const text = a.headline;
-              return (
-                <li key={a.id}>
-                  <button type="button" className={ROW} aria-label={`${text}, open country`} onClick={() => onSelectCountry(a.country_iso3)}>
-                    <span className="text-fg">{text}</span>
-                    <span className="mt-0.5 flex flex-wrap gap-1.5 text-xs">
-                      <span className="rounded-[5px] bg-signal-soft px-1.5 text-signal">
-                        <span aria-hidden>⚑ </span>alert · genome collection year
+      <div
+        className="mt-1 min-h-0 flex-1 overflow-y-auto overscroll-contain pb-3 [mask-image:linear-gradient(to_bottom,black_calc(100%_-_18px),transparent)]"
+        tabIndex={0}
+        aria-label="Changes list, scrollable"
+      >
+        <h3 className="sr-only">In {year}</h3>
+        <div>
+          {empty ? (
+            <p className="px-2.5 py-1.5 text-[0.8125rem] tabular-nums text-muted">
+              {year > GENOME_MAX_YEAR
+                ? `The genome data ends in ${GENOME_MAX_YEAR}; nothing later is sampled.`
+                : `Nothing changed in ${year} in the genome data.`}
+            </p>
+          ) : null}
+          {!empty ? (
+            <ul className="space-y-1">
+              {now.map((r) => (
+                <li key={r.key}>
+                  <button type="button" className={ROW} aria-label={`${r.text}, open country`} onClick={() => onSelectCountry(r.iso3)}>
+                    <span className="font-medium text-fg tabular-nums">{r.text}</span>
+                    <span className="mt-0.5 block text-xs text-muted">genome data · collection year</span>
+                  </button>
+                </li>
+              ))}
+              {alerts.map((a) => {
+                const text = a.headline;
+                return (
+                  <li key={a.id}>
+                    <button type="button" className={ROW} aria-label={`${text}, open country`} onClick={() => onSelectCountry(a.country_iso3)}>
+                      <span className="text-fg tabular-nums">{text}</span>
+                      <span className="mt-1 flex flex-wrap gap-1.5 text-xs">
+                        <span className="rounded-[5px] border border-signal/35 bg-signal-soft px-1.5 py-0.5 font-medium text-signal">
+                          <span aria-hidden>⚑ </span>alert · genome collection year
+                        </span>
+                        {alertFeed.placeholder ? (
+                          <span className="rounded-[5px] border border-line-strong px-1.5 py-0.5 uppercase tracking-[0.12em] text-muted">PLACEHOLDER</span>
+                        ) : null}
                       </span>
-                      {alertFeed.placeholder ? (
-                        <span className="rounded-[5px] border border-line-strong px-1.5 uppercase tracking-[0.12em] text-muted">PLACEHOLDER</span>
-                      ) : null}
-                    </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
+          {anyPaper || paperCountryRows.length > 0 ? (
+            <ul className="mt-1 space-y-1">
+              {anyPaper ? (
+                <li className="px-2.5 py-1.5 text-[0.8125rem] leading-snug">
+                  <span className="text-fg tabular-nums">
+                    {paperN} {paperN === 1 ? "paper that mentions" : "papers that mention"} K540E {paperN === 1 ? "was" : "were"} published in {year}; the Graph has read {paperRead} of them
+                  </span>
+                  <span className="mt-0.5 block text-xs text-muted">papers · publication year</span>
+                </li>
+              ) : null}
+              {paperCountryRows.map((iso) => {
+                const text = `${countryName(iso)}: first K540E paper in this list`;
+                return (
+                  <li key={`fp-${iso}`}>
+                    <button type="button" className={ROW} aria-label={`${text}, open country`} onClick={() => onSelectCountry(iso)}>
+                      <span className="text-fg">{text}</span>
+                      <span className="mt-0.5 block text-xs text-muted">papers · publication year</span>
+                    </button>
+                  </li>
+                );
+              })}
+              {paperMore > 0 ? <li className="px-2.5 py-1 text-xs tabular-nums text-muted">+{paperMore} more countries</li> : null}
+            </ul>
+          ) : null}
+        </div>
+
+        {before.length > 0 ? (
+          <div className="mt-2.5 border-t border-white/[0.08] pt-2">
+            <h3 className="px-2.5 text-xs font-semibold uppercase tracking-[0.12em] tabular-nums text-muted">Before {year}</h3>
+            <ul className="mt-1 space-y-0.5">
+              {before.map((r) => (
+                <li key={r.key}>
+                  <button
+                    type="button"
+                    className={`${ROW} text-muted`}
+                    aria-label={`${r.year}: ${r.text}, open country`}
+                    onClick={() => onSelectCountry(r.iso3)}
+                  >
+                    <span className="tabular-nums">{r.year}: {r.text}</span>
                   </button>
                 </li>
-              );
-            })}
-          </ul>
-        ) : null}
-        {anyPaper || paperCountryRows.length > 0 ? (
-          <ul className="space-y-0.5">
-            {anyPaper ? (
-              <li className="px-2 py-1.5 text-[0.8125rem] leading-snug">
-                <span className="text-fg tabular-nums">
-                  {paperN} {paperN === 1 ? "paper that mentions" : "papers that mention"} K540E {paperN === 1 ? "was" : "were"} published in {year}; the Graph has read {paperRead} of them
-                </span>
-                <span className="mt-0.5 block text-xs text-muted">papers · publication year</span>
-              </li>
-            ) : null}
-            {paperCountryRows.map((iso) => {
-              const text = `${countryName(iso)}: first K540E paper in this list`;
-              return (
-                <li key={`fp-${iso}`}>
-                  <button type="button" className={ROW} aria-label={`${text}, open country`} onClick={() => onSelectCountry(iso)}>
-                    <span className="text-fg">{text}</span>
-                    <span className="mt-0.5 block text-xs text-muted">papers · publication year</span>
-                  </button>
-                </li>
-              );
-            })}
-            {paperMore > 0 ? <li className="px-2 py-1 text-xs text-muted">+{paperMore} more countries</li> : null}
-          </ul>
+              ))}
+            </ul>
+          </div>
         ) : null}
       </div>
 
-      {before.length > 0 ? (
-        <>
-          <h3 className="mt-2 text-xs font-semibold tabular-nums text-muted">Before {year}</h3>
-          <ul className="space-y-0.5">
-            {before.map((r) => (
-              <li key={r.key}>
-                <button
-                  type="button"
-                  className={`${ROW} text-muted`}
-                  aria-label={`${r.year}: ${r.text}, open country`}
-                  onClick={() => onSelectCountry(r.iso3)}
-                >
-                  <span className="tabular-nums">{r.year}: {r.text}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </>
-      ) : null}
-      </div>
-
-      <p className="mt-2 shrink-0 border-t border-line pt-2 text-xs leading-snug text-muted">
+      <p className="mt-1.5 shrink-0 border-t border-line pt-2 text-xs leading-snug text-muted">
         Changes are steps in the data, not movement on the ground: a first detection is the first year a sampled genome carried K540E.
       </p>
     </section>

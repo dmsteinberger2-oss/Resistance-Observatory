@@ -2,16 +2,33 @@
  * are re-mapped here so shared components and Tailwind token classes resolve
  * to the Forecast palette inside this subtree. */
 .fc-root {
-  --bg: #050d17; --surface: #0d2233; --surface-2: #16344a; --fg: #f5f4ef; --muted: #b0bdcb;
-  --line: #1d3f58; --line-strong: #2f607f;
-  --drug: #70e0ca; --drug-soft: #113a3a; --signal: #f2bd76; --signal-soft: #3a2c14; --gap: #f2bd76; --gap-soft: #3a2c14;
-  --focus: #70e0ca; color-scheme: dark;
-  /* Tokens added by the restyled shell, pinned here too. */
-  --ink: #06101b; --white: #f5f4ef; --mint: #70e0ca; --amber: #f2bd76; --quiet: #b0bdcb;
-  --page: #050d17; --body: #c4cdd6; --radius: 10px;
+  --bg: #040b14;
+  --surface: #081623;
+  --surface-2: #11293d;
+  --fg: #f5f4ef;
+  --muted: #94a9b7;
+  --line: #ffffff24;
+  --line-strong: #ffffff52;
+  --drug: #8cf2dc;
+  --drug-soft: #12363a;
+  --signal: #e8964b;
+  --signal-soft: #3a2e1c;
+  --focus: #8cf2dc;
+  color-scheme: dark;
+  /* Tokens aligned with public/story.html */
+  --ink: #050d17;
+  --white: #f5f4ef;
+  --mint: #8cf2dc;
+  --amber: #e8964b;
+  --quiet: #94a9b7;
+  --page: #040b14;
+  --body: #c4cdd6;
+  --radius: 12px;
   /* Evidence gap is a neutral notice in the shell; amber stays reserved for alerts and "new". */
-  --gap: #b0bdcb; --gap-soft: #16344a;
-  background: var(--bg); color: var(--fg);
+  --gap: #e8964b;
+  --gap-soft: #3a2e1c;
+  background: var(--bg);
+  color: var(--fg);
   font-family: var(--font-sans);
   /* The shell sets body letter-spacing; an inherited absolute length collapses
    * SVG text drawn in tiny projected units. Reset it for this subtree. */
@@ -19,88 +36,287 @@
   word-spacing: normal;
   text-transform: none;
 }
-.fc-root svg, .fc-root svg text { letter-spacing: 0; word-spacing: normal; }
+.fc-root svg,
+.fc-root svg text {
+  letter-spacing: 0;
+  word-spacing: normal;
+}
 
+/* Atmospheric scientific cartography stage */
 .fc-root .fc-stage {
   position: relative;
   overflow: hidden;
   height: calc(100dvh - 76px);
-  min-height: 560px;
-  background: radial-gradient(ellipse at 50% 40%, #0a1a2a 0%, #050d17 70%);
+  min-height: 580px;
+  background: radial-gradient(ellipse 75% 65% at 48% 44%, #0d2233 0%, #06121f 52%, #040b14 100%);
+  overscroll-behavior: contain;
+}
+.fc-root .fc-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 52% 44% at 50% 45%, rgba(140, 242, 220, 0.045) 0%, transparent 72%),
+    radial-gradient(ellipse 95% 90% at 50% 50%, transparent 56%, rgba(2, 7, 14, 0.55) 100%);
 }
 
+/* Frosted dark obsidian glass surfaces */
 .fc-root .fc-card {
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  border: 1px solid var(--line);
+  background: rgba(8, 22, 35, 0.86);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 12px;
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.09),
+    0 18px 42px -14px rgba(0, 0, 0, 0.76),
+    0 2px 10px rgba(0, 0, 0, 0.36);
+}
+
+.fc-root .fc-subcard {
+  background: rgba(13, 33, 50, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 10px;
-  box-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.7);
-  backdrop-filter: blur(6px);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+}
+
+.fc-root .fc-dropdown {
+  background: rgba(7, 19, 31, 0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
+    0 20px 44px -10px rgba(0, 0, 0, 0.85);
 }
 
 .fc-root .fc-label {
   font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
+  font-weight: 650;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
 }
 
+/* Authoritative AS OF pills & readouts */
+.fc-root .fc-asof-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mint);
+}
+.fc-root .fc-asof-kicker::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--mint);
+  box-shadow: 0 0 8px rgba(140, 242, 220, 0.75);
+}
+
+.fc-root .fc-asof-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  border: 1px solid rgba(140, 242, 220, 0.42);
+  background: rgba(17, 58, 58, 0.65);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.fc-root .fc-asof-pill::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--mint);
+  box-shadow: 0 0 7px rgba(140, 242, 220, 0.8);
+}
+
+/* HUD buttons */
 .fc-root .fc-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 34px;
+  min-width: 36px;
   height: 34px;
-  padding: 0 10px;
-  border-radius: 5px;
-  border: 1px solid var(--line-strong);
-  background: var(--surface);
+  padding: 0 11px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(8, 22, 35, 0.88);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
+    0 10px 24px -8px rgba(0, 0, 0, 0.72);
   color: var(--fg);
   font-size: 13px;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+.fc-root .fc-btn:hover:not(:disabled) {
+  background: rgba(20, 48, 70, 0.92);
+  border-color: rgba(140, 242, 220, 0.52);
+  color: #ffffff;
+}
+.fc-root .fc-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Precision time-scrubber range input */
+.fc-root .fc-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 22px;
+  background: transparent;
   cursor: pointer;
 }
-.fc-root .fc-btn:hover { background: var(--surface-2); }
+.fc-root .fc-range::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: rgba(20, 47, 68, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.55);
+}
+.fc-root .fc-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: var(--mint);
+  border: 2.5px solid #040b14;
+  box-shadow:
+    0 0 0 1.5px rgba(140, 242, 220, 0.65),
+    0 0 12px rgba(140, 242, 220, 0.55);
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+.fc-root .fc-range:hover::-webkit-slider-thumb {
+  transform: scale(1.1);
+  box-shadow:
+    0 0 0 2px rgba(140, 242, 220, 0.9),
+    0 0 16px rgba(140, 242, 220, 0.75);
+}
+.fc-root .fc-range::-moz-range-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: rgba(20, 47, 68, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+.fc-root .fc-range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--mint);
+  border: 2.5px solid #040b14;
+  box-shadow:
+    0 0 0 1.5px rgba(140, 242, 220, 0.65),
+    0 0 12px rgba(140, 242, 220, 0.55);
+}
 
-/* Map */
-.fc-root .fc-map { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; user-select: none; }
-.fc-root .fc-map.is-dragging { cursor: grabbing; }
+/* Search input */
+.fc-root .fc-input {
+  background: rgba(5, 14, 24, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.45);
+  transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
+}
+.fc-root .fc-input:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+.fc-root .fc-input:focus {
+  background: rgba(6, 17, 29, 0.92);
+  border-color: var(--mint);
+  box-shadow: 0 0 0 2px rgba(140, 242, 220, 0.25);
+}
+
+/* Map canvas & coastlines */
+.fc-root .fc-map-wrap {
+  z-index: 2;
+}
+.fc-root .fc-map {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+}
+.fc-root .fc-map.is-dragging {
+  cursor: grabbing;
+}
 .fc-root .fc-country {
-  stroke: #24506d;
-  stroke-width: 0.6;
+  stroke: #ffffff24;
+  stroke-width: 0.65;
+  stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
-  transition: fill 250ms ease, opacity 250ms ease;
+  transition: fill 240ms ease, stroke 180ms ease, opacity 240ms ease;
   outline: none;
 }
-.fc-root .fc-country.is-interactive { cursor: pointer; }
-.fc-root .fc-country.is-interactive:hover { stroke: #8fb4cc; stroke-width: 1; }
-.fc-root .fc-dim .fc-country:not(.is-selected) { opacity: 0.62; }
-.fc-root .fc-country:focus-visible { stroke: #f5f4ef; stroke-width: 2; }
+.fc-root .fc-country.is-interactive {
+  cursor: pointer;
+}
+.fc-root .fc-country.is-interactive:hover {
+  stroke: #8cf2dc;
+  stroke-width: 1.25;
+  filter: drop-shadow(0 0 6px rgba(140, 242, 220, 0.38));
+}
+.fc-root .fc-dim .fc-country:not(.is-selected) {
+  opacity: 0.56;
+}
 .fc-root .fc-sel-outline {
   fill: none;
-  stroke: #70e0ca;
-  stroke-width: 2.25;
+  stroke: #8cf2dc;
+  stroke-width: 2.35;
+  stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
   pointer-events: none;
-  filter: drop-shadow(0 0 4px rgb(112 224 202 / 0.7));
+  filter:
+    drop-shadow(0 0 6px rgba(140, 242, 220, 0.78))
+    drop-shadow(0 0 16px rgba(140, 242, 220, 0.36));
 }
 .fc-root .fc-sel-halo {
   fill: none;
-  stroke: #050d17;
-  stroke-width: 6;
+  stroke: #040b14;
+  stroke-width: 6.5;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
   pointer-events: none;
 }
-.fc-root .fc-marker { vector-effect: non-scaling-stroke; transition: fill 250ms ease; }
-.fc-root .fc-marker.is-interactive { cursor: pointer; }
+.fc-root .fc-marker {
+  vector-effect: non-scaling-stroke;
+  transition: fill 240ms ease;
+}
+.fc-root .fc-marker.is-interactive {
+  cursor: pointer;
+}
 .fc-root .fc-label-text {
   letter-spacing: 0;
   word-spacing: normal;
   fill: #f5f4ef;
   font-weight: 600;
   paint-order: stroke;
-  stroke: #050d17;
+  stroke: #040b14;
   stroke-linejoin: round;
   pointer-events: none;
 }
@@ -109,45 +325,89 @@
   position: absolute;
   z-index: 30;
   pointer-events: none;
-  max-width: 290px;
-  padding: 8px 10px;
+  max-width: 300px;
+  padding: 10px 12px;
   font-size: 12px;
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
-/* Side panel */
+/* Right-hand Country Inspector drawer */
 .fc-root .fc-panel {
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
-  width: min(420px, 100%);
+  width: min(424px, 100%);
   z-index: 25;
   overflow-y: auto;
-  border-left: 1px solid var(--line);
-  background: var(--surface);
-  animation: fc-slide-in 320ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(8, 22, 35, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow:
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.06),
+    -24px 0 54px -14px rgba(0, 0, 0, 0.8);
+  animation: fc-slide-in 300ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 @keyframes fc-slide-in {
-  from { transform: translateX(40px); opacity: 0; }
-  to { transform: none; opacity: 1; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .fc-root .fc-panel { animation: none; }
-  .fc-root .fc-country, .fc-root .fc-marker { transition: none; }
-}
-
-@media (max-width: 500px) {
-  .fc-root .fc-stage { height: calc(100dvh - 65px); }
+  from {
+    transform: translateX(36px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
 }
 
-/* Left column: search card, what moved (flexible, scrolls), legend. */
+/* Alert callout & CTA inside Country Inspector */
+.fc-root .fc-alert-box {
+  background: rgba(12, 30, 46, 0.58);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 10px;
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+}
+.fc-root .fc-alert-box.has-alerts {
+  background: linear-gradient(145deg, rgba(232, 150, 75, 0.11) 0%, rgba(11, 28, 43, 0.78) 65%);
+  border-color: rgba(232, 150, 75, 0.32);
+  border-left: 3px solid var(--signal);
+}
+.fc-root .fc-alert-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border-radius: 7px;
+  border: 1px solid rgba(140, 242, 220, 0.44);
+  background: rgba(17, 58, 58, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: var(--mint);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+.fc-root .fc-alert-cta:hover {
+  background: rgba(140, 242, 220, 0.18);
+  border-color: var(--mint);
+  color: #ffffff;
+}
+
+/* Left HUD column: header card & What Moved */
+.fc-root .fc-head {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  width: 356px;
+  max-width: calc(100% - 32px);
+  z-index: 26;
+}
 .fc-root .fc-leftcol {
   position: absolute;
   left: 16px;
   top: 16px;
   bottom: 16px;
-  width: 360px;
+  width: 356px;
   max-width: calc(100% - 32px);
   z-index: 22;
   display: flex;
@@ -155,18 +415,71 @@
   gap: 10px;
   pointer-events: none;
 }
-.fc-root .fc-leftcol > * { pointer-events: auto; }
-.fc-root .fc-leftcol .fc-search-card { position: relative; z-index: 3; flex: none; }
-.fc-root .fc-leftcol .fc-moved { position: relative; z-index: 1; flex: 1 1 auto; min-height: 0; overflow-y: auto; }
-/* Legend strip: bottom of the map, between the left column and the panel,
- * left of the zoom buttons. Wraps to two rows rather than hiding anything. */
+.fc-root .fc-leftcol > * {
+  pointer-events: auto;
+}
+.fc-root .fc-leftcol .fc-moved {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: none;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Bottom legend strip */
 .fc-root .fc-strip {
   position: absolute;
   bottom: 16px;
   z-index: 21;
-  transition: right 300ms ease;
+  transition: right 280ms ease;
 }
-.fc-root .fc-seg-sm button { flex: none; height: 28px; padding: 0 10px; white-space: nowrap; }
+
+/* Segmented layer switcher */
+.fc-root .fc-seg {
+  display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(4, 12, 21, 0.72);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+.fc-root .fc-seg button {
+  flex: 1 1 0;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, box-shadow 150ms ease;
+}
+.fc-root .fc-seg button:hover:not([aria-pressed="true"]) {
+  color: var(--fg);
+  background: rgba(255, 255, 255, 0.04);
+}
+.fc-root .fc-seg button[aria-pressed="true"] {
+  background: rgba(20, 50, 72, 0.95);
+  color: var(--fg);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -2px 0 var(--mint),
+    0 2px 6px rgba(0, 0, 0, 0.4);
+}
+.fc-root .fc-seg button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+.fc-root .fc-seg-sm button {
+  flex: none;
+  height: 28px;
+  padding: 0 11px;
+  white-space: nowrap;
+}
 
 /* Amber rings: pulse twice, then stay. Static under reduced motion. */
 .fc-root .fc-pulse {
@@ -175,58 +488,144 @@
   animation: fc-pulse 900ms ease-out 2;
 }
 @keyframes fc-pulse {
-  0% { transform: scale(1); opacity: 1; }
-  45% { transform: scale(1.7); opacity: 0.15; }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  45% {
+    transform: scale(1.7);
+    opacity: 0.15;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
-.fc-root .fc-flag { cursor: pointer; outline: none; }
-.fc-root .fc-flag:focus-visible .fc-flag-focus { stroke: #f5f4ef; }
-@media (prefers-reduced-motion: reduce) {
-  .fc-root .fc-pulse { animation: none; }
-}
-.fc-root .fc-leftcol .fc-moved { width: 100%; max-width: none; flex: 1 1 auto; min-height: 0; }
-
-/* Layer switch: two-option segmented control. */
-.fc-root .fc-seg {
-  display: flex;
-  border: 1px solid var(--line-strong);
-  border-radius: 5px;
-  background: var(--surface);
-  overflow: hidden;
-}
-.fc-root .fc-seg button {
-  flex: 1 1 0;
-  padding: 6px 8px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: var(--muted);
-  background: transparent;
+.fc-root .fc-flag {
   cursor: pointer;
+  outline: none;
 }
-.fc-root .fc-seg button + button { border-left: 1px solid var(--line-strong); }
-.fc-root .fc-seg button[aria-pressed="true"] { background: var(--surface-2); color: var(--fg); box-shadow: inset 0 -2px 0 var(--fg); }
-.fc-root .fc-seg button:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; border-radius: 4px; }
+.fc-root .fc-flag:focus-visible .fc-flag-focus {
+  stroke: #f5f4ef;
+}
+.fc-root .fc-flag:focus-visible rect {
+  stroke: var(--focus);
+  stroke-width: 1.5;
+}
+.fc-root .fc-country:focus-visible {
+  stroke: #8cf2dc;
+  stroke-width: 2.5;
+}
 
-/* Scrolling inside the panel or the lists never drags the page. */
+/* Subtle dark scrollbars */
 .fc-root .fc-panel,
 .fc-root .fc-moved,
 .fc-root aside,
 .fc-root [data-scroll],
 .fc-root .overflow-y-auto,
-.fc-root .overflow-auto { overscroll-behavior: contain; }
-.fc-root .fc-stage { overscroll-behavior: contain; }
-
-/* Header card: its own absolutely positioned block (tab order), above every
- * other card so the search results list stays on top. */
-.fc-root .fc-head {
-  position: absolute;
-  left: 16px;
-  top: 16px;
-  width: 360px;
-  max-width: calc(100% - 32px);
-  z-index: 26;
+.fc-root .overflow-auto {
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(176, 189, 203, 0.28) transparent;
 }
-/* Visible keyboard focus on flags and country markers. */
-.fc-root .fc-flag:focus-visible rect { stroke: var(--focus); stroke-width: 1.5; }
-.fc-root .fc-country:focus-visible { stroke: #70e0ca; stroke-width: 2.5; }
+
+/* Compact / mobile layout (<= 900px): zero overlapping cards, generous visible map */
+@media (max-width: 900px) {
+  .fc-root .fc-stage {
+    height: auto;
+    min-height: calc(100dvh - 76px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+    overflow: visible;
+  }
+  .fc-root .fc-stage .fc-head {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: 100%;
+    max-width: none;
+    order: 1;
+  }
+  .fc-root .fc-stage .fc-time-slot {
+    position: relative;
+    left: auto !important;
+    top: auto;
+    translate: none !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: none !important;
+    z-index: 20;
+    order: 2;
+  }
+  .fc-root .fc-stage .fc-map-wrap {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: clamp(350px, 50dvh, 460px);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: radial-gradient(ellipse 80% 70% at 50% 45%, #0d2233 0%, #06121f 54%, #040b14 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 14px 36px -12px rgba(0, 0, 0, 0.75);
+    order: 3;
+  }
+  .fc-root .fc-stage .fc-strip {
+    position: relative;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto;
+    width: 100%;
+    order: 4;
+  }
+  .fc-root .fc-stage .fc-leftcol {
+    position: relative;
+    left: auto;
+    top: auto !important;
+    bottom: auto;
+    width: 100%;
+    max-width: none;
+    pointer-events: auto;
+    order: 5;
+  }
+  .fc-root .fc-stage .fc-leftcol .fc-moved {
+    max-height: 340px;
+  }
+  .fc-root .fc-stage .fc-panel {
+    position: fixed;
+    top: 76px;
+    right: 0;
+    bottom: 0;
+    width: min(424px, 100%);
+    z-index: 35;
+  }
+}
+
+@media (max-width: 500px) {
+  .fc-root .fc-stage {
+    min-height: calc(100dvh - 65px);
+    padding: 10px;
+    gap: 10px;
+  }
+  .fc-root .fc-stage .fc-panel {
+    top: 65px;
+    width: 100%;
+    border-left: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fc-root .fc-panel,
+  .fc-root .fc-pulse {
+    animation: none;
+  }
+  .fc-root .fc-country,
+  .fc-root .fc-marker,
+  .fc-root .fc-btn,
+  .fc-root .fc-seg button {
+    transition: none;
+  }
+}

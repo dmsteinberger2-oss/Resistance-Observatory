@@ -8,7 +8,7 @@ type Props = {
   systemId: string;
   pubmedId?: string | null;
   doi?: string | null;
-  /** Visible link text. Defaults to "Read the paper". */
+  /** Visible link text. Defaults to "Read source paper". */
   children?: React.ReactNode;
   className?: string;
 };
@@ -22,30 +22,32 @@ export function paperUrl(pubmedId?: string | null, doi?: string | null): string 
 export function EvidenceLink({ systemId, pubmedId, doi, children, className = "" }: Props) {
   const href = paperUrl(pubmedId, doi);
   const ids = (
-    <span className="font-mono text-[0.72rem] text-muted">
+    <span className="font-mono text-xs text-muted">
       system_id {systemId}
       {pubmedId ? ` · PMID ${pubmedId}` : ""}
-      {doi ? ` · doi ${doi}` : ""}
+      {doi ? ` · doi:${doi.replace(/^https?:\/\/(dx\.)?doi\.org\//, "")}` : ""}
     </span>
   );
   if (!href) {
     return (
-      <span className={`inline-flex flex-col gap-0.5 ${className}`}>
-        <span className="text-gap">No PubMed ID or DOI on this finding</span>
+      <span className={`inline-flex flex-col gap-1 ${className}`}>
+        <span className="text-xs text-gap">No PubMed ID or DOI recorded on this finding</span>
         {ids}
       </span>
     );
   }
   return (
-    <span className={`inline-flex flex-col gap-0.5 ${className}`}>
+    <span className={`inline-flex flex-col gap-1 ${className}`}>
       <a
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-1 font-medium text-drug underline decoration-drug/40 underline-offset-4 hover:decoration-drug"
+        className="group/link inline-flex w-fit items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-drug underline decoration-drug/40 underline-offset-4 hover:decoration-drug"
       >
-        {children ?? "Read the paper"}
-        <span aria-hidden>↗</span>
+        <span>{children ?? "Inspect source paper"}</span>
+        <span aria-hidden="true" className="transition-transform group-hover/link:translate-x-0.5">
+          ↗
+        </span>
         <span className="sr-only">(opens in a new tab)</span>
       </a>
       {ids}

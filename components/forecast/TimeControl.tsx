@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { GENOME_MAX_YEAR } from "@/lib/forecast/data";
 
 const BTN =
-  "inline-flex h-8 min-w-8 px-2.5 text-sm tabular-nums whitespace-nowrap gap-1 items-center justify-center rounded-[5px] border border-line-strong bg-surface-2 text-fg hover:border-drug focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-drug disabled:cursor-not-allowed disabled:opacity-40";
+  "inline-flex h-8 min-w-8 px-2.5 text-[13px] font-medium tabular-nums whitespace-nowrap gap-1 items-center justify-center rounded-[7px] border border-white/[0.15] bg-[#0b2032]/85 text-fg shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] transition-colors hover:border-drug/70 hover:bg-[#13324a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-drug disabled:cursor-not-allowed disabled:opacity-40";
 
 export function TimeControl(props: {
   year: number;
@@ -58,17 +58,24 @@ export function TimeControl(props: {
   const ticks = (markedYears ?? []).filter((y) => y >= minYear && y <= maxYear);
 
   return (
-    <div className={`fc-card w-full max-w-[520px] px-4 py-2 ${className ?? ""}`}>
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-baseline gap-2">
-          <span className="text-xs uppercase tracking-[0.18em] text-muted">As of</span>
-          <span className="text-4xl font-semibold leading-none tabular-nums text-fg">{year}</span>
+    <div className={`fc-card w-full max-w-[520px] max-[900px]:max-w-none px-4 py-2.5 ${className ?? ""}`}>
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <div className="flex items-baseline gap-2.5">
+          <span className="fc-asof-kicker">AS OF</span>{" "}
+          <span className="text-[2rem] sm:text-[2.25rem] font-semibold leading-none tracking-[-0.03em] tabular-nums text-fg">
+            {year}
+          </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <button type="button" className={BTN} aria-label="Previous year" disabled={year <= minYear} onClick={() => manual(year - 1)}>
             <span aria-hidden>{year > minYear ? `‹ ${year - 1}` : "‹"}</span>
           </button>
-          <button type="button" className={BTN} aria-label={playing ? "Pause" : "Play through the years"} onClick={togglePlay}>
+          <button
+            type="button"
+            className={`${BTN} ${playing ? "border-drug/70 bg-drug-soft text-drug" : ""}`}
+            aria-label={playing ? "Pause" : "Play through the years"}
+            onClick={togglePlay}
+          >
             <span aria-hidden>{playing ? "❚❚ Pause" : "▶ Play"}</span>
           </button>
           <button type="button" className={BTN} aria-label="Next year" disabled={year >= maxYear} onClick={() => manual(year + 1)}>
@@ -77,7 +84,7 @@ export function TimeControl(props: {
         </div>
       </div>
 
-      <div className="mt-1">
+      <div className="mt-1.5">
         <div className="relative">
           <input
             id="fc-asof-year"
@@ -88,26 +95,28 @@ export function TimeControl(props: {
             value={year}
             aria-valuetext={`As of ${year}`}
             onChange={(e) => manual(Number(e.target.value))}
-            className="block h-5 w-full cursor-pointer accent-drug focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-drug"
+            className="fc-range block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-drug"
           />
-          <div aria-hidden className="pointer-events-none relative mx-[8px] h-2">
+          <div aria-hidden className="pointer-events-none relative mx-[8px] -mt-0.5 h-2">
             {ticks.map((y) => (
               <span
                 key={y}
-                className="absolute top-0 h-2 w-px bg-signal"
+                className="absolute top-0 h-2 w-px bg-signal/85"
                 style={{ left: `${((y - minYear) / span) * 100}%` }}
               />
             ))}
           </div>
         </div>
-        <div className="flex justify-between text-xs tabular-nums text-muted">
-          <label htmlFor="fc-asof-year" className="sr-only">           As-of year         </label>
+        <div className="mt-0.5 flex justify-between text-xs font-medium tabular-nums text-muted">
+          <label htmlFor="fc-asof-year" className="sr-only">
+            As-of year
+          </label>
           <span>{minYear}</span>
           <span>{maxYear}</span>
         </div>
       </div>
 
-      <p className="mt-0.5 text-xs leading-snug text-muted">
+      <p className="mt-1 border-t border-white/[0.08] pt-1.5 text-xs leading-snug tabular-nums text-muted">
         {year <= GENOME_MAX_YEAR
           ? `Genomes: collected through ${year} · Papers, Graph findings: published through ${year}`
           : `Genomes: collected through ${GENOME_MAX_YEAR}, where this dataset ends · Papers, Graph findings: published through ${year}`}

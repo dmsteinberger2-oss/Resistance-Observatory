@@ -18,9 +18,9 @@ import { TimeControl } from "./TimeControl";
 import { WhatMoved } from "./WhatMoved";
 import type { SearchResult } from "@/lib/forecast/search";
 
-const PANEL_PX = 420;
-const LEFT_PX = 376; // left column (360px) plus its 16px inset
-const TOP_PX = 170; // the time control at the top centre
+const PANEL_PX = 424;
+const LEFT_PX = 372; // left column (356px) plus its 16px inset
+const TOP_PX = 166; // the time control at the top centre
 const ZOOM_COL_PX = 16 + 70 + 12; // zoom buttons column plus gaps
 
 export function ForecastApp({ alertFeed }: { alertFeed: AlertFeed }) {
@@ -126,8 +126,22 @@ export function ForecastApp({ alertFeed }: { alertFeed: AlertFeed }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [country, onClose]);
 
+  const isCompact = stageW <= 900;
   const panelPx = country ? Math.min(PANEL_PX, stageW) : 0;
-  const leftPx = stageW > 900 ? LEFT_PX : 0;
+  const mapPanelPx = isCompact ? 0 : panelPx;
+  const leftPx = isCompact ? 0 : LEFT_PX;
+  const availLegendW = isCompact
+    ? stageW - 24
+    : stageW - (leftPx ? leftPx + 12 : 16) - panelPx - ZOOM_COL_PX;
+  const legendCols: 1 | 2 | 3 | 6 = isCompact
+    ? stageW < 420
+      ? 1
+      : 2
+    : availLegendW > 930
+      ? 6
+      : availLegendW > 640
+        ? 3
+        : 2;
   const resolvedFromCity = city && city.iso3 === country ? city.name : null;
 
   return (
@@ -136,29 +150,40 @@ export function ForecastApp({ alertFeed }: { alertFeed: AlertFeed }) {
         <h1 className="sr-only">
           Forecast: K540E (pfdhps, sulfadoxine-pyrimethamine) in genome data by country, as of {asOfYear}
         </h1>
-        <div ref={headRef} className="fc-card fc-search-card fc-head p-3.5" data-fc-avoid>
-          <p className="fc-label">Map · Observed history</p>
-          <p className="mt-1 text-[12px] text-muted">
+        <div ref={headRef} className="fc-card fc-search-card fc-head p-4" data-fc-avoid>
+          <div className="flex items-center justify-between gap-2">
+            <p className="fc-label flex items-center gap-2 text-drug">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-drug shadow-[0_0_8px_rgba(112,224,202,0.85)]" aria-hidden />
+              Map · Observed history
+            </p>
+          </div>
+          <p className="mt-1 text-[12px] leading-relaxed text-muted">
             Observed history only. No projections or future scenarios.
           </p>
-          <p className="mt-1.5 text-[13px] leading-snug">
+          <p className="mt-2 rounded-[7px] border border-white/[0.08] bg-[#040d17]/60 px-2.5 py-1.5 text-[13px] leading-snug">
             <span className="font-semibold text-drug">K540E</span> · parasite gene{" "}
             <i>pfdhps</i> · drug: sulfadoxine-pyrimethamine (SP)
           </p>
-          <div className="mt-2.5 border-t border-line pt-2">
-            <p className="fc-label">Public Graph coverage</p>
-            <p className="mt-1 text-[12px] leading-snug tabular-nums">
-              The Graph has read {totals.readByGraph} of {totals.total} K540E papers published
-              through {asOfYear}.
+          <div className="mt-3 border-t border-line pt-2.5">
+            <div className="flex items-baseline justify-between gap-2">
+              <p className="fc-label">Public Graph coverage</p>
+              <span className="text-[12px] font-semibold tabular-nums text-fg">
+                {totals.readByGraph} / {totals.total}
+              </span>
+            </div>
+            <p className="mt-1 text-[12px] leading-snug tabular-nums text-muted">
+              The Graph has read <span className="font-medium text-fg">{totals.readByGraph}</span> of{" "}
+              <span className="font-medium text-fg">{totals.total}</span> K540E papers published
+              through <span className="font-medium text-fg">{asOfYear}</span>.
             </p>
-            <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-surface-2" aria-hidden>
+            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full border border-white/[0.08] bg-[#040c16]" aria-hidden>
               <div
-                className="h-full rounded-full bg-fg"
-                style={{ width: `${totals.total > 0 ? (100 * totals.readByGraph) / totals.total : 0}%` }}
+                className="h-full rounded-full bg-drug shadow-[0_0_8px_rgba(112,224,202,0.55)] transition-[width] duration-200"
+                style={{ width: `${totals.total > 0 ? Math.max(2, (100 * totals.readByGraph) / totals.total) : 0}%` }}
               />
             </div>
           </div>
-          <SearchBox onSelect={onSearch} className="mt-2.5" />
+          <SearchBox onSelect={onSearch} className="mt-3" />
         </div>
 
         <div
@@ -169,8 +194,20 @@ export function ForecastApp({ alertFeed }: { alertFeed: AlertFeed }) {
             const b = (e.target as Element).closest?.("button");
             if (b?.getAttribute("aria-label") === "Pause") setTimeout(flushYear, 0);
           }}
-          className="absolute top-4 z-20 -translate-x-1/2"
-          style={{ left: `calc(${leftPx}px + (100% - ${leftPx}px - ${panelPx}px) / 2)` }}
+          className={
+            isCompact
+              ? "fc-time-slot z-20 w-full"
+              : "fc-time-slot absolute top-4 z-20 -translate-x-1/2"
+          }
+          style={
+            isCompact
+              ? undefined
+              : {
+                  left: `calc(${leftPx}px + (100% - ${leftPx}px - ${panelPx}px) / 2)`,
+                  width: "520px",
+                  maxWidth: `calc(100% - ${leftPx}px - ${panelPx}px - 28px)`,
+                }
+          }
         >
           <TimeControl
             year={asOfYear}
@@ -181,7 +218,11 @@ export function ForecastApp({ alertFeed }: { alertFeed: AlertFeed }) {
           />
         </div>
 
-        <div className="fc-leftcol" data-fc-avoid style={{ top: 16 + headH + 10 }}>
+        <div
+          className="fc-leftcol"
+          data-fc-avoid
+          style={isCompact ? undefined : { top: 16 + headH + 10 }}
+        >
           <WhatMoved
             year={asOfYear}
             alertFeed={alertFeed}
@@ -194,14 +235,19 @@ export function ForecastApp({ alertFeed }: { alertFeed: AlertFeed }) {
           ref={stripRef}
           className="fc-strip"
           data-fc-avoid
-          style={{ left: leftPx ? leftPx + 12 : 16, right: panelPx + ZOOM_COL_PX }}
+          style={
+            isCompact
+              ? undefined
+              : { left: leftPx ? leftPx + 12 : 16, right: panelPx + ZOOM_COL_PX }
+          }
         >
           <LegendStrip
             layer={layer}
             asOfYear={asOfYear}
             placeholder={alertFeed.placeholder}
             paperMax={paperMax}
-            wide={stageW - (leftPx ? leftPx + 12 : 16) - panelPx - ZOOM_COL_PX > 900}
+            wide={availLegendW > 930}
+            columns={legendCols}
             onLayerChange={setLayer}
           />
         </div>
@@ -210,12 +256,12 @@ export function ForecastApp({ alertFeed }: { alertFeed: AlertFeed }) {
           asOfYear={asOfYear}
           selected={country}
           flyKey={flyKey}
-          panelPx={panelPx}
+          panelPx={mapPanelPx}
           leftPx={leftPx}
           alertFeed={alertFeed}
           layer={layer}
-          topPx={TOP_PX}
-          bottomPx={stripH + 28}
+          topPx={isCompact ? 12 : TOP_PX}
+          bottomPx={isCompact ? 12 : stripH + 28}
           onSelect={onMapSelect}
         />
 

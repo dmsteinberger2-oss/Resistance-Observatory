@@ -13,7 +13,7 @@ export function Reveal({
   children: ReactNode;
   delay?: number;
   className?: string;
-  as?: "div" | "li" | "section" | "p";
+  as?: "div" | "li" | "section" | "article" | "p";
 }) {
   const { ref, inView } = useInView<HTMLDivElement>({ threshold: 0.15 });
   return (

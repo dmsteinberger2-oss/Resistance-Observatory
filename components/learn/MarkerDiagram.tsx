@@ -1,158 +1,281 @@
-import type { BeforeAfterDiagram, Diagram, LadderDiagram } from "@/content/markers";
+import type {
+  BeforeAfterDiagram,
+  Diagram,
+  LadderDiagram,
+} from "@/content/markers";
 
 /**
- * Original SVG diagrams, built from a config object in content/markers.ts.
- * All labels are real <text>. Colour is never the only encoding: new vs
- * inherited alterations differ by fill AND border style AND a "+" prefix; the
- * altered element carries a triangle glyph and a text label.
+ * Original SVG diagrams built from content/markers.ts.
+ * All labels are real <text> elements (>= 12px). Colour is never the sole
+ * encoding: new vs inherited alterations differ by fill, border style, and a
+ * "+" prefix; highlighted rungs carry a "▶ THIS MARKER" callout; residue charge
+ * swaps use distinct circle (+) vs dashed square (−) geometry.
  */
 export function MarkerDiagram({ diagram }: { diagram: Diagram }) {
-  return diagram.kind === "ladder" ? <Ladder d={diagram} /> : <BeforeAfter d={diagram} />;
+  return diagram.kind === "ladder" ? (
+    <Ladder d={diagram} />
+  ) : (
+    <BeforeAfter d={diagram} />
+  );
 }
 
-const FONT = "var(--font-sans)";
-const CHAR_W = 13.4; // approx px per char at fontSize 21 (bold)
+const SANS = "var(--font-sans)";
+const MONO = "var(--font-mono)";
+const CHAR_W = 11.4; // approx px per char at mono fontSize 18
 
 function Ladder({ d }: { d: LadderDiagram }) {
-  const W = 1110;
-  const rungGap = 130;
-  const top = 70;
+  const W = 1080;
+  const rungGap = 128;
+  const top = 66;
   const n = d.rungs.length;
-  const H = top + 60 + (n - 1) * rungGap + 70;
-  const barX = 240;
-  const barW = 640;
+  const H = top + 58 + (n - 1) * rungGap + 78;
+  const barX = 228;
+  const barW = 636;
   const hasCarried = d.rungs.some((r) => r.alterations.some((a) => !a.isNew));
-  const effX = barX + barW + 24;
+  const effX = barX + barW + 22;
 
   return (
     <figure>
-      <div className="overflow-x-auto">
-        <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby="ladder-t ladder-d" className="w-full min-w-[780px] xl:min-w-0">
+      <div className="overflow-x-auto rounded-[6px] border border-line bg-[#050d17] p-3 sm:p-4">
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          role="img"
+          aria-labelledby="ladder-t ladder-d"
+          className="w-full min-w-[740px] xl:min-w-0"
+        >
           <title id="ladder-t">{d.title}</title>
           <desc id="ladder-d">
             {d.rungs
               .map(
                 (r) =>
-                  `${r.name}: ${r.alterations.map((a) => `${a.gene} ${a.codon}`).join(", ")}${r.residueChange ? ` (${r.residueChange.caption})` : ""}`,
+                  `${r.name}: ${r.alterations
+                    .map((a) => `${a.gene} ${a.codon}`)
+                    .join(", ")}${
+                    r.residueChange ? ` (${r.residueChange.caption})` : ""
+                  }`,
               )
               .join(". ")}
             . Earlier rungs sit lower.
             {d.bracket ? ` ${d.bracket.lines.join(" ")}.` : ""}
           </desc>
 
-          {/* rails */}
-          <line x1={barX - 12} y1={top - 20} x2={barX - 12} y2={H - 30} stroke="var(--line-strong)" strokeWidth="4" />
-          <line x1={barX + barW + 12} y1={top - 20} x2={barX + barW + 12} y2={H - 30} stroke="var(--line-strong)" strokeWidth="4" />
+          {/* Vertical ladder rails */}
+          <line
+            x1={barX - 10}
+            y1={top - 16}
+            x2={barX - 10}
+            y2={H - 28}
+            stroke="var(--line-strong)"
+            strokeWidth="2"
+          />
+          <line
+            x1={barX + barW + 10}
+            y1={top - 16}
+            x2={barX + barW + 10}
+            y2={H - 28}
+            stroke="var(--line-strong)"
+            strokeWidth="2"
+          />
 
-          {/* "accumulates" arrow */}
+          {/* Upward accumulation axis */}
           <g>
-            <line x1="40" y1={H - 40} x2="40" y2={top} stroke="var(--fg)" strokeWidth="3" />
-            <path d={`M40 ${top - 14} l10 18 h-20 Z`} fill="var(--fg)" />
+            <line
+              x1="36"
+              y1={H - 36}
+              x2="36"
+              y2={top}
+              stroke="var(--drug)"
+              strokeWidth="2"
+            />
+            <path d={`M36 ${top - 12} l7 14 h-14 Z`} fill="var(--drug)" />
             <text
               x="0"
               y="0"
-              transform={`translate(28 ${(H + top) / 2}) rotate(-90)`}
+              transform={`translate(22 ${(H + top) / 2}) rotate(-90)`}
               textAnchor="middle"
-              fontSize="18"
-              fontFamily={FONT}
+              fontSize="14"
+              fontFamily={MONO}
               fill="var(--muted)"
-              letterSpacing="2"
+              letterSpacing="2.4"
             >
               ACCUMULATES
             </text>
           </g>
 
           {[...d.rungs].map((rung, idx) => {
-            // idx 0 = first rung = lowest on screen
-            const y = top + 60 + (n - 1 - idx) * rungGap;
+            // idx 0 = earliest rung = lowest on screen
+            const y = top + 58 + (n - 1 - idx) * rungGap;
             let cx = barX + 16;
             return (
               <g key={rung.name}>
-                {/* rung bar */}
+                {/* Rung container */}
                 <rect
-                  x={barX - 12}
-                  y={y - 36}
-                  width={barW + 24}
-                  height="72"
-                  rx="10"
-                  fill="var(--surface-2)"
+                  x={barX - 10}
+                  y={y - 34}
+                  width={barW + 20}
+                  height="68"
+                  rx="8"
+                  fill={rung.highlight ? "#122436" : "#0a1929"}
                   stroke={rung.highlight ? "var(--signal)" : "var(--line-strong)"}
-                  strokeWidth={rung.highlight ? 5 : 2}
+                  strokeWidth={rung.highlight ? 2.5 : 1.25}
                 />
+
                 {rung.highlight ? (
-                  <text x="72" y={y + 46} fontSize="17" fontWeight="700" fontFamily={FONT} fill="var(--signal)">
-                    ▶ this marker
+                  <text
+                    x="64"
+                    y={y + 42}
+                    fontSize="14"
+                    fontWeight="700"
+                    fontFamily={MONO}
+                    fill="var(--signal)"
+                  >
+                    ▶ THIS MARKER
                   </text>
                 ) : null}
-                {/* step number + name */}
-                <text x="72" y={y - 6} fontSize="26" fontWeight="700" fontFamily={FONT} fill="var(--fg)">
+
+                {/* Step label + codon name */}
+                <text
+                  x="64"
+                  y={y - 5}
+                  fontSize="23"
+                  fontWeight="700"
+                  fontFamily={MONO}
+                  fill="var(--fg)"
+                >
                   {rung.name}
                 </text>
-                <text x="72" y={y + 22} fontSize="17" fontFamily={FONT} fill="var(--muted)">
-                  rung {idx + 1} of {d.rungs.length}
+                <text
+                  x="64"
+                  y={y + 19}
+                  fontSize="14"
+                  fontFamily={MONO}
+                  fill="var(--muted)"
+                >
+                  RUNG 0{idx + 1} / 0{d.rungs.length}
                 </text>
-                {/* alteration chips */}
+
+                {/* Alteration chips */}
                 {rung.alterations.map((a) => {
                   const label = `${a.isNew ? "+ " : ""}${a.gene} ${a.codon}`;
-                  const w = label.length * CHAR_W + 26;
+                  const w = label.length * CHAR_W + 28;
                   const x = cx;
-                  cx += w + 10;
+                  cx += w + 12;
                   return (
                     <g key={label}>
                       <rect
                         x={x}
-                        y={y - 22}
+                        y={y - 20}
                         width={w}
-                        height="44"
-                        rx="22"
+                        height="40"
+                        rx="6"
                         fill={a.isNew ? "var(--drug)" : "var(--bg)"}
                         stroke={a.isNew ? "var(--drug)" : "var(--line-strong)"}
-                        strokeWidth="2"
-                        strokeDasharray={a.isNew ? undefined : "5 5"}
+                        strokeWidth="1.5"
+                        strokeDasharray={a.isNew ? undefined : "5 4"}
                       />
                       <text
                         x={x + w / 2}
-                        y={y + 7}
+                        y={y + 6}
                         textAnchor="middle"
-                        fontSize="21"
+                        fontSize="18"
                         fontWeight={a.isNew ? 700 : 500}
-                        fontFamily={FONT}
-                        fill={a.isNew ? "var(--bg)" : "var(--muted)"}
+                        fontFamily={MONO}
+                        fill={a.isNew ? "#061821" : "var(--muted)"}
                       >
                         {label}
                       </text>
                     </g>
                   );
                 })}
-                {/* amino-acid change: schematic residue glyphs only, no structure */}
+
+                {/* Schematic residue charge-reversal callout */}
                 {rung.residueChange ? (
-                  <g fontFamily={FONT}>
+                  <g fontFamily={SANS}>
                     {(() => {
                       const rc = rung.residueChange;
-                      const gy = y + 62;
-                      const gx = barX + 30;
+                      const gy = y + 58;
+                      const gx = barX + 26;
                       return (
                         <>
-                          {/* from: circle */}
-                          <circle cx={gx} cy={gy} r="15" fill="var(--bg)" stroke="var(--fg)" strokeWidth="2" />
-                          <text x={gx} y={gy + 6} textAnchor="middle" fontSize="17" fontWeight="700" fill="var(--fg)">
+                          <circle
+                            cx={gx}
+                            cy={gy}
+                            r="14"
+                            fill="var(--bg)"
+                            stroke="var(--fg)"
+                            strokeWidth="1.75"
+                          />
+                          <text
+                            x={gx}
+                            y={gy + 5}
+                            textAnchor="middle"
+                            fontSize="15"
+                            fontWeight="700"
+                            fontFamily={MONO}
+                            fill="var(--fg)"
+                          >
                             {rc.from.letter}
                           </text>
-                          <text x={gx + 19} y={gy - 6} fontSize="18" fontWeight="700" fill="var(--fg)">
+                          <text
+                            x={gx + 17}
+                            y={gy - 5}
+                            fontSize="16"
+                            fontWeight="700"
+                            fontFamily={MONO}
+                            fill="var(--signal)"
+                          >
                             {rc.from.charge}
                           </text>
-                          {/* arrow */}
-                          <line x1={gx + 40} y1={gy} x2={gx + 72} y2={gy} stroke="var(--fg)" strokeWidth="2" />
-                          <path d={`M${gx + 80} ${gy} l-10 -6 v12 Z`} fill="var(--fg)" />
-                          {/* to: square, so the two glyphs differ by shape as well as letter and sign */}
-                          <rect x={gx + 92} y={gy - 15} width="30" height="30" rx="4" fill="var(--bg)" stroke="var(--fg)" strokeWidth="2" strokeDasharray="5 3" />
-                          <text x={gx + 107} y={gy + 6} textAnchor="middle" fontSize="17" fontWeight="700" fill="var(--fg)">
+                          <line
+                            x1={gx + 36}
+                            y1={gy}
+                            x2={gx + 68}
+                            y2={gy}
+                            stroke="var(--fg)"
+                            strokeWidth="1.75"
+                          />
+                          <path
+                            d={`M${gx + 75} ${gy} l-9 -5 v10 Z`}
+                            fill="var(--fg)"
+                          />
+                          <rect
+                            x={gx + 86}
+                            y={gy - 14}
+                            width="28"
+                            height="28"
+                            rx="4"
+                            fill="var(--bg)"
+                            stroke="var(--drug)"
+                            strokeWidth="1.75"
+                            strokeDasharray="4 3"
+                          />
+                          <text
+                            x={gx + 100}
+                            y={gy + 5}
+                            textAnchor="middle"
+                            fontSize="15"
+                            fontWeight="700"
+                            fontFamily={MONO}
+                            fill="var(--fg)"
+                          >
                             {rc.to.letter}
                           </text>
-                          <text x={gx + 127} y={gy - 6} fontSize="18" fontWeight="700" fill="var(--fg)">
+                          <text
+                            x={gx + 118}
+                            y={gy - 5}
+                            fontSize="16"
+                            fontWeight="700"
+                            fontFamily={MONO}
+                            fill="var(--drug)"
+                          >
                             {rc.to.charge}
                           </text>
-                          <text x={gx + 156} y={gy + 6} fontSize="17" fill="var(--muted)">
+                          <text
+                            x={gx + 144}
+                            y={gy + 5}
+                            fontSize="15"
+                            fill="var(--muted)"
+                          >
                             {rc.caption}
                           </text>
                         </>
@@ -160,18 +283,37 @@ function Ladder({ d }: { d: LadderDiagram }) {
                     })()}
                   </g>
                 ) : null}
-                {/* effect on the drug */}
+
+                {/* Effect on drug */}
                 {rung.effect ? (
-                  // Sits inside the bar, after the chips.
-                  <text x={cx + 8} y={y + 7} fontSize="19" fontFamily={FONT} fill="var(--fg)">
+                  <text
+                    x={cx + 8}
+                    y={y + 6}
+                    fontSize="17"
+                    fontFamily={SANS}
+                    fill="var(--fg)"
+                  >
                     {rung.effect}
                   </text>
                 ) : (
                   <g>
-                    <text x={effX} y={y - 4} fontSize="16" fontFamily={FONT} fill="var(--gap)" fontWeight="600">
+                    <text
+                      x={effX}
+                      y={y - 4}
+                      fontSize="15"
+                      fontFamily={SANS}
+                      fill="var(--gap)"
+                      fontWeight="600"
+                    >
                       Effect on drug:
                     </text>
-                    <text x={effX} y={y + 18} fontSize="16" fontFamily={FONT} fill="var(--gap)">
+                    <text
+                      x={effX}
+                      y={y + 16}
+                      fontSize="15"
+                      fontFamily={SANS}
+                      fill="var(--gap)"
+                    >
                       pending review
                     </text>
                   </g>
@@ -180,30 +322,30 @@ function Ladder({ d }: { d: LadderDiagram }) {
             );
           })}
 
-          {/* named combination spanning rungs: bracket + text label */}
+          {/* Named combination bracket */}
           {d.bracket
             ? (() => {
-                const yOf = (idx: number) => top + 60 + (n - 1 - idx) * rungGap;
-                const yTop = yOf(d.bracket.to) - 36;
-                const yBot = yOf(d.bracket.from) + 36;
-                const bx = barX + barW + 26;
+                const yOf = (idx: number) => top + 58 + (n - 1 - idx) * rungGap;
+                const yTop = yOf(d.bracket.to) - 34;
+                const yBot = yOf(d.bracket.from) + 34;
+                const bx = barX + barW + 24;
                 const mid = (yTop + yBot) / 2;
                 return (
                   <g>
                     <path
-                      d={`M${bx} ${yTop} h14 V${yBot} h-14`}
+                      d={`M${bx} ${yTop} h12 V${yBot} h-12`}
                       fill="none"
-                      stroke="var(--fg)"
-                      strokeWidth="3"
+                      stroke="var(--signal)"
+                      strokeWidth="2"
                     />
                     {d.bracket.lines.map((line, i) => (
                       <text
                         key={line}
-                        x={bx + 28}
-                        y={mid - (d.bracket!.lines.length - 1) * 11 + i * 22 + 6}
-                        fontSize={i === 0 ? 19 : 16}
+                        x={bx + 24}
+                        y={mid - (d.bracket!.lines.length - 1) * 10 + i * 21 + 5}
+                        fontSize={i === 0 ? 17 : 15}
                         fontWeight={i === 0 ? 700 : 400}
-                        fontFamily={FONT}
+                        fontFamily={i === 1 ? MONO : SANS}
                         fill={i === 0 ? "var(--fg)" : "var(--muted)"}
                       >
                         {line}
@@ -214,21 +356,58 @@ function Ladder({ d }: { d: LadderDiagram }) {
               })()
             : null}
 
-          {/* legend */}
-          <g transform={`translate(${barX} 26)`} fontFamily={FONT} fontSize="16" fill="var(--muted)">
-            <rect x="0" y="-14" width="44" height="22" rx="11" fill="var(--drug)" />
-            <text x="22" y="2" textAnchor="middle" fontSize="13" fontWeight="700" fill="var(--bg)">+</text>
-            <text x="54" y="2">new at this rung</text>
+          {/* Legend */}
+          <g
+            transform={`translate(${barX} 26)`}
+            fontFamily={MONO}
+            fontSize="14"
+            fill="var(--muted)"
+          >
+            <rect
+              x="0"
+              y="-13"
+              width="38"
+              height="20"
+              rx="4"
+              fill="var(--drug)"
+            />
+            <text
+              x="19"
+              y="2"
+              textAnchor="middle"
+              fontSize="13"
+              fontWeight="700"
+              fill="#061821"
+            >
+              +
+            </text>
+            <text x="48" y="2">
+              new at this rung
+            </text>
             {hasCarried ? (
               <>
-                <rect x="210" y="-14" width="44" height="22" rx="11" fill="var(--bg)" stroke="var(--line-strong)" strokeWidth="2" strokeDasharray="5 5" />
-                <text x="264" y="2">carried from the rung below</text>
+                <rect
+                  x="210"
+                  y="-13"
+                  width="38"
+                  height="20"
+                  rx="4"
+                  fill="var(--bg)"
+                  stroke="var(--line-strong)"
+                  strokeWidth="1.5"
+                  strokeDasharray="4 4"
+                />
+                <text x="258" y="2">
+                  carried from rung below
+                </text>
               </>
             ) : null}
           </g>
         </svg>
       </div>
-      <figcaption className="mt-4 max-w-3xl text-sm text-muted">{d.caption}</figcaption>
+      <figcaption className="mt-3.5 text-xs leading-relaxed text-muted sm:text-sm">
+        {d.caption}
+      </figcaption>
     </figure>
   );
 }
@@ -256,33 +435,84 @@ function BeforeAfter({ d }: { d: BeforeAfterDiagram }) {
         ];
     return (
       <g>
-        <rect x={x} y="20" width="460" height="440" rx="18" fill="var(--surface)" stroke="var(--line)" strokeWidth="2" />
-        <text x={x + 28} y="66" fontSize="28" fontWeight="700" fontFamily={FONT} fill="var(--fg)">
+        <rect
+          x={x}
+          y="20"
+          width="460"
+          height="440"
+          rx="12"
+          fill="var(--surface)"
+          stroke="var(--line)"
+          strokeWidth="1.5"
+        />
+        <text
+          x={x + 28}
+          y="64"
+          fontSize="24"
+          fontWeight="700"
+          fontFamily={SANS}
+          fill="var(--fg)"
+        >
           {altered ? "▲ " : "✓ "}
           {heading}
         </text>
-        <text x={x + 28} y="96" fontSize="18" fontFamily={FONT} fill="var(--muted)">
+        <text
+          x={x + 28}
+          y="94"
+          fontSize="16"
+          fontFamily={SANS}
+          fill="var(--muted)"
+        >
           {note}
         </text>
-        {/* protein element — highlighted in both panels */}
         <rect
           x={cx - 70}
           y={cy - 50}
           width="140"
           height="100"
-          rx="40"
+          rx="32"
           fill={altered ? "url(#hatch)" : "var(--surface-2)"}
           stroke="var(--fg)"
-          strokeWidth="4"
+          strokeWidth="3"
         />
-        <rect x={cx - 82} y={cy - 62} width="164" height="124" rx="50" fill="none" stroke="var(--gap)" strokeWidth="3" strokeDasharray="8 6" />
-        <text x={cx} y={cy + 92} textAnchor="middle" fontSize="20" fontWeight="600" fontFamily={FONT} fill="var(--fg)">
+        <rect
+          x={cx - 82}
+          y={cy - 62}
+          width="164"
+          height="124"
+          rx="42"
+          fill="none"
+          stroke="var(--gap)"
+          strokeWidth="2"
+          strokeDasharray="8 6"
+        />
+        <text
+          x={cx}
+          y={cy + 92}
+          textAnchor="middle"
+          fontSize="18"
+          fontWeight="600"
+          fontFamily={SANS}
+          fill="var(--fg)"
+        >
           {d.element}
         </text>
         {altered ? (
           <g>
-            <path d={`M${cx + 70} ${cy - 70} l16 28 h-32 Z`} fill="var(--signal)" stroke="var(--fg)" strokeWidth="2" />
-            <text x={cx + 94} y={cy - 46} fontSize="20" fontWeight="700" fontFamily={FONT} fill="var(--signal)">
+            <path
+              d={`M${cx + 70} ${cy - 70} l14 25 h-28 Z`}
+              fill="var(--signal)"
+              stroke="var(--fg)"
+              strokeWidth="1.5"
+            />
+            <text
+              x={cx + 92}
+              y={cy - 48}
+              fontSize="18"
+              fontWeight="700"
+              fontFamily={MONO}
+              fill="var(--signal)"
+            >
               altered
             </text>
           </g>
@@ -290,18 +520,26 @@ function BeforeAfter({ d }: { d: BeforeAfterDiagram }) {
         {drugs.map(([dx, dy], i) => (
           <rect
             key={i}
-            x={cx + dx - 11}
-            y={cy + dy - 11}
-            width="22"
-            height="22"
+            x={cx + dx - 10}
+            y={cy + dy - 10}
+            width="20"
+            height="20"
             transform={`rotate(45 ${cx + dx} ${cy + dy})`}
             fill={altered ? "none" : "var(--drug)"}
             stroke="var(--drug)"
-            strokeWidth="3"
+            strokeWidth="2.5"
           />
         ))}
-        <text x={x + 28} y="430" fontSize="18" fontFamily={FONT} fill="var(--muted)">
-          {altered ? "◇ drug effect blunted (schematic)" : "◆ drug effect intact (schematic)"}
+        <text
+          x={x + 28}
+          y="430"
+          fontSize="16"
+          fontFamily={MONO}
+          fill="var(--muted)"
+        >
+          {altered
+            ? "◇ drug effect blunted (schematic)"
+            : "◆ drug effect intact (schematic)"}
         </text>
       </g>
     );
@@ -309,20 +547,40 @@ function BeforeAfter({ d }: { d: BeforeAfterDiagram }) {
 
   return (
     <figure>
-      <div className="overflow-x-auto">
-        <svg viewBox="0 0 960 480" role="img" aria-labelledby="ba-t" className="w-full min-w-[640px]">
+      <div className="overflow-x-auto rounded-[6px] border border-line bg-[#050d17] p-3">
+        <svg
+          viewBox="0 0 960 480"
+          role="img"
+          aria-labelledby="ba-t"
+          className="w-full min-w-[640px]"
+        >
           <title id="ba-t">{d.title}</title>
           <defs>
-            <pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <pattern
+              id="hatch"
+              width="10"
+              height="10"
+              patternUnits="userSpaceOnUse"
+              patternTransform="rotate(45)"
+            >
               <rect width="10" height="10" fill="var(--signal-soft)" />
-              <line x1="0" y1="0" x2="0" y2="10" stroke="var(--signal)" strokeWidth="4" />
+              <line
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="10"
+                stroke="var(--signal)"
+                strokeWidth="3"
+              />
             </pattern>
           </defs>
           {panel(0, false)}
           {panel(500, true)}
         </svg>
       </div>
-      <figcaption className="mt-4 max-w-3xl text-sm text-muted">{d.caption}</figcaption>
+      <figcaption className="mt-3.5 text-xs leading-relaxed text-muted sm:text-sm">
+        {d.caption}
+      </figcaption>
     </figure>
   );
 }

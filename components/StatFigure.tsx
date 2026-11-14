@@ -6,7 +6,7 @@ import { useInView, usePrefersReducedMotion } from "@/lib/motion";
 
 /**
  * Renders a Stat from lib/stats.ts. Numeric values count up on first scroll
- * into view (static under reduced motion). Text values render as they are.
+ * into view (static under reduced motion). Text values render verbatim.
  */
 export function StatFigure({
   stat,
@@ -19,9 +19,9 @@ export function StatFigure({
   className?: string;
   showLabel?: boolean;
   showSource?: boolean;
-  size?: "lg" | "md";
+  size?: "lg" | "md" | "sm";
 }) {
-  const { ref, inView } = useInView<HTMLDivElement>({ threshold: 0.4 });
+  const { ref, inView } = useInView<HTMLDivElement>({ threshold: 0.35 });
   const reduced = usePrefersReducedMotion();
   const target = typeof stat.value === "number" ? stat.value : null;
   const [shown, setShown] = useState<number | null>(target === null ? null : 0);
@@ -35,7 +35,7 @@ export function StatFigure({
     if (!inView) return;
     let raf = 0;
     const start = performance.now();
-    const dur = 1600;
+    const dur = 1350;
     const tick = (now: number) => {
       const t = Math.min(1, (now - start) / dur);
       const eased = 1 - Math.pow(1 - t, 3);
@@ -47,20 +47,24 @@ export function StatFigure({
   }, [inView, reduced, target]);
 
   const decimals = target !== null && !Number.isInteger(target) ? 1 : 0;
-  const sizeClass = size === "lg" ? "text-6xl sm:text-7xl" : "text-4xl sm:text-5xl";
+  const sizeClass =
+    size === "lg"
+      ? "text-[clamp(2.5rem,5vw,4.25rem)]"
+      : size === "md"
+        ? "text-[clamp(1.85rem,3.2vw,2.75rem)]"
+        : "text-2xl sm:text-3xl";
 
   return (
     <div ref={ref} className={className}>
-      <p className={`font-display ${sizeClass} font-semibold tracking-tight tabular-nums leading-none`}>
+      <p className={`font-display ${sizeClass} font-semibold tabular-nums leading-[1.04] text-fg`}>
         {target !== null ? (
           <>
-            {/* Screen readers get the final figure, not the animation. */}
-            <span aria-hidden>
+            <span aria-hidden="true">
               {(shown ?? 0).toLocaleString("en-US", {
                 minimumFractionDigits: decimals,
                 maximumFractionDigits: decimals,
               })}
-              {stat.unit ?? ""}
+              {stat.unit ? <span className="text-muted font-normal">{stat.unit}</span> : ""}
             </span>
             <span className="sr-only">
               {target.toLocaleString("en-US")}
@@ -74,8 +78,12 @@ export function StatFigure({
           </>
         )}
       </p>
-      {showLabel ? <p className="mt-3 max-w-xs text-sm text-muted">{stat.label}</p> : null}
-      {showSource ? <p className="mt-1 font-mono text-[0.7rem] text-muted">Source: {stat.source}</p> : null}
+      {showLabel ? (
+        <p className="mt-2.5 max-w-[34ch] text-sm leading-snug text-body">{stat.label}</p>
+      ) : null}
+      {showSource ? (
+        <p className="mt-1.5 font-mono text-xs text-muted">Source: {stat.source}</p>
+      ) : null}
     </div>
   );
 }

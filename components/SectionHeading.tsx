@@ -9,23 +9,32 @@ type Props = {
   className?: string;
 };
 
-export function SectionHeading({ eyebrow, children, as = "h2", lede, id, className = "" }: Props) {
+export function SectionHeading({
+  eyebrow,
+  children,
+  as = "h2",
+  lede,
+  id,
+  className = "",
+}: Props) {
   const Tag = as;
   const size =
     as === "h1"
-      ? "text-4xl sm:text-6xl"
+      ? "text-[clamp(2.1rem,4.4vw,3.6rem)] leading-[1.05]"
       : as === "h2"
-        ? "text-3xl sm:text-4xl"
-        : "text-xl sm:text-2xl";
+        ? "text-[clamp(1.65rem,3vw,2.4rem)] leading-[1.12]"
+        : "text-xl sm:text-2xl leading-snug";
   return (
     <div className={`max-w-3xl ${className}`}>
-      {eyebrow ? (
-        <p className="mb-3 font-mono text-xs uppercase tracking-[0.18em] text-muted">{eyebrow}</p>
-      ) : null}
-      <Tag id={id} className={`font-display font-semibold tracking-tight text-balance ${size}`}>
+      {eyebrow ? <p className="ro-eyebrow mb-4">{eyebrow}</p> : null}
+      <Tag id={id} className={`font-display text-fg text-balance ${size}`}>
         {children}
       </Tag>
-      {lede ? <p className="mt-4 text-lg text-muted text-pretty">{lede}</p> : null}
+      {lede ? (
+        <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-body text-pretty">
+          {lede}
+        </p>
+      ) : null}
     </div>
   );
 }

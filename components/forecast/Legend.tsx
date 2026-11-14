@@ -30,7 +30,7 @@ function Swatch({ kind }: { kind: Kind }) {
         y="0.5"
         width="14"
         height="13"
-        rx="2"
+        rx="2.5"
         fill={
           kind === "not_sampled"
             ? LAND_NOT_SAMPLED
@@ -42,10 +42,10 @@ function Swatch({ kind }: { kind: Kind }) {
         strokeWidth="1"
       />
       {kind === "tested_not_detected" ? (
-        <circle cx="22" cy="7" r="4" fill="#050d17" stroke="#f5f4ef" strokeWidth="1.5" />
+        <circle cx="22" cy="7" r="4" fill="#040b14" stroke="#f5f4ef" strokeWidth="1.5" />
       ) : null}
       {kind === "detected" ? (
-        <circle cx="22" cy="7" r="4.5" fill={DETECTED_DOT} stroke="#050d17" strokeWidth="1.5" />
+        <circle cx="22" cy="7" r="4.5" fill={DETECTED_DOT} stroke="#040b14" strokeWidth="1.5" />
       ) : null}
     </svg>
   );
@@ -60,7 +60,7 @@ function FlagGlyph({ ring = false, placeholder = false }: { ring?: boolean; plac
       <path
         d="M0.8 -19 L13 -15 L0.8 -11 Z"
         fill={placeholder ? "rgba(242,189,118,0.3)" : AMBER}
-        stroke={placeholder ? AMBER : "#050d17"}
+        stroke={placeholder ? AMBER : "#040b14"}
         strokeWidth={1.2}
         strokeDasharray={placeholder ? "2 1.6" : undefined}
       />
@@ -72,7 +72,7 @@ function ChangedGlyph() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden className="shrink-0">
       <circle cx="12" cy="12" r="9.5" fill="none" stroke={AMBER} strokeWidth="1.9" />
-      <circle cx="12" cy="12" r="4.5" fill={DETECTED_DOT} stroke="#050d17" strokeWidth="1.5" />
+      <circle cx="12" cy="12" r="4.5" fill={DETECTED_DOT} stroke="#040b14" strokeWidth="1.5" />
     </svg>
   );
 }
@@ -87,8 +87,8 @@ export function SquareGlyph({ read }: { read: boolean }) {
         y={9 - half}
         width={half * 2}
         height={half * 2}
-        fill={read ? PAPER_READ_FILL : "#050d17"}
-        stroke={read ? "#050d17" : "#f5f4ef"}
+        fill={read ? PAPER_READ_FILL : "#040b14"}
+        stroke={read ? "#040b14" : "#f5f4ef"}
         strokeWidth={read ? 1.25 : 1.6}
       />
     </svg>
@@ -97,9 +97,9 @@ export function SquareGlyph({ read }: { read: boolean }) {
 
 function Ramp({ css, lo, hi }: { css: string; lo: string; hi: string }) {
   return (
-    <span className="flex shrink-0 items-center gap-1 tabular-nums text-muted">
+    <span className="flex shrink-0 items-center gap-1.5 tabular-nums text-muted">
       <span>{lo}</span>
-      <span className="h-2 w-[38px] rounded-[2px] border border-line" style={{ background: css }} aria-hidden />
+      <span className="h-2 w-[42px] rounded-[3px] border border-white/15" style={{ background: css }} aria-hidden />
       <span>{hi}</span>
     </span>
   );
@@ -109,7 +109,7 @@ function Item({ mark, children }: { mark: ReactNode; children: ReactNode }) {
   return (
     <li className="flex min-w-0 items-center gap-1.5">
       {mark}
-      <span className="min-w-0 leading-tight">{children}</span>
+      <span className="min-w-0 leading-tight tabular-nums">{children}</span>
     </li>
   );
 }
@@ -117,8 +117,7 @@ function Item({ mark, children }: { mark: ReactNode; children: ReactNode }) {
 /**
  * Compact legend strip along the bottom of the map.
  *   Row A: inline layer switch + title.
- *   Rows B, C: items (genome: 3 per row, or all 6 in one row when wide;
- *              papers: one row).
+ *   Rows B, C: items adapting smoothly to available width so nothing clips.
  *   Row D: the active layer's source line, one line, ellipsis + title.
  */
 export function LegendStrip({
@@ -127,6 +126,7 @@ export function LegendStrip({
   placeholder = false,
   paperMax,
   wide = false,
+  columns,
   onLayerChange,
 }: {
   layer: MapLayer;
@@ -135,18 +135,20 @@ export function LegendStrip({
   paperMax: number;
   /** Enough width for all genome items on one row. */
   wide?: boolean;
+  columns?: 1 | 2 | 3 | 6;
   onLayerChange: (layer: MapLayer) => void;
 }) {
   const papers = layer === "papers";
+  const cols = columns ?? (wide ? 6 : 3);
   const source = papers
     ? "Countries machine-read from paper abstracts · the Graph has no geography field"
     : "Colours: MalariaGEN Pf8 (CC BY 4.0), by collection year · Shapes: Natural Earth";
   return (
     <section
       aria-label={papers ? `Legend: K540E papers and the Graph as of ${asOfYear}` : `Legend: K540E in genome data as of ${asOfYear}`}
-      className="fc-card px-3 py-2 text-[12px]"
+      className="fc-card min-w-0 overflow-hidden px-3.5 py-2.5 text-[12px]"
     >
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
         <div role="group" aria-label="Map layer" className="fc-seg fc-seg-sm shrink-0">
           <button type="button" aria-pressed={!papers} onClick={() => papers && onLayerChange("genome")}>
             Genome data
@@ -155,34 +157,39 @@ export function LegendStrip({
             Papers and the Graph
           </button>
         </div>
-        <h2 className="fc-label min-w-0 leading-tight">
+        <h2 className="fc-label min-w-0 leading-tight tabular-nums">
           {papers ? `Papers and the Graph · as of ${asOfYear}` : `Genome data · as of ${asOfYear}`}
         </h2>
       </div>
       {papers ? (
-        <ul className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1">
+        <ul className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5">
           <Item mark={<Ramp css={paperRampGradientCss()} lo="1" hi={String(paperMax)} />}>papers</Item>
           <Item mark={<SquareGlyph read />}>Graph read at least one</Item>
           <Item mark={<SquareGlyph read={false} />}>Graph read none</Item>
-          <li className="leading-tight">no mark: no paper</li>
+          <li className="leading-tight text-muted">no mark: no paper</li>
         </ul>
       ) : (
         <ul
-          className="mt-1.5 grid items-center gap-x-4 gap-y-1"
+          className="mt-2 grid items-center gap-x-4 gap-y-1.5"
           style={{
-            gridTemplateColumns: wide
-              ? "repeat(6, auto)"
-              : "repeat(3, auto)",
-            justifyContent: "start",
+            gridTemplateColumns:
+              cols === 6
+                ? "repeat(6, auto)"
+                : cols === 3
+                  ? "repeat(3, minmax(0, 1fr))"
+                  : cols === 2
+                    ? "repeat(2, minmax(0, 1fr))"
+                    : "minmax(0, 1fr)",
+            justifyContent: cols === 6 ? "start" : undefined,
           }}
         >
           <Item mark={<Swatch kind="not_sampled" />}>Not sampled</Item>
           <Item mark={<Swatch kind="tested_not_detected" />}>Tested, not detected</Item>
           <li className="flex min-w-0 items-center gap-1.5">
             <Swatch kind="detected" />
-            <span className="flex flex-col leading-tight">
-              <span className="max-w-[200px]">Detected, share of tested samples carrying K540E:</span>
-              <span className="flex items-center gap-1.5 whitespace-nowrap">
+            <span className="flex min-w-0 flex-col leading-tight">
+              <span className="max-w-[220px]">Detected, share of tested samples carrying K540E:</span>
+              <span className="mt-0.5 flex items-center gap-1.5 whitespace-nowrap">
                 <Ramp css={rampGradientCss()} lo="above 0%" hi="100%" />
               </span>
             </span>
@@ -194,7 +201,7 @@ export function LegendStrip({
           <Item mark={<FlagGlyph ring placeholder={placeholder} />}>New alert in {asOfYear}</Item>
         </ul>
       )}
-      <p className="mt-1 truncate text-[12px] text-muted" title={source}>
+      <p className="mt-2 truncate border-t border-white/[0.08] pt-1.5 text-[12px] text-muted" title={source}>
         {source}
       </p>
     </section>

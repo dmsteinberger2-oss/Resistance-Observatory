@@ -666,7 +666,7 @@ export function WorldMap({
   const hoverAlerts = hover ? (alertsByIso3[hover.iso3] ?? []) : [];
 
   return (
-    <div ref={wrapRef} className="absolute inset-0">
+    <div ref={wrapRef} className="fc-map-wrap absolute inset-0">
       <svg
         ref={svgRef}
         className={`fc-map${dragging ? " is-dragging" : ""}${selected ? " fc-dim" : ""}`}
@@ -713,51 +713,51 @@ export function WorldMap({
         <div
           className="fc-card fc-tooltip"
           style={{
-            left: Math.min(hover.x + 14, (size?.cw ?? 1000) - 300 - panelPx),
+            left: Math.max(8, Math.min(hover.x + 14, (size?.cw ?? 1000) - 308 - panelPx)),
             top: Math.max(8, hover.y + 14),
           }}
           role="status"
         >
-          <div className="font-semibold text-[13px]">{hoverGeo.name}</div>
-          <div className="tabular-nums">
+          <div className="font-semibold text-[13px] text-fg">{hoverGeo.name}</div>
+          <div className="mt-0.5 tabular-nums">
             {paperCounts[hover.iso3]?.total ?? 0} K540E papers published through {asOfYear}
           </div>
           {(paperCounts[hover.iso3]?.total ?? 0) > 0 ? (
-            <div className="tabular-nums">The Graph has read {paperCounts[hover.iso3]?.readByGraph ?? 0} of them</div>
+            <div className="tabular-nums text-drug">The Graph has read {paperCounts[hover.iso3]?.readByGraph ?? 0} of them</div>
           ) : null}
-          <div className="mt-1 text-[12px] text-muted">{PAPER_SOURCE_LINE}</div>
+          <div className="mt-1.5 border-t border-white/[0.09] pt-1 text-[12px] text-muted">{PAPER_SOURCE_LINE}</div>
         </div>
       ) : null}
       {!isPapers && hover && hoverGeo && hoverSnap ? (
         <div
           className="fc-card fc-tooltip"
           style={{
-            left: Math.min(hover.x + 14, (size?.cw ?? 1000) - 300 - panelPx),
+            left: Math.max(8, Math.min(hover.x + 14, (size?.cw ?? 1000) - 308 - panelPx)),
             top: Math.max(8, hover.y + 14),
           }}
           role="status"
         >
-          <div className="font-semibold text-[13px]">{hoverGeo.name}</div>
-          <div>{STATE_LABEL[hoverSnap.state]}</div>
+          <div className="font-semibold text-[13px] text-fg">{hoverGeo.name}</div>
+          <div className="mt-0.5 text-muted">{STATE_LABEL[hoverSnap.state]}</div>
           {hoverSnap.latest ? (
-            <div className="tabular-nums">
+            <div className="mt-0.5 font-medium tabular-nums text-fg">
               {hoverSnap.latest.year}: {hoverSnap.latest.withE} of {hoverSnap.latest.tested} samples carry
               K540E
             </div>
           ) : null}
           {hoverSnap.firstDetectionYear !== null ? (
-            <div>First detection in our data: {hoverSnap.firstDetectionYear}</div>
+            <div className="tabular-nums text-muted">First detection in our data: {hoverSnap.firstDetectionYear}</div>
           ) : null}
           {hoverAlerts.length ? (
-            <div className="mt-1 border-t border-line pt-1" style={{ color: AMBER }}>
-              <div>
+            <div className="mt-1.5 border-t border-white/[0.1] pt-1.5 tabular-nums" style={{ color: AMBER }}>
+              <div className="font-semibold">
                 {alertCountText(hoverAlerts.length, asOfYear)}
                 {placeholderFeed ? " (placeholder, not a real alert)" : ""}
               </div>
-              <div className="text-fg">{hoverAlerts[hoverAlerts.length - 1].headline}</div>
+              <div className="mt-0.5 text-fg">{hoverAlerts[hoverAlerts.length - 1].headline}</div>
             </div>
           ) : null}
-          <div className="mt-1 text-[12px] text-muted">Genome data · MalariaGEN Pf8 · by collection year</div>
+          <div className="mt-1.5 border-t border-white/[0.09] pt-1 text-[12px] text-muted">Genome data · MalariaGEN Pf8 · by collection year</div>
         </div>
       ) : null}
 

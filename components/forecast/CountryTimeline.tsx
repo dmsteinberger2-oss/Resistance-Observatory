@@ -110,6 +110,7 @@ export function CountryTimeline(props: { iso3: string; asOfYear: number; alertFe
 
   return (
     <div className={className}>
+      <div className="rounded-[9px] border border-white/[0.09] bg-[#040d17]/65 p-2.5 shadow-[inset_0_1px_2px_rgba(0,0,0,0.45)]">
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" className="block h-auto w-full" style={{ fontSize: FS }}>
         <title>{`Evidence timeline for ${countryName(iso3)}: marker K540E in pfdhps (sulfadoxine-pyrimethamine)`}</title>
         <desc>{`Tracks on one year axis from ${y0} to ${y1}: genome samples by collection year, papers by publication year, alerts by collection year${who.length > 0 ? ", and WHO documents" : ""}. Things recorded for the same years, each on its own clock. Coincidence in time, not cause.`}</desc>
@@ -234,13 +235,14 @@ export function CountryTimeline(props: { iso3: string; asOfYear: number; alertFe
         ))}
 
         {/* as-of cursor */}
-        <line x1={cursorX} x2={cursorX} y1={14} y2={axisY} className="stroke-fg" strokeWidth={1.2} strokeDasharray="3 3" />
-        <text x={cursorX + (labelRight ? -4 : 4)} y={11} textAnchor={labelRight ? "end" : "start"} className="fill-fg tabular-nums" fontSize={FS}>
+        <line x1={cursorX} x2={cursorX} y1={14} y2={axisY} className="stroke-drug" strokeWidth={1.3} strokeDasharray="3 3" />
+        <text x={cursorX + (labelRight ? -4 : 4)} y={11} textAnchor={labelRight ? "end" : "start"} className="fill-drug font-semibold tabular-nums" fontSize={FS}>
           as of {asOfYear}
         </text>
       </svg>
+      </div>
 
-      <p className="mt-1 min-h-[1.5rem] text-xs leading-snug text-fg" aria-live="polite">
+      <p className="mt-2 min-h-[1.5rem] text-xs leading-snug tabular-nums text-fg" aria-live="polite">
         {active ? active.text : <span className="text-muted">Hover or focus a mark for its exact values.</span>}
       </p>
       <p className="mt-1 text-xs leading-snug text-muted">

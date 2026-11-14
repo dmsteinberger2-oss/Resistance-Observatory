@@ -33,7 +33,7 @@ const LIGAND_COLOR = "#c9a7ff"; // distinct from the residue colours; ligands ar
  *  not measured against. Names are the entries' own HETNAM records. */
 const NOT_SHOWN: Record<string, string> = { GOL: "glycerol", ACT: "acetate", CA: "calcium", MG: "magnesium" };
 /** The "not in contact" line is shown only if both measured distances exceed
- *  this. Direct contacts are a few \u00e5ngstr\u00f6ms; this is a conservative cut-off. */
+ *  this. Direct contacts are a few ångströms; this is a conservative cut-off. */
 const CONTACT_LIMIT_ANGSTROM = 6;
 /** Checked in both entries to say what they do not carry. */
 const OTHER_PFDHPS_POSITION = 581;
@@ -144,7 +144,6 @@ export function StructureViewer({
   const compare = useCallback((resi: number, chain?: string) => {
     for (const v of viewers.current) {
       if (!v) continue;
-      // Frame the residue with a few neighbours either side, in one chain.
       const around = Array.from({ length: 9 }, (_, k) => resi - 4 + k);
       const c = chain && v.selectedAtoms({ resi, chain }).length ? chain : v.selectedAtoms({ resi })[0]?.chain;
       v.zoomTo(c ? { resi: around, chain: c } : { resi: around }, animMs());
@@ -184,13 +183,12 @@ export function StructureViewer({
                   resolve(v);
                 };
                 try {
-                  const v = $3Dmol.createViewer(el, { backgroundColor: color("--ink") || "#06101b" });
+                  const v = $3Dmol.createViewer(el, { backgroundColor: "#050d17" });
                   const timer = window.setTimeout(() => finish(null), LOAD_TIMEOUT_MS);
                   const r = $3Dmol.download(`pdb:${s.pdb}`, v, {}, () => {
                     window.clearTimeout(timer);
                     finish(v.selectedAtoms({}).length ? v : null);
                   });
-                  // Newer 3Dmol builds return a promise; catch network errors from it.
                   if (r && typeof (r as Promise<unknown>).catch === "function") {
                     (r as Promise<unknown>).catch(() => {
                       window.clearTimeout(timer);
@@ -198,7 +196,7 @@ export function StructureViewer({
                     });
                   }
                 } catch {
-                  finish(null); // e.g. WebGL unavailable
+                  finish(null);
                 }
               }),
           ),
@@ -209,9 +207,8 @@ export function StructureViewer({
           setOne(i, v ? "ready" : "failed");
         });
 
-        // Base style: protein as cartoon; ligands as sticks in one distinct
-        // colour, labelled with their PDB chemical component ID. Waters and the
-        // additives/ions in NOT_SHOWN are left out.
+        // Base style: protein as cartoon; every non-water ligand as sticks, in
+        // one distinct colour, labelled with its PDB chemical component ID.
         const ligandInfo: (LigandInfo | null)[] = loaded.map((v) => {
           if (!v) return null;
           v.setStyle({}, {});
@@ -234,14 +231,12 @@ export function StructureViewer({
               v.addLabel(a.resn, {
                 position: { x: a.x, y: a.y, z: a.z },
                 backgroundColor: "#06101b",
-                backgroundOpacity: 0.75,
+                backgroundOpacity: 0.8,
                 fontColor: LIGAND_COLOR,
-                fontSize: 11,
+                fontSize: 12,
               });
             }
           }
-          // Shortest atom-to-atom distance from the marker residue to any ligand
-          // atom. Reported as measured; not interpreted here.
           const markerResi = POSITIONS[POSITIONS.length - 1];
           let nearest: LigandInfo["nearest"] = null;
           for (const r of v.selectedAtoms({ resi: markerResi, hetflag: false })) {
@@ -360,13 +355,65 @@ export function StructureViewer({
   return (
     <section
       aria-label="Interactive crystal structures"
-      className="rounded-[calc(var(--radius)+6px)] border border-line bg-surface p-4 sm:p-8"
+      className="ro-panel overflow-hidden p-5 sm:p-7"
     >
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
+        <div>
+          <p className="font-mono text-xs uppercase tracking-[0.16em] text-drug">
+            Plate 02 · Interactive 3D Crystal Structures (3Dmol.js)
+          </p>
+          <p className="mt-1 text-sm text-muted">
+            P. falciparum HPPK-DHPS coordinates streamed live from RCSB PDB · Chain A view
+          </p>
+        </div>
+
+        {/* Keyboard-operable residue comparison controls */}
+        {anyReady ? (
+          <div className="flex flex-wrap items-center gap-2">
+            {sites.map((s) => (
+              <button
+                key={s.resi}
+                type="button"
+                onClick={() => compare(s.resi, "A")}
+                aria-pressed={picked === s.resi}
+                className="rounded-[5px] border border-line-strong bg-[#081523] px-3.5 py-2 font-mono text-xs font-semibold text-fg transition-colors hover:border-drug hover:text-drug aria-pressed:border-drug aria-pressed:bg-drug-soft/50 aria-pressed:text-drug"
+              >
+                Compare residue {s.resi}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={reset}
+              className="rounded-[5px] border border-line bg-transparent px-3.5 py-2 font-mono text-xs font-semibold text-muted transition-colors hover:border-line-strong hover:text-fg"
+            >
+              Reset view
+            </button>
+          </div>
+        ) : null}
+      </div>
+
       <figure>
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-5 md:grid-cols-2">
           {STRUCTURES.map((s, i) => (
-            <div key={s.pdb} className="min-w-0">
-              <div className="relative h-[300px] overflow-hidden rounded-[var(--radius)] border border-line bg-[var(--ink)] sm:h-[380px]">
+            <div
+              key={s.pdb}
+              className="min-w-0 overflow-hidden rounded-[6px] border border-line bg-[#050d17]"
+            >
+              <div className="flex items-center justify-between border-b border-line bg-[#071320] px-4 py-2.5">
+                <span className="text-sm font-semibold text-fg">{s.label}</span>
+                <a
+                  href={`https://www.rcsb.org/structure/${s.pdb}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-mono text-xs font-semibold text-drug underline decoration-drug/40 underline-offset-4 hover:decoration-drug"
+                >
+                  PDB {s.pdb}
+                  <span aria-hidden="true"> ↗</span>
+                  <span className="sr-only"> (opens in a new tab)</span>
+                </a>
+              </div>
+
+              <div className="relative h-[300px] sm:h-[370px]">
                 <div
                   ref={(el) => {
                     boxes.current[i] = el;
@@ -376,19 +423,19 @@ export function StructureViewer({
                   aria-label={`Interactive 3D view of ${s.label}, PDB ${s.pdb}`}
                 />
                 {status[i] === "loading" ? (
-                  <p className="pointer-events-none absolute inset-0 grid place-items-center text-sm text-muted">
+                  <p className="pointer-events-none absolute inset-0 grid place-items-center font-mono text-xs text-muted">
                     Loading PDB {s.pdb} from RCSB…
                   </p>
                 ) : null}
                 {status[i] === "failed" ? (
-                  <p className="absolute inset-0 grid place-items-center bg-[var(--ink)] p-6 text-center text-base">
+                  <p className="absolute inset-0 grid place-items-center bg-[#050d17] p-6 text-center text-sm text-body">
                     <span>
                       Couldn&rsquo;t load this structure.{" "}
                       <a
                         href={`https://www.rcsb.org/structure/${s.pdb}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-drug underline underline-offset-4"
+                        className="font-mono text-drug underline underline-offset-4"
                       >
                         View PDB {s.pdb} at RCSB ↗
                       </a>
@@ -396,72 +443,41 @@ export function StructureViewer({
                   </p>
                 ) : null}
               </div>
-              <p className="mt-3 text-base font-semibold">
-                {s.label} &mdash;{" "}
-                <a
-                  href={`https://www.rcsb.org/structure/${s.pdb}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-mono text-drug underline decoration-drug/40 underline-offset-4 hover:decoration-drug"
-                >
-                  PDB {s.pdb}
-                  <span aria-hidden> ↗</span>
-                  <span className="sr-only"> (opens in a new tab)</span>
-                </a>
-              </p>
             </div>
           ))}
         </div>
 
-        {/* Controls: keyboard-operable equivalents of clicking a residue. */}
-        {anyReady ? (
-          <div className="mt-5 flex flex-wrap items-center gap-3">
-            {sites.map((s) => (
-              <button
-                key={s.resi}
-                type="button"
-                onClick={() => compare(s.resi, "A")}
-                aria-pressed={picked === s.resi}
-                className="rounded-[5px] border border-line-strong px-4 py-2 text-sm font-semibold hover:border-drug hover:text-drug aria-pressed:border-drug aria-pressed:text-drug"
-              >
-                Compare residue {s.resi}
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={reset}
-              className="rounded-[5px] border border-line-strong px-4 py-2 text-sm font-semibold hover:border-drug hover:text-drug"
-            >
-              Reset view
-            </button>
-          </div>
-        ) : null}
-
         {/* Compare panel: every word about the residues comes from 3Dmol's report. */}
         <div aria-live="polite">
           {pickedSite ? (
-            <div className="mt-5 border-l-4 border-drug bg-bg px-5 py-4">
-              <dl className="grid gap-x-10 gap-y-2 sm:grid-cols-2">
+            <div className="mt-5 rounded-[6px] border border-drug/40 border-l-2 border-l-drug bg-[#071422] px-5 py-4">
+              <dl className="grid gap-x-10 gap-y-3 sm:grid-cols-2">
                 <div>
-                  <dt className="text-sm text-muted">Wild type (PDB {STRUCTURES[0].pdb})</dt>
-                  <dd className="font-mono text-xl font-semibold">
+                  <dt className="font-mono text-xs uppercase tracking-[0.14em] text-muted">
+                    Wild type (PDB {STRUCTURES[0].pdb})
+                  </dt>
+                  <dd className="mt-1 font-mono text-xl font-semibold text-signal">
                     {pickedSite.wt} {pickedSite.resi}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-sm text-muted">Mutant (PDB {STRUCTURES[1].pdb})</dt>
-                  <dd className="font-mono text-xl font-semibold">
+                  <dt className="font-mono text-xs uppercase tracking-[0.14em] text-muted">
+                    Mutant (PDB {STRUCTURES[1].pdb})
+                  </dt>
+                  <dd className="mt-1 font-mono text-xl font-semibold text-drug">
                     {pickedSite.mut} {pickedSite.resi}
                   </dd>
                 </div>
               </dl>
-              <p className="mt-3 text-base">{changeNote(pickedSite.wt, pickedSite.mut)}</p>
+              <p className="mt-3 text-sm font-medium text-fg sm:text-base">
+                {changeNote(pickedSite.wt, pickedSite.mut)}
+              </p>
               {pickedSite.resi === POSITIONS[POSITIONS.length - 1] ? (
-                <div className="mt-4 border-t border-line pt-3">
-                  <p className="text-sm text-muted">
-                    Shortest distance from residue {pickedSite.resi} to the nearest bound ligand
+                <div className="mt-4 border-t border-line pt-3.5">
+                  <p className="font-mono text-xs uppercase tracking-[0.14em] text-muted">
+                    Shortest distance from residue {pickedSite.resi} to nearest bound ligand
                   </p>
-                  <dl className="mt-1 grid gap-x-10 gap-y-2 sm:grid-cols-2">
+                  <dl className="mt-2 grid gap-x-10 gap-y-2 sm:grid-cols-2">
                     {STRUCTURES.map((st, i) => {
                       const n = ligands[i]?.nearest;
                       return (
@@ -469,15 +485,19 @@ export function StructureViewer({
                           <dt className="sr-only">
                             {st.label} (PDB {st.pdb})
                           </dt>
-                          <dd className="font-mono text-xl font-semibold">
+                          <dd className="font-mono text-lg font-semibold tabular-nums text-fg">
                             {n ? `${n.angstrom.toFixed(1)} \u00c5` : "not measurable"}
-                            {n ? <span className="text-sm font-normal text-muted"> to {n.resn}</span> : null}
+                            {n ? (
+                              <span className="ml-2 text-xs font-normal text-muted">
+                                to {n.resn} ({st.pdb})
+                              </span>
+                            ) : null}
                           </dd>
                         </div>
                       );
                     })}
                   </dl>
-                  <p className="mt-2 text-sm text-muted">
+                  <p className="mt-2 text-xs leading-relaxed text-muted">
                     Atom to atom, measured from the deposited coordinates across both copies in each entry. Reported
                     as measured, without interpretation.
                   </p>
@@ -487,11 +507,14 @@ export function StructureViewer({
           ) : null}
         </div>
 
-        <figcaption className="mt-5 max-w-3xl text-sm text-muted">
+        {/* Figcaption + collapsible structural notes */}
+        <figcaption className="mt-5 max-w-3xl text-sm leading-relaxed text-muted">
           Published crystal structures, loaded live from RCSB PDB. Drag to rotate, click a highlighted residue to
           compare. Rendered with 3Dmol.js.
-          {ligands[0]?.nearest && ligands[1]?.nearest && Math.min(ligands[0].nearest.angstrom, ligands[1].nearest.angstrom) > CONTACT_LIMIT_ANGSTROM ? (
-            <span className="mt-2 block">
+          {ligands[0]?.nearest &&
+          ligands[1]?.nearest &&
+          Math.min(ligands[0].nearest.angstrom, ligands[1].nearest.angstrom) > CONTACT_LIMIT_ANGSTROM ? (
+            <span className="mt-2 block text-body">
               At this distance ({ligands[0].nearest.angstrom.toFixed(1)} {"\u00c5"} and{" "}
               {ligands[1].nearest.angstrom.toFixed(1)} {"\u00c5"}), residue {POSITIONS[POSITIONS.length - 1]} is not
               in contact with the bound ligand in either structure.
@@ -499,50 +522,49 @@ export function StructureViewer({
           ) : null}
         </figcaption>
 
-        <details className="mt-4 max-w-3xl border-t border-line pt-3">
-          <summary className="cursor-pointer text-sm font-semibold hover:text-drug">Notes on these structures</summary>
-          <div className="text-sm text-muted">
-        {unresolved.length ? (
-          <p className="mt-4 text-sm text-muted">
-            {unresolved.map((r) => `Position ${r}`).join(" and ")} {unresolved.length > 1 ? "have" : "has"} no
-            coordinates in at least one of these structures, so {unresolved.length > 1 ? "they are" : "it is"} not
-            highlighted.
-          </p>
-        ) : null}
+        <details className="mt-4 max-w-3xl rounded-[var(--radius)] border border-line bg-[#06101c]/70">
+          <summary className="cursor-pointer select-none px-4 py-3 text-sm font-semibold text-fg transition-colors hover:text-drug">
+            Notes on these structures
+          </summary>
+          <div className="space-y-3 border-t border-line px-4 py-3.5 text-xs leading-relaxed text-muted sm:text-sm">
+            {unresolved.length ? (
+              <p>
+                {unresolved.map((r) => `Position ${r}`).join(" and ")}{" "}
+                {unresolved.length > 1 ? "have" : "has"} no coordinates in at least one of these structures, so{" "}
+                {unresolved.length > 1 ? "they are" : "it is"} not highlighted.
+              </p>
+            ) : null}
 
-        {ligands.some((l) => l?.ids.length) ? (
-          <p className="mt-4 text-sm text-muted">
-            Ligands are drawn as sticks and labelled with their PDB chemical component IDs.{" "}
-            {STRUCTURES.map((st, i) =>
-              ligands[i]?.ids.length ? `PDB ${st.pdb}: ${ligands[i]!.ids.join(", ")}.` : "",
-            )
-              .filter(Boolean)
-              .join(" ")}
-            {(() => {
-              const present = new Set(ligands.flatMap((l) => l?.hidden ?? []));
-              const hidden = Object.keys(NOT_SHOWN).filter((id) => present.has(id));
-              return hidden.length
-                ? ` Crystallisation additives and ions present in the entries (${hidden
-                    .map((id) => NOT_SHOWN[id])
-                    .join(", ")}) are not shown.`
-                : "";
-            })()}
-          </p>
-        ) : null}
+            {ligands.some((l) => l?.ids.length) ? (
+              <p>
+                Bound molecules are drawn as sticks and labelled with their PDB chemical component IDs.{" "}
+                {STRUCTURES.map((st, i) =>
+                  ligands[i]?.ids.length ? `PDB ${st.pdb}: ${ligands[i]!.ids.join(", ")}.` : "",
+                )
+                  .filter(Boolean)
+                  .join(" ")}
+                {(() => {
+                  const present = new Set(ligands.flatMap((l) => l?.hidden ?? []));
+                  const hidden = Object.keys(NOT_SHOWN).filter((id) => present.has(id));
+                  return hidden.length
+                    ? ` Crystallisation additives and ions present in the entries (${hidden
+                        .map((id) => NOT_SHOWN[id])
+                        .join(", ")}) are not shown.`
+                    : "";
+                })()}
+              </p>
+            ) : null}
 
-            <p className="mt-4">
-          <span className="block">
-            What these structures do not show: residues 436&ndash;444 are unmodelled in both, so A437G cannot be
-            displayed.{" "}
-            {ligands[0]?.otherPosition && ligands[1]?.otherPosition
-              ? `Neither entry carries A581G: position ${OTHER_PFDHPS_POSITION} is ${ligands[0].otherPosition} in the wild type and ${ligands[1].otherPosition} in the mutant. `
-              : ""}
-            The dhfr positions are not part of these entries at all.
-          </span>
+            <p>
+              What these structures do not show: residues 436&ndash;444 are unmodelled in both, so A437G cannot be
+              displayed.{" "}
+              {ligands[0]?.otherPosition && ligands[1]?.otherPosition
+                ? `Neither entry carries A581G: position ${OTHER_PFDHPS_POSITION} is ${ligands[0].otherPosition} in the wild type and ${ligands[1].otherPosition} in the mutant. `
+                : ""}
+              The dhfr positions are not part of these entries at all.
             </p>
           </div>
         </details>
-
       </figure>
     </section>
   );

@@ -7,6 +7,7 @@ import type { AlertEvent, Cell, Watch, WhoBasis } from "./derive";
 import { EVIDENCE_TIER, NEXT_STEPS_NOTE, genomeContext, genomeSubject, itemSubject, matchingFigures, methodText } from "./context";
 import { eventCopy, limits, thresholdBasis, watchSentence } from "./copy";
 import { pmidStr, type AbstractPrevalence, type ClientPack, type GraphFinding, type MarkerDef, type Paper } from "./pack";
+import { buildQualityLedger } from "./quality";
 import { SOURCES, TIER, buildEmail, buildReceipt, graphTierDetail, paperTierDetail, pickStakes, type EmailExtras } from "./receipt";
 
 export type ComposeArgs = {
@@ -129,7 +130,9 @@ export function composeAlert({ e, watch, marker, country, basis, pack, cells, pa
     esa ? "" : "WHO does not grade this region by K540E, so any line used here is this project’s preset. "
   }${whoSource.url}`;
 
-  return { copy, tb, lim, paper, figure, stakes, extracted, graphFinding, graphLine, whoStatus, emailWho: [...emailWho, policyRef], ctx, matched, itemDetail, subject, weight, receipt, stakesIntro, stakesCaveat, glance };
+  const quality = buildQualityLedger(pack, watch.area, country);
+
+  return { copy, tb, lim, paper, figure, stakes, extracted, graphFinding, graphLine, whoStatus, emailWho: [...emailWho, policyRef], ctx, matched, itemDetail, subject, weight, receipt, stakesIntro, stakesCaveat, glance, quality };
 }
 
 export type Composed = ReturnType<typeof composeAlert>;
@@ -155,5 +158,10 @@ export function composeEmail(c: Composed, a: Pick<ComposeArgs, "e" | "watch" | "
     link: a.link,
     asOf: a.asOf,
     extras: a.extras,
+    watch: a.watch,
+    markerDef: a.marker,
+    ctx: c.ctx,
+    tb: c.tb,
+    quality: c.quality,
   });
 }

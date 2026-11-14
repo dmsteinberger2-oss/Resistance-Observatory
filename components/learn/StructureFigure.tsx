@@ -32,10 +32,15 @@ export function StructureFigure() {
   return (
     <section
       aria-label="Published crystal structures"
-      className="mt-8 rounded-[calc(var(--radius)+6px)] border border-line bg-surface p-4 sm:p-8"
+      className="ro-panel mt-6 overflow-hidden p-5 sm:p-7"
     >
+      <div className="mb-4 border-b border-line pb-3">
+        <span className="font-mono text-xs uppercase tracking-[0.16em] text-muted">
+          Static Reference Renders · UCSF ChimeraX
+        </span>
+      </div>
       <figure>
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-5 md:grid-cols-2">
           {PANELS.map((p) => (
             <div key={p.pdb}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -43,25 +48,27 @@ export function StructureFigure() {
                 src={`/structures/${p.file}`}
                 alt={`${p.label} — PDB ${p.pdb}. ChimeraX render.`}
                 loading="lazy"
-                className="h-auto w-full rounded-[var(--radius)] border border-line bg-bg"
+                className="h-auto w-full rounded-[6px] border border-line bg-[#050d17]"
               />
-              <p className="mt-3 text-base font-semibold">
+              <p className="mt-2.5 text-sm font-semibold text-fg">
                 {p.label} &mdash;{" "}
                 <a
                   href={`https://www.rcsb.org/structure/${p.pdb}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-mono text-drug underline decoration-drug/40 underline-offset-4 hover:decoration-drug"
+                  className="font-mono text-xs text-drug underline decoration-drug/40 underline-offset-4 hover:decoration-drug"
                 >
                   PDB {p.pdb}
-                  <span aria-hidden> ↗</span>
+                  <span aria-hidden="true"> ↗</span>
                   <span className="sr-only"> (opens in a new tab)</span>
                 </a>
               </p>
             </div>
           ))}
         </div>
-        <figcaption className="mt-5 max-w-3xl text-sm text-muted">{CAPTION}</figcaption>
+        <figcaption className="mt-4 max-w-3xl text-xs leading-relaxed text-muted sm:text-sm">
+          {CAPTION}
+        </figcaption>
       </figure>
     </section>
   );

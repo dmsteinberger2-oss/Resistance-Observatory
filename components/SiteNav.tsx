@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useSelection } from "@/lib/selection";
+import { DEMO_MARKER_ID, getMarker } from "@/content/markers";
 
 export const NAV_ITEMS = [
-  // The story is a standalone HTML page outside the app shell.
+  // Standalone scrollytelling introduction outside the Next.js shell
   { href: "/story.html", label: "Home" },
   { href: "/overview", label: "Overview" },
   { href: "/learn", label: "Learn" },
@@ -16,10 +17,9 @@ export const NAV_ITEMS = [
 ] as const;
 
 /**
- * Same bar as the story page (public/story.html): fixed, circular mark,
- * uppercase letter-spaced wordmark, a pill-outlined link at the right, and the
- * same scroll behaviour — transparent at the top, solid and blurred after 40px.
- * Styles live in globals.css under ".ro-nav".
+ * Architectural top navigation shared across Overview, Learn, Map, Alert, and Data.
+ * Matches public/story.html's frosted-glass hairline bar while preserving shared
+ * URL selection parameters across every tab transition.
  */
 export function SiteNav() {
   const pathname = usePathname();
@@ -27,27 +27,33 @@ export function SiteNav() {
   const [on, setOn] = useState(false);
 
   useEffect(() => {
-    const read = () => setOn(window.scrollY > 40);
+    const read = () => setOn(window.scrollY > 24);
     read();
     window.addEventListener("scroll", read, { passive: true });
     return () => window.removeEventListener("scroll", read);
   }, []);
 
+  const activeMarker = getMarker(markerId ?? DEMO_MARKER_ID);
+  const chipLabel =
+    activeMarker.id === DEMO_MARKER_ID
+      ? `${activeMarker.gene} ${activeMarker.alteration} · SP`
+      : `${activeMarker.gene} ${activeMarker.alteration} · ${activeMarker.drug}`;
+
   return (
     <header>
       <nav aria-label="Primary" className="ro-nav" data-on={on ? "true" : "false"}>
-        {/* Plain anchor: the story is a static file, so this is a full page load. */}
         <a href="/story.html" className="ro-nav-brand">
-          <span className="ro-nav-symbol" aria-hidden>
+          <span className="ro-nav-symbol" aria-hidden="true">
             ⌁
           </span>
           <span className="ro-nav-word">
             Resistance <i>Observatory</i>
           </span>
         </a>
+
         <div className="ro-nav-links">
           {NAV_ITEMS.map((item) => {
-            const active = pathname.startsWith(item.href);
+            const active = !item.href.endsWith(".html") && pathname.startsWith(item.href);
             if (item.href.endsWith(".html")) {
               return (
                 <a key={item.href} href={item.href}>
@@ -56,20 +62,27 @@ export function SiteNav() {
               );
             }
             return (
-              <Link key={item.href} href={hrefWithSelection(item.href)} aria-current={active ? "page" : undefined}>
+              <Link
+                key={item.href}
+                href={hrefWithSelection(item.href)}
+                aria-current={active ? "page" : undefined}
+              >
                 {item.label}
               </Link>
             );
           })}
-          {markerId ? (
-            <Link
-              href={hrefWithSelection("/learn")}
-              className="ro-nav-end"
-              title="Current marker selection (carried across tabs via the URL)"
-            >
-              {markerId}
-            </Link>
-          ) : null}
+
+          <Link
+            href={hrefWithSelection("/learn", { markerId: markerId ?? DEMO_MARKER_ID })}
+            className="ro-nav-end"
+            title={`Active specimen: ${activeMarker.gene} ${activeMarker.alteration} (${activeMarker.drug}) — carried across tabs via URL`}
+          >
+            <span
+              aria-hidden="true"
+              className="h-1.5 w-1.5 rounded-full bg-signal"
+            />
+            <span>{chipLabel}</span>
+          </Link>
         </div>
       </nav>
     </header>

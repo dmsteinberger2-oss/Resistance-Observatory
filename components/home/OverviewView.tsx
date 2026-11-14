@@ -8,7 +8,11 @@ import { ParasiteScene } from "@/components/home/ParasiteScene";
 import { Gap } from "@/components/home/Gap";
 import { TabCards } from "@/components/home/TabCards";
 
-export function OverviewView({ papers }: { papers: { read: number; total: number } }) {
+export function OverviewView({
+  papers,
+}: {
+  papers: { read: number; total: number };
+}) {
   const { hrefWithSelection } = useSelection();
   return (
     <>
@@ -16,6 +20,7 @@ export function OverviewView({ papers }: { papers: { read: number; total: number
       <Scale papers={papers} />
       <StepScene
         id="works"
+        chapter="02 — Drug Action"
         eyebrow="The drug works"
         tone="drug"
         heading="A drug finds the parasite."
@@ -24,10 +29,17 @@ export function OverviewView({ papers }: { papers: { read: number; total: number
           "An antimalarial drug reaches the parasite.",
           "The drug works, and the parasite is cleared.",
         ]}
-        visual={(s) => <ParasiteScene step={s} mutant={false} title="Schematic: drug acting on a parasite" />}
+        visual={(s) => (
+          <ParasiteScene
+            step={s}
+            mutant={false}
+            title="Schematic: drug acting on a parasite"
+          />
+        )}
       />
       <StepScene
         id="mutation"
+        chapter="03 — Resistance Mutation"
         eyebrow="The turn"
         tone="signal"
         heading={
@@ -41,7 +53,13 @@ export function OverviewView({ papers }: { papers: { read: number; total: number
           "Specific mutations reduce how well particular drugs work. Those mutations are tracked as resistance markers.",
         ]}
         note="This illustrates how resistance mutations work in general. It is not the mechanism of K540E specifically."
-        visual={(s) => <ParasiteScene step={s} mutant title="Schematic: drug reaching a parasite that carries a mutation" />}
+        visual={(s) => (
+          <ParasiteScene
+            step={s}
+            mutant
+            title="Schematic: drug reaching a parasite that carries a mutation"
+          />
+        )}
       />
       <Gap />
       <TabCards />

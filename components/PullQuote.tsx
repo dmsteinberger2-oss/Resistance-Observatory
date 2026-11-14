@@ -2,13 +2,21 @@ import type { ReactNode } from "react";
 
 export function PullQuote({ children, cite }: { children: ReactNode; cite?: string }) {
   return (
-    <figure className="my-14 border-l-4 border-drug pl-6 sm:-mx-10 sm:pl-10">
-      <blockquote className="font-display text-3xl font-medium leading-tight tracking-tight text-balance sm:text-4xl">
-        <span aria-hidden className="mr-1 text-drug">&ldquo;</span>
+    <figure className="my-10 rounded-r-[var(--radius)] border-y border-r border-line border-l-2 border-l-drug bg-[#081624]/85 px-6 py-6 sm:px-8">
+      {cite ? (
+        <figcaption className="mb-3 font-mono text-xs uppercase tracking-[0.18em] text-drug">
+          {cite}
+        </figcaption>
+      ) : null}
+      <blockquote className="font-display text-[clamp(1.25rem,2.1vw,1.7rem)] font-medium leading-[1.3] text-fg text-balance">
+        <span aria-hidden="true" className="mr-1 text-drug">
+          &ldquo;
+        </span>
         {children}
-        <span aria-hidden className="text-drug">&rdquo;</span>
+        <span aria-hidden="true" className="ml-0.5 text-drug">
+          &rdquo;
+        </span>
       </blockquote>
-      {cite ? <figcaption className="mt-4 font-mono text-xs uppercase tracking-[0.16em] text-muted">— {cite}</figcaption> : null}
     </figure>
   );
 }

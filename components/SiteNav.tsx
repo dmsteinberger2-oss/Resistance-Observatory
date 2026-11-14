@@ -5,7 +5,9 @@ import { usePathname } from "next/navigation";
 import { useSelection } from "@/lib/selection";
 
 export const NAV_ITEMS = [
-  { href: "/", label: "Home" },
+  // The story is a standalone HTML page outside the app shell.
+  { href: "/story.html", label: "Home" },
+  { href: "/overview", label: "Overview" },
   { href: "/learn", label: "Learn" },
   { href: "/forecast", label: "Forecast" },
   { href: "/alert", label: "Alert" },
@@ -22,30 +24,38 @@ export function SiteNav() {
         aria-label="Primary"
         className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3 sm:px-6"
       >
-        <Link
-          href={hrefWithSelection("/")}
+        {/* Plain anchor: the story is a static file, so this is a full page load. */}
+        <a
+          href="/story.html"
           className="mr-auto flex items-center gap-2 font-display text-lg font-semibold tracking-tight"
         >
           <Mark />
           <span>
             Resistance <span className="text-muted font-normal">Observatory</span>
           </span>
-        </Link>
+        </a>
         <ul className="flex items-center gap-0.5 overflow-x-auto text-sm">
           {NAV_ITEMS.map((item) => {
-            const active =
-              item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+            const active = pathname.startsWith(item.href);
+            const cls = [
+              "relative block rounded-full px-3 py-1.5 transition-colors",
+              active ? "bg-fg text-bg font-medium" : "text-muted hover:text-fg hover:bg-surface-2",
+            ].join(" ");
+            if (item.href.endsWith(".html")) {
+              return (
+                <li key={item.href}>
+                  <a href={item.href} className={cls}>
+                    {item.label}
+                  </a>
+                </li>
+              );
+            }
             return (
               <li key={item.href}>
                 <Link
                   href={hrefWithSelection(item.href)}
                   aria-current={active ? "page" : undefined}
-                  className={[
-                    "relative block rounded-full px-3 py-1.5 transition-colors",
-                    active
-                      ? "bg-fg text-bg font-medium"
-                      : "text-muted hover:text-fg hover:bg-surface-2",
-                  ].join(" ")}
+                  className={cls}
                 >
                   {item.label}
                 </Link>

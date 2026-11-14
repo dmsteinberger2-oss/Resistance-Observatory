@@ -5,7 +5,7 @@ When does new evidence change the picture for a malaria drug-resistance marker?
 A hackathon prototype (System Public Challenge, Build Challenge 3). Next.js App
 Router + Tailwind, deployed on Vercel (import this repo at vercel.com/new —
 framework auto-detects as Next.js; the site needs no env vars at build or run
-time for Home, Learn and Data, because their figures are pinned in
+time for Overview, Learn and Data, because their figures are pinned in
 `data/graph-stats.json`).
 
 **Honesty note.** The evidence graph is a frozen snapshot. The alert demo
@@ -18,11 +18,17 @@ surveillance, not clinical guidance, and not affiliated with or endorsed by WHO.
 
 | Route       | What                                               | Owner    |
 | ----------- | -------------------------------------------------- | -------- |
-| `/`         | Scroll-driven explainer: problem, evidence, gap    | Solayman |
+| `/`         | Redirects to `/story.html`, the animated intro     | Solayman |
+| `/overview` | Scroll-driven explainer: problem, evidence, gap    | Solayman |
 | `/learn`    | Marker, drug, why it matters, one diagram          | Solayman |
 | `/forecast` | Map of where the marker has been observed          | Benjamin |
 | `/alert`    | Save a watch; replayed evidence fires alerts       | David    |
 | `/data`     | Long-form guide, findings timeline, glossary       | Solayman |
+
+`public/story.html` is a self-contained scrollytelling intro (canvas
+animation, no external assets, its own nav and styles), served outside the app
+shell. Its graphics are artistic illustration, not real Public Graph records;
+the page says so. Its links lead into `/learn`, `/forecast` and `/alert`.
 
 `app/forecast/page.tsx` and `app/alert/page.tsx` are placeholders — replace
 them wholesale.
@@ -85,7 +91,7 @@ npm run lint    # tsc --noEmit
 npm run build
 ```
 
-Home, Learn and Data run without any key: every figure they show is read from
+Overview, Learn and Data run without any key: every figure they show is read from
 the pinned file `data/graph-stats.json`.
 
 To refresh that file, put your System key in `.env.local` (gitignored — never
@@ -147,7 +153,7 @@ Coverage limitations, stated on screen as well:
   stay in `data/graph-stats.json` flagged `vetted: false` with a note, and are
   left out of every count and list. The Data tab shows them under "Caught in
   review".
-- **The graph has no per-finding publication date.** Dates on Home and on the
+- **The graph has no per-finding publication date.** Dates on Overview and on the
   Data-tab timeline are each paper's publication date from OpenAlex, matched
   on the finding's `pubmed_id`. All 6 resolved. A finding whose date does not
   resolve is shown as "Date unknown", outside the timeline.
@@ -161,7 +167,7 @@ Coverage limitations, stated on screen as well:
 - **System Public Graph** — v2.1, July 1 2026 snapshot, CC BY-NC 4.0, DOI
   [10.7910/DVN/7V6JDO](https://doi.org/10.7910/DVN/7V6JDO). Queried through
   API v1.0, `https://public-api.system.com/v1/`. Every finding and every count
-  on Home, Learn and Data comes from it. Work deriving from the graph inherits
+  on Overview, Learn and Data comes from it. Work deriving from the graph inherits
   CC BY-NC.
 
 **Extraction errors.** System's own documentation says roughly 20% of the
@@ -177,7 +183,7 @@ check it.
   `system_id` and records `in_vetted_csv` on it. Alert's finding IDs are
   vetted against the same file.
 
-What that check does and does not show for Home and Data:
+What that check does and does not show for Overview and Data:
 
 - The vetted CSV holds only associations whose two variables are both matched
   to a concept. Most findings the API returns for this marker have one
@@ -195,7 +201,7 @@ What that check does and does not show for Home and Data:
 
 - **OpenAlex** — `https://api.openalex.org`, CC0. Resolves each codon-540
   finding's `pubmed_id` to its paper's publication date
-  (`scripts/graph-stats.ts`). Used for the "most recent" figure on Home and
+  (`scripts/graph-stats.ts`). Used for the "most recent" figure on Overview and
   the Data-tab timeline.
 
 ### Alert sources (David)

@@ -321,6 +321,23 @@ export function buildReceipt(args: {
 
 /* ----------------------------------------------------------------- email --- */
 
+export type EmailList = { title: string; note?: string; items: { text: string; link?: ReceiptLink }[] };
+
+/** Digest layers added to an alert email: live graph check, recent papers, curation queue, deep links. */
+export type EmailExtras = {
+  /** Added inside the subject's source tag, e.g. "Live System Graph". */
+  subjectTag?: string;
+  /** Papers published since the cell was collected. Shown beside the count, never pooled. */
+  recent?: EmailList;
+  /** What the live System API said just now, including the quarantine count. */
+  graphLive?: string[];
+  /** Unread papers for the country: the curation queue. */
+  queue?: EmailList;
+  /** Per finding id: the result of the live check, e.g. "live check: matches snapshot". */
+  liveChecked?: Record<string, string>;
+  links?: ReceiptLink[];
+};
+
 export type EmailParts = {
   e: AlertEvent;
   copy: EventCopy;
@@ -337,30 +354,42 @@ export type EmailParts = {
   subject: string;
   /** How much weight to give the signal: tier, flags, cutoff beside observed, next steps. */
   weight: { tier: string; lines: { label: string; text: string; warn?: boolean }[]; steps: string[]; stepsNote: string | null };
+  /** Three or four lines under the headline: observed, cutoff, prior, scope. */
+  glance?: string[];
   limits: string[];
   link: string;
   asOf: string;
+  extras?: EmailExtras;
 };
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
+/* Email colours. Gmail and Apple Mail drop <style> blocks and <body> backgrounds, so every
+ * background and text colour is set inline on the table cell or element that needs it. */
+const C = { page: "#050d17", card: "#0d2233", panel: "#16344a", line: "#2a4558", fg: "#f5f4ef", body: "#dfe5ea", muted: "#b0bdcb", link: "#8ff0dc", warn: "#f2bd76" } as const;
+const SANS = "-apple-system,'Segoe UI',Helvetica,Arial,sans-serif";
+const MONO = "ui-monospace,Menlo,Consolas,monospace";
+
 export function buildEmail(a: EmailParts): { subject: string; text: string; html: string } {
   const { e, copy } = a;
-  const subject = a.subject;
+  const x = a.extras ?? {};
+  const subject = x.subjectTag ? a.subject.replace(/\]/, ` + ${x.subjectTag}]`) : a.subject;
   const meta = `${KIND_LABEL[e.kind]} · ${SOURCE_LABEL[e.source]} · ${e.dateBasis === "collection" ? "collected" : "published"} ${e.year}${e.fired ? "" : " · context, not an alert"}`;
+  const live = (f: GraphFinding) => x.liveChecked?.[f.system_id];
+  const tierOf = (f: GraphFinding) => `${f.source_checked ? TIER.checked : TIER.unverified}${live(f) ? `; ${live(f)}` : ""}`;
   const stakeLine = (f: GraphFinding) =>
-    `[${f.study_type ?? NO_STUDY_TYPE}] ${pairText(f)}. ${statText(f) ?? ""} Population: ${f.population ?? "not given by the graph"} [system_id ${f.system_id}; ${f.source_checked ? TIER.checked : TIER.unverified}${f.pubmed_id ? `; ${f.pubmed_url ?? pubmedUrl(pmidStr(f.pubmed_id))}` : ""}]`;
+    `[${f.study_type ?? NO_STUDY_TYPE}] ${pairText(f)}. ${statText(f) ?? ""} Population: ${f.population ?? "not given by the graph"} [system_id ${f.system_id}; ${tierOf(f)}${f.pubmed_id ? `; ${f.pubmed_url ?? pubmedUrl(pmidStr(f.pubmed_id))}` : ""}]`;
+  const listText = (l: EmailList | undefined, heading: string) =>
+    l && l.items.length ? ["", heading, l.title, ...l.items.map((i) => `- ${i.text}${i.link ? ` ${i.link.label} <${i.link.url}>` : ""}`), ...(l.note ? [l.note] : [])] : [];
 
   const text = [
+    `Subject: ${subject}`,
+    "",
     `Your watch: ${a.watchText}`,
     "",
     copy.title.toUpperCase(),
     meta,
-    "",
-    "WHY IT MATTERS (ACCORDING TO THE SYSTEM GRAPH)",
-    a.stakesIntro,
-    ...a.stakes.map((f) => `- ${stakeLine(f)}`),
-    a.stakesCaveat,
+    ...(a.glance?.length ? ["", "AT A GLANCE", ...a.glance.map((g) => `- ${g}`)] : []),
     "",
     "WHAT CHANGED",
     copy.statement,
@@ -370,9 +399,17 @@ export function buildEmail(a: EmailParts): { subject: string; text: string; html
     `Evidence tier: ${a.weight.tier}`,
     ...a.weight.lines.map((l) => `${l.warn ? "! " : "- "}${l.label}: ${l.text}`),
     ...(a.weight.steps.length ? ["Next steps a reviewer would look for:", ...a.weight.steps.map((s, i) => `  ${i + 1}. ${s}`), a.weight.stepsNote ?? ""] : []),
+    ...listText(x.recent, "PUBLISHED SINCE THIS COLLECTION"),
+    "",
+    "WHY IT MATTERS (ACCORDING TO THE SYSTEM GRAPH)",
+    a.stakesIntro,
+    ...a.stakes.map((f) => `- ${stakeLine(f)}`),
+    a.stakesCaveat,
     "",
     "WHAT THE SYSTEM GRAPH HAS ON IT",
     a.graphLine,
+    ...(x.graphLive ?? []).map((l) => `- ${l}`),
+    ...listText(x.queue, "CURATION QUEUE: NOT YET READ BY THE GRAPH"),
     "",
     "WHO STATUS OF THE MARKER",
     ...a.whoStatus,
@@ -387,66 +424,98 @@ export function buildEmail(a: EmailParts): { subject: string; text: string; html
     ...a.limits.map((s) => `- ${s}`),
     "",
     `Open this alert: ${a.link}`,
+    ...(x.links ?? []).map((l) => `${l.label}: ${l.url}`),
     "",
     `${a.asOf} A replay of the historical record: not live surveillance, not clinical guidance.`,
   ].join("\n");
 
-  const h = (t: string) => `<h3 style="font:600 11px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#b0bdcb;margin:22px 0 6px">${esc(t)}</h3>`;
-  const para = (t: string) => `<p style="margin:0 0 8px">${esc(t)}</p>`;
-  const link = (l: ReceiptLink) => `<a href="${esc(l.url)}" style="color:#70e0ca">${esc(l.label)}</a>`;
-  const html = `<div style="font:15px/1.55 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#f5f4ef;background:#0d2233;max-width:640px;margin:0 auto;padding:18px;border-radius:9px">
-<p style="font:12px ui-monospace,Menlo,monospace;color:#b0bdcb;margin:0 0 4px">${esc(a.watchText)}</p>
-<p style="font:11px ui-monospace,Menlo,monospace;color:#70e0ca;margin:6px 0 0">${esc(a.subject.match(/^\[[^\]]*\]/)?.[0] ?? "")}</p>
-<h2 style="font:600 22px/1.25 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;margin:6px 0 4px">${esc(`${a.marker}, ${a.country}: ${copy.title}`)}</h2>
-<p style="font:12px ui-monospace,Menlo,monospace;color:#f2bd76;margin:0">${esc(meta)}</p>
+  /* HTML: tables with inline colours on every cell, so it reads the same in Gmail, Apple Mail and Outlook. */
+  const h = (t: string) =>
+    `<p style="font:700 11px/1.4 ${SANS};letter-spacing:.12em;text-transform:uppercase;color:${C.muted};margin:24px 0 8px;padding-top:14px;border-top:1px solid ${C.line}">${esc(t)}</p>`;
+  const para = (t: string, color: string = C.body) => `<p style="margin:0 0 8px;color:${color}">${esc(t)}</p>`;
+  const small = (t: string) => `<p style="margin:0 0 8px;color:${C.muted};font-size:13px">${esc(t)}</p>`;
+  const link = (l: ReceiptLink) => `<a href="${esc(l.url)}" style="color:${C.link};text-decoration:underline">${esc(l.label)}</a>`;
+  const pill = (t: string, color: string = C.muted) =>
+    `<span style="display:inline-block;border:1px solid ${color};color:${color};border-radius:9px;padding:0 7px;font-size:11px;line-height:17px;white-space:nowrap">${esc(t)}</span>`;
+  const list = (l: EmailList | undefined, heading: string) =>
+    l && l.items.length
+      ? `${h(heading)}${para(l.title)}<ul style="margin:0 0 8px;padding-left:18px;color:${C.body}">${l.items
+          .map((i) => `<li style="margin-bottom:6px;color:${C.body}">${esc(i.text)}${i.link ? ` ${link(i.link)}` : ""}</li>`)
+          .join("")}</ul>${l.note ? small(l.note) : ""}`
+      : "";
+  const cell = `padding:6px 9px;border-top:1px solid ${C.line};background-color:${C.card};vertical-align:top;font-size:12.5px;line-height:1.5`;
+
+  const html = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${C.page}" style="background-color:${C.page};margin:0;padding:0"><tr><td align="center" bgcolor="${C.page}" style="background-color:${C.page};padding:16px 8px">
+<table role="presentation" width="640" cellpadding="0" cellspacing="0" border="0" bgcolor="${C.card}" style="background-color:${C.card};max-width:640px;width:100%;border:1px solid ${C.line};border-radius:9px"><tr><td bgcolor="${C.card}" style="background-color:${C.card};color:${C.body};font:15px/1.55 ${SANS};padding:20px">
+<p style="font:12px ${MONO};color:${C.muted};margin:0 0 6px">${esc(a.watchText)}</p>
+<p style="font:11px ${MONO};color:${C.link};margin:0 0 4px">${esc(subject.match(/^\[[^\]]*\]/)?.[0] ?? "")}</p>
+<h2 style="font:700 22px/1.25 ${SANS};color:${C.fg};margin:4px 0 6px">${esc(`${a.marker}, ${a.country}: ${copy.title}`)}</h2>
+<p style="font:12px ${MONO};color:${C.warn};margin:0 0 10px">${esc(meta)}</p>
+${
+  a.glance?.length
+    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${C.panel}" style="background-color:${C.panel};border-radius:7px"><tr><td bgcolor="${C.panel}" style="background-color:${C.panel};color:${C.fg};padding:10px 14px;font:14px/1.6 ${SANS}">${a.glance
+        .map((g, i) => `<div style="color:${C.fg};${i === 0 ? "font-weight:700;font-size:16px" : ""}">${esc(g)}</div>`)
+        .join("")}</td></tr></table>`
+    : ""
+}
+${h("What changed")}
+${para(e.quote ? copy.statement.split(" Its abstract says:")[0] : copy.statement, C.fg)}
+${e.quote ? `<p style="margin:0 0 8px;padding:2px 0 2px 12px;border-left:3px solid ${C.muted};color:${C.fg}">“${esc(e.quote)}”</p>` : ""}
+<p style="margin:0 0 8px;color:${C.muted};font-size:13px"><strong style="color:${C.fg}">Comparison basis.</strong> ${esc(copy.basis)}</p>
+${h("How much weight to give this: the triggering study")}
+<p style="margin:0 0 10px;color:${C.link}">${pill(a.weight.tier, C.link)}</p>
+${a.weight.lines
+  .map(
+    (l) =>
+      `<p style="margin:0 0 7px;font-size:13.5px;color:${C.body};${l.warn ? `border-left:3px solid ${C.warn};padding-left:9px` : ""}"><strong style="color:${l.warn ? C.warn : C.fg}">${l.warn ? "⚠ " : ""}${esc(l.label)}.</strong> ${esc(l.text)}</p>`,
+  )
+  .join("")}
+${
+  a.weight.steps.length
+    ? `<p style="margin:10px 0 4px;font-size:13px;color:${C.fg}"><strong style="color:${C.fg}">Next steps a reviewer would look for</strong></p><ol style="margin:0 0 6px;padding-left:20px;font-size:13px;color:${C.body}">${a.weight.steps
+        .map((s) => `<li style="color:${C.body}">${esc(s)}</li>`)
+        .join("")}</ol><p style="margin:0 0 8px;color:${C.muted};font-size:12px">${esc(a.weight.stepsNote ?? "")}</p>`
+    : ""
+}
+${list(x.recent, "Published since this collection")}
 ${h("Why it matters, according to the System graph")}
 ${para(a.stakesIntro)}
-<ul style="margin:0 0 8px;padding-left:18px">${a.stakes
+<ul style="margin:0 0 8px;padding-left:18px;color:${C.body}">${a.stakes
     .map(
       (f) =>
-        `<li style="margin-bottom:6px"><span style="border:1px solid #5b7183;border-radius:9px;padding:0 6px;font-size:11px;white-space:nowrap">${esc(f.study_type ?? NO_STUDY_TYPE)}</span> ${esc(pairText(f))}. <strong>${esc(statText(f) ?? "")}</strong><br><span style="color:#b0bdcb">Population: ${esc(f.population ?? "not given by the graph")}</span><br><span style="font:11px ui-monospace,Menlo,monospace;color:#b0bdcb">system_id ${esc(f.system_id)} · ${esc(f.source_checked ? TIER.checked : TIER.unverified)}${
+        `<li style="margin-bottom:8px;color:${C.body}">${pill(f.study_type ?? NO_STUDY_TYPE, f.study_type ? C.fg : C.muted)} ${esc(pairText(f))}. <strong style="color:${C.fg}">${esc(statText(f) ?? "")}</strong><br><span style="color:${C.muted}">Population: ${esc(f.population ?? "not given by the graph")}</span><br><span style="font:11px ${MONO};color:${C.muted}">system_id ${esc(f.system_id)} · ${esc(tierOf(f))}${
           f.pubmed_id ? ` · ${link({ label: `PMID ${f.pubmed_id}`, url: f.pubmed_url ?? pubmedUrl(pmidStr(f.pubmed_id)) })}` : ""
         }</span></li>`,
     )
     .join("")}</ul>
-<p style="margin:0 0 8px;color:#b0bdcb;font-size:13px">${esc(a.stakesCaveat)}</p>
-${h("What changed")}
-${para(e.quote ? copy.statement.split(" Its abstract says:")[0] : copy.statement)}
-${e.quote ? `<blockquote style="margin:0 0 8px;padding:2px 0 2px 12px;border-left:3px solid #b0bdcb;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif">“${esc(e.quote)}”</blockquote>` : ""}
-<p style="margin:0 0 8px;color:#b0bdcb;font-size:13px"><strong style="color:#f5f4ef">Comparison basis.</strong> ${esc(copy.basis)}</p>
-${h("How much weight to give this: the triggering study")}
-<p style="margin:0 0 8px"><span style="border:1px solid #70e0ca;color:#70e0ca;border-radius:9px;padding:1px 8px;font-size:12px">${esc(a.weight.tier)}</span></p>
-${a.weight.lines
-    .map(
-      (l) =>
-        `<p style="margin:0 0 6px;font-size:13.5px;${l.warn ? "border-left:3px solid #f2bd76;padding-left:9px" : ""}"><strong>${esc(l.label)}.</strong> ${esc(l.text)}</p>`,
-    )
-    .join("")}
-${a.weight.steps.length ? `<p style="margin:8px 0 4px;font-size:13px"><strong>Next steps a reviewer would look for</strong></p><ol style="margin:0 0 6px;padding-left:20px;font-size:13px">${a.weight.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol><p style="margin:0 0 8px;color:#b0bdcb;font-size:12px">${esc(a.weight.stepsNote ?? "")}</p>` : ""}
+${small(a.stakesCaveat)}
 ${h("What the System graph has on it")}
 ${para(a.graphLine)}
+${(x.graphLive ?? []).map((l) => `<p style="margin:0 0 6px;font-size:13.5px;color:${C.body};border-left:3px solid ${C.link};padding-left:9px">${esc(l)}</p>`).join("")}
+${list(x.queue, "Curation queue: not yet read by the graph")}
 ${h("WHO status of the marker")}
-${a.whoStatus.map(para).join("")}
+${a.whoStatus.map((s) => `<p style="margin:0 0 8px;color:${C.body};word-break:break-word">${esc(s)}</p>`).join("")}
 ${h("Decision receipt")}
-<table style="border-collapse:collapse;width:100%;font-size:12.5px;border:1px solid #2a4558">${a.receipt
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${C.card}" style="background-color:${C.card};border:1px solid ${C.line};border-collapse:collapse">${a.receipt
     .map(
       (s) =>
-        `<tr><td colspan="2" style="background:#16344a;padding:5px 8px;font:600 11px ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase">${esc(s.title)}</td></tr>` +
+        `<tr><td colspan="2" bgcolor="${C.panel}" style="background-color:${C.panel};color:${C.fg};padding:6px 9px;font:700 11px ${SANS};letter-spacing:.08em;text-transform:uppercase">${esc(s.title)}</td></tr>` +
         s.rows
           .map(
             (r) =>
-              `<tr><td style="padding:5px 8px;border-top:1px solid #2a4558;color:#b0bdcb;white-space:nowrap;vertical-align:top">${esc(r.label)}</td><td style="padding:5px 8px;border-top:1px solid #2a4558">${esc(r.text)}${
-                r.badge ? ` <span style="border:1px solid #5b7183;border-radius:9px;padding:0 6px;font-size:11px;white-space:nowrap">${esc(r.badge.text)}</span>` : ""
-              }${r.links?.length ? ` ${r.links.map(link).join(" · ")}` : ""}</td></tr>`,
+              `<tr><td width="112" bgcolor="${C.card}" style="${cell};color:${C.muted}">${esc(r.label)}</td><td bgcolor="${C.card}" style="${cell};color:${C.body};word-break:break-word">${esc(r.text)}${r.badge ? ` ${pill(r.badge.text)}` : ""}${
+                r.links?.length ? ` ${r.links.map(link).join(" · ")}` : ""
+              }</td></tr>`,
           )
           .join(""),
     )
     .join("")}</table>
 ${h("What this alert cannot tell you")}
-<ul style="margin:0 0 8px;padding-left:18px;color:#b0bdcb;font-size:13px">${a.limits.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>
-<p style="margin:18px 0 6px"><a href="${esc(a.link)}" style="color:#70e0ca">Open this alert</a></p>
-<p style="font-size:12px;color:#b0bdcb;margin:0">${esc(a.asOf)} A replay of the historical record: not live surveillance, not clinical guidance.</p>
-</div>`;
+<ul style="margin:0 0 8px;padding-left:18px;color:${C.muted};font-size:13px">${a.limits.map((l) => `<li style="color:${C.muted}">${esc(l)}</li>`).join("")}</ul>
+<p style="margin:18px 0 6px;color:${C.body}">${[{ label: "Open this alert", url: a.link }, ...(x.links ?? [])].map(link).join(" &nbsp;·&nbsp; ")}</p>
+<p style="font-size:12px;color:${C.muted};margin:0">${esc(a.asOf)} A replay of the historical record: not live surveillance, not clinical guidance.</p>
+</td></tr></table>
+</td></tr></table>`;
 
   return { subject, text, html };
 }

@@ -47,7 +47,7 @@ function Group({ title, note, findings }: { title: string; note: string; finding
               <span className="font-semibold">{f.variable2}</span>
             </p>
             <p className="mt-1 text-sm text-muted">
-              Statistic reported: {f.statisticType}.{f.population ? ` Population: ${f.population}` : ""}
+              Statistic reported: {f.statisticType}.
             </p>
             <EvidenceLink systemId={f.systemId} pubmedId={f.pubmedId} doi={f.doi} className="mt-2" />
           </li>

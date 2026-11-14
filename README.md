@@ -14,6 +14,40 @@ they were actually published, and the matcher reacts as if they were new. The
 logic is tested on real history; the feed is a snapshot. This is not live
 surveillance, not clinical guidance, and not affiliated with or endorsed by WHO.
 
+## What this does and does not do
+
+Scope: **one marker**, pfdhps K540E (drug: sulfadoxine, used with
+pyrimethamine as SP). The evidence graph is a **July 1 2026 snapshot**.
+
+Does:
+
+- Replays real publication history: findings are played forward in the order
+  they were actually published.
+- Shows how much evidence the graph holds for the marker, with each count
+  labelled by the question it answers.
+- Surfaces each finding's study type, as the graph records it, and its source
+  paper. (For this marker the graph records no study type, and the page says
+  so for each finding.)
+- Flags extractions that failed review, keeps them visible, and leaves them
+  out of every count.
+
+Does not:
+
+- Live surveillance. Nothing published after the snapshot is in it.
+- Prevalence prediction, or any forecast. The graph holds associations, not
+  prevalence measurements.
+- Clinical guidance. A marker association does not establish treatment
+  failure for any patient.
+
+## Screenshots
+
+Taken from the production build of this repo.
+
+| | |
+| --- | --- |
+| ![Story landing page](docs/screenshots/story.png) `/story.html` — the landing story | ![Overview evidence section](docs/screenshots/overview.png) `/overview` — how much evidence the graph holds |
+| ![Learn page](docs/screenshots/learn.png) `/learn` — the marker, its drug, the ladder | ![Data timeline](docs/screenshots/data.png) `/data` — findings by publication date |
+
 ## Tabs and owners
 
 | Route       | What                                               | Owner    |
@@ -80,22 +114,31 @@ it links to doi.org first, PubMed second.
   the mechanism section and on the ladder diagram, which is why other tabs can
   speak of haplotypes containing K540E and mean the same marker.
 
-## Development
+## Running it
 
 Requires Node 22.18 or newer.
 
 ```bash
+git clone https://github.com/dmsteinberger2-oss/Resistance-Observatory.git
+cd Resistance-Observatory
 npm install
 npm run dev     # http://localhost:3000
-npm run lint    # tsc --noEmit
-npm run build
 ```
+
+Other scripts: `npm run lint` (`tsc --noEmit`), `npm run build`,
+`npm run start`.
+
+**Does the demo need a key?** Not for the story, Overview, Learn or Data. They
+read pinned data and make no API calls, so `npm run dev` works straight after
+`npm install` with no `.env.local`. `SYSTEM_API_KEY` is only needed to
+re-pull the pinned data (below). Whether Alert and Forecast need keys of their
+own (for example for Resend) is for David and Benjamin to state here.
 
 Overview, Learn and Data run without any key: every figure they show is read from
 the pinned file `data/graph-stats.json`.
 
-To refresh that file, put your System key in `.env.local` (gitignored — never
-commit it):
+To refresh that file, put your System key in `.env.local` at the repo root
+(gitignored — never commit it):
 
 ```bash
 echo 'SYSTEM_API_KEY=<your key>' > .env.local

@@ -9,6 +9,7 @@
  */
 import type { AlertEvent, Watch, WhoBasis } from "./derive";
 import { KIND_LABEL, SOURCE_LABEL, ci, frac, pct, type EventCopy } from "./copy";
+import { EVIDENCE_TIER, NEXT_STEPS_NOTE, NO_STUDY_TYPE, assayKeywords, enaUrl, methodText, type GenomeContext, type StudyContextFile } from "./context";
 import { pmidStr, type AbstractPrevalence, type ClientPack, type GraphFinding, type MarkerDef, type Paper } from "./pack";
 
 export const SOURCES = {
@@ -92,6 +93,106 @@ export function pickStakes(pack: ClientPack, area: string, basis: WhoBasis): Sta
   return { local, groups, lead };
 }
 
+/* --------------------------------------------------------- study context --- */
+
+/** Tier line for a paper item: what kind of study, where, in whom. From the abstract fields and the title only. */
+export function paperTierDetail(paper: Paper | undefined, figure: AbstractPrevalence | undefined): string[] {
+  const words = assayKeywords(paper?.title);
+  return [
+    figure?.site ? `site: ${figure.site}` : null,
+    figure?.population ? `population: ${figure.population}` : null,
+    words.length ? `title mentions: ${words.join(", ")}` : "assay not named in the title",
+  ].filter((x): x is string => Boolean(x));
+}
+
+/** Tier line for a graph finding: study type and population, as the graph gives them. */
+export function graphTierDetail(f: GraphFinding | undefined): string[] {
+  if (!f) return [];
+  return [`study type: ${f.study_type ?? NO_STUDY_TYPE}`, f.population ? `population: ${f.population}` : "population not given by the graph"];
+}
+
+export function glossaryText(study: StudyContextFile | null | undefined, methods: string[]): string {
+  const g = study?._meta?.dna_method_glossary ?? {};
+  return methods
+    .filter((m) => g[m])
+    .map((m) => `${m}: ${g[m]}`)
+    .join(" · ");
+}
+
+function studyRows(args: {
+  e: AlertEvent;
+  pack: ClientPack;
+  marker: MarkerDef;
+  paper?: Paper;
+  figure?: AbstractPrevalence;
+  graphFinding?: GraphFinding;
+  ctx?: GenomeContext | null;
+  matched?: AbstractPrevalence[];
+  papers?: Map<string, Paper>;
+}): ReceiptRow[] {
+  const { e, ctx } = args;
+  const rows: ReceiptRow[] = [];
+  if (e.source === "papers") {
+    rows.push({ label: "Evidence tier", text: [EVIDENCE_TIER.papers, ...paperTierDetail(args.paper, args.figure)].join(" · "), badge: { text: "machine-read abstract", tone: "unverified" } });
+    rows.push({ label: "Not the same as", text: "A genome-surveillance count or a graph extraction. A figure stated in an abstract comes from that paper’s own design and is never pooled." });
+    return rows;
+  }
+  if (e.source === "graph") {
+    rows.push({ label: "Evidence tier", text: [EVIDENCE_TIER.graph, ...graphTierDetail(args.graphFinding)].join(" · ") });
+    return rows;
+  }
+  if (!ctx) return rows;
+  const meta = args.pack.studyContext?._meta;
+  const src: ReceiptLink[] = meta?.url ? [{ label: "MalariaGEN Pf8 sample metadata", url: meta.url }] : [];
+  rows.push({ label: "Evidence tier", text: `${ctx.tier} · ${ctx.tierDetail}`, links: src });
+  const c = ctx.cell;
+  if (c) {
+    for (const s of c.studies) {
+      rows.push({
+        label: "Partner study",
+        text: `${s.study_id} · ${s.k}/${s.n} (${s.pct}%) · ${s.admin1.map((a) => `${a.name} ${a.k}/${a.n}`).join(", ")} · ${methodText(s.dna_method)}${s.median_callable_pct != null ? ` · median ${s.median_callable_pct}% callable` : ""}`,
+      });
+    }
+    if (ctx.geo) rows.push({ label: "Geographic scope", text: ctx.geo.text, badge: ctx.geo.flag ? { text: ctx.geo.flag, tone: "preset" } : undefined });
+    if (ctx.measure) {
+      const names = ctx.measure.all.map(([m]) => m);
+      rows.push({
+        label: "DNA preparation",
+        text: `All samples: ${methodText(c.dna_method_all)}.${c.k > 0 ? ` Carrying ${args.marker.mutation}: ${methodText(c.dna_method_mutants)}.` : ""}${ctx.measure.note ? ` ${ctx.measure.note}` : ""} ${glossaryText(args.pack.studyContext, names)}`.trim(),
+      });
+      rows.push({ label: "Genome callability", text: `${ctx.measure.callable}.` });
+    }
+    if (ctx.codon) {
+      rows.push({ label: "Codon 540 calls", text: ctx.codon.text });
+      if (ctx.codon.altWarning) rows.push({ label: "Warning", text: ctx.codon.altWarning, badge: { text: "Alternative codon-540 allele", tone: "preset" } });
+    }
+    if (ctx.runs.length) {
+      rows.push({
+        label: "Raw reads",
+        text: `Sequencing runs for ${ctx.runs.length} sample${ctx.runs.length === 1 ? "" : "s"} carrying ${args.marker.mutation}: ${ctx.runs.map((r) => `${r.sample} (${r.dna_method}, ${r.admin1}${r.callable_pct != null ? `, ${r.callable_pct}% callable` : ""})`).join("; ")}.`,
+        links: ctx.runs.map((r) => ({ label: `ENA ${r.ena}`, url: enaUrl(r.ena as string) })),
+      });
+    }
+  }
+  rows.push({ label: "Local prior", text: ctx.prior.detail, badge: { text: ctx.prior.label, tone: ctx.prior.kind === "zero" ? "preset" : "checked" } });
+  rows.push({
+    label: "Cutoff | observed",
+    text: `Cutoff: ${ctx.cutoff.text} | Observed: ${ctx.observed}.${ctx.relation ? ` ${ctx.relation}` : ""}`,
+    badge: ctx.cutoff.published ? { text: "Published by WHO", tone: "who" } : { text: "Project rule or preset", tone: "preset" },
+  });
+  rows.push({ label: "Next steps", text: `${ctx.prior.steps.map((s, i) => `${i + 1}) ${s}`).join(" ")} ${NEXT_STEPS_NOTE}` });
+  for (const f of args.matched ?? []) {
+    const p = args.papers?.get(pmidStr(f.pmid));
+    rows.push({
+      label: "Same place, same years",
+      text: `${EVIDENCE_TIER.papers}: ${p?.title ?? "title not recorded"}${f.site ? ` · site: ${f.site}` : ""}${f.population ? ` · population: ${f.population}` : ""} · “${f.quote}” Shown beside the genome count, never pooled with it.`,
+      links: [{ label: `PMID ${pmidStr(f.pmid)}`, url: p?.url ?? pubmedUrl(pmidStr(f.pmid)) }],
+      badge: { text: "machine-read abstract", tone: "unverified" },
+    });
+  }
+  return rows;
+}
+
 /* --------------------------------------------------------------- receipt --- */
 
 export type ReceiptLink = { label: string; url: string };
@@ -112,6 +213,11 @@ export function buildReceipt(args: {
   stakes: Stakes;
   extracted: GraphFinding[];
   graphFinding?: GraphFinding;
+  /** Genome alerts: the triggering-study context joined from the Pf8 sample metadata. */
+  ctx?: GenomeContext | null;
+  /** Abstract figures whose stated place and collection years cover this cell. Shown beside it, never pooled. */
+  matched?: AbstractPrevalence[];
+  papers?: Map<string, Paper>;
 }): ReceiptSection[] {
   const { e, pack, marker, country } = args;
   const who = pack.thresholds.who_categories?.sources?.[0];
@@ -154,7 +260,10 @@ export function buildReceipt(args: {
     });
   }
 
-  /* 2. threshold authority */
+  /* 2. triggering-study context */
+  const study = studyRows(args);
+
+  /* 3. threshold authority */
   const authority: ReceiptRow[] = [];
   if (e.source !== "genomes") {
     authority.push({ label: "Threshold", text: "None applied: this item is dated evidence quoted from a paper or held by the graph, not a threshold decision." });
@@ -176,7 +285,7 @@ export function buildReceipt(args: {
     });
   }
 
-  /* 3. graph and literature ids */
+  /* 4. graph and literature ids */
   const ids: ReceiptRow[] = [];
   const row = (f: GraphFinding, label: string, lead?: string): ReceiptRow => ({
     label,
@@ -204,6 +313,7 @@ export function buildReceipt(args: {
 
   return [
     { title: "Surveillance math", rows: math },
+    { title: "Triggering study: scope, method and bar for action", rows: study },
     { title: "Threshold authority", rows: authority },
     { title: "System Graph and literature IDs", rows: ids },
   ];
@@ -223,6 +333,10 @@ export type EmailParts = {
   graphLine: string;
   whoStatus: string[];
   receipt: ReceiptSection[];
+  /** Subject line: evidence source, study scope and assay first. */
+  subject: string;
+  /** How much weight to give the signal: tier, flags, cutoff beside observed, next steps. */
+  weight: { tier: string; lines: { label: string; text: string; warn?: boolean }[]; steps: string[]; stepsNote: string | null };
   limits: string[];
   link: string;
   asOf: string;
@@ -232,10 +346,10 @@ const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
 
 export function buildEmail(a: EmailParts): { subject: string; text: string; html: string } {
   const { e, copy } = a;
-  const subject = `[Resistance Observatory] ${a.marker}, ${a.country}: ${copy.title}`;
+  const subject = a.subject;
   const meta = `${KIND_LABEL[e.kind]} · ${SOURCE_LABEL[e.source]} · ${e.dateBasis === "collection" ? "collected" : "published"} ${e.year}${e.fired ? "" : " · context, not an alert"}`;
   const stakeLine = (f: GraphFinding) =>
-    `${pairText(f)}. ${statText(f) ?? ""}${f.population ? ` Population: ${f.population}` : ""} [system_id ${f.system_id}; ${f.source_checked ? TIER.checked : TIER.unverified}${f.pubmed_id ? `; ${f.pubmed_url ?? pubmedUrl(pmidStr(f.pubmed_id))}` : ""}]`;
+    `[${f.study_type ?? NO_STUDY_TYPE}] ${pairText(f)}. ${statText(f) ?? ""} Population: ${f.population ?? "not given by the graph"} [system_id ${f.system_id}; ${f.source_checked ? TIER.checked : TIER.unverified}${f.pubmed_id ? `; ${f.pubmed_url ?? pubmedUrl(pmidStr(f.pubmed_id))}` : ""}]`;
 
   const text = [
     `Your watch: ${a.watchText}`,
@@ -251,6 +365,11 @@ export function buildEmail(a: EmailParts): { subject: string; text: string; html
     "WHAT CHANGED",
     copy.statement,
     `Comparison basis: ${copy.basis}`,
+    "",
+    "HOW MUCH WEIGHT TO GIVE THIS: THE TRIGGERING STUDY",
+    `Evidence tier: ${a.weight.tier}`,
+    ...a.weight.lines.map((l) => `${l.warn ? "! " : "- "}${l.label}: ${l.text}`),
+    ...(a.weight.steps.length ? ["Next steps a reviewer would look for:", ...a.weight.steps.map((s, i) => `  ${i + 1}. ${s}`), a.weight.stepsNote ?? ""] : []),
     "",
     "WHAT THE SYSTEM GRAPH HAS ON IT",
     a.graphLine,
@@ -277,6 +396,7 @@ export function buildEmail(a: EmailParts): { subject: string; text: string; html
   const link = (l: ReceiptLink) => `<a href="${esc(l.url)}" style="color:#0d6b66">${esc(l.label)}</a>`;
   const html = `<div style="font:15px/1.55 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#15171c;max-width:640px;margin:0 auto;padding:8px">
 <p style="font:12px ui-monospace,Menlo,monospace;color:#5a5f6b;margin:0 0 4px">${esc(a.watchText)}</p>
+<p style="font:11px ui-monospace,Menlo,monospace;color:#0d6b66;margin:6px 0 0">${esc(a.subject.match(/^\[[^\]]*\]/)?.[0] ?? "")}</p>
 <h2 style="font:600 22px/1.25 Georgia,serif;margin:6px 0 4px">${esc(`${a.marker}, ${a.country}: ${copy.title}`)}</h2>
 <p style="font:12px ui-monospace,Menlo,monospace;color:#b3341d;margin:0">${esc(meta)}</p>
 ${h("Why it matters, according to the System graph")}
@@ -284,7 +404,7 @@ ${para(a.stakesIntro)}
 <ul style="margin:0 0 8px;padding-left:18px">${a.stakes
     .map(
       (f) =>
-        `<li style="margin-bottom:6px">${esc(pairText(f))}. <strong>${esc(statText(f) ?? "")}</strong>${f.population ? `<br><span style="color:#5a5f6b">Population: ${esc(f.population)}</span>` : ""}<br><span style="font:11px ui-monospace,Menlo,monospace;color:#5a5f6b">system_id ${esc(f.system_id)} · ${esc(f.source_checked ? TIER.checked : TIER.unverified)}${
+        `<li style="margin-bottom:6px"><span style="border:1px solid #a9a08c;border-radius:9px;padding:0 6px;font-size:11px;white-space:nowrap">${esc(f.study_type ?? NO_STUDY_TYPE)}</span> ${esc(pairText(f))}. <strong>${esc(statText(f) ?? "")}</strong><br><span style="color:#5a5f6b">Population: ${esc(f.population ?? "not given by the graph")}</span><br><span style="font:11px ui-monospace,Menlo,monospace;color:#5a5f6b">system_id ${esc(f.system_id)} · ${esc(f.source_checked ? TIER.checked : TIER.unverified)}${
           f.pubmed_id ? ` · ${link({ label: `PMID ${f.pubmed_id}`, url: f.pubmed_url ?? pubmedUrl(pmidStr(f.pubmed_id)) })}` : ""
         }</span></li>`,
     )
@@ -294,6 +414,15 @@ ${h("What changed")}
 ${para(e.quote ? copy.statement.split(" Its abstract says:")[0] : copy.statement)}
 ${e.quote ? `<blockquote style="margin:0 0 8px;padding:2px 0 2px 12px;border-left:3px solid #8a6400;font-family:Georgia,serif">“${esc(e.quote)}”</blockquote>` : ""}
 <p style="margin:0 0 8px;color:#5a5f6b;font-size:13px"><strong style="color:#15171c">Comparison basis.</strong> ${esc(copy.basis)}</p>
+${h("How much weight to give this: the triggering study")}
+<p style="margin:0 0 8px"><span style="border:1px solid #0d6b66;color:#0d6b66;border-radius:9px;padding:1px 8px;font-size:12px">${esc(a.weight.tier)}</span></p>
+${a.weight.lines
+    .map(
+      (l) =>
+        `<p style="margin:0 0 6px;font-size:13.5px;${l.warn ? "border-left:3px solid #b3341d;padding-left:9px" : ""}"><strong>${esc(l.label)}.</strong> ${esc(l.text)}</p>`,
+    )
+    .join("")}
+${a.weight.steps.length ? `<p style="margin:8px 0 4px;font-size:13px"><strong>Next steps a reviewer would look for</strong></p><ol style="margin:0 0 6px;padding-left:20px;font-size:13px">${a.weight.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol><p style="margin:0 0 8px;color:#5a5f6b;font-size:12px">${esc(a.weight.stepsNote ?? "")}</p>` : ""}
 ${h("What the System graph has on it")}
 ${para(a.graphLine)}
 ${h("WHO status of the marker")}

@@ -20,6 +20,7 @@ import { AlertDetail } from "./AlertDetail";
 import { CountryPicker, type CountryRow } from "./CountryPicker";
 import { CurationQueue } from "./CurationQueue";
 import { RULE_TRIGGER, eventIdFor, getDefaultMapAlerts } from "@/lib/alert/mapAlerts";
+import { EVIDENCE_TIER, NO_STUDY_TYPE, assayKeywords, geoScope, localPrior, methodText, studyCellFor } from "@/lib/alert/context";
 import { KindGlyph, SourceGlyph, SOURCE_TONE } from "./glyphs";
 import css from "./alert.module.css";
 
@@ -201,6 +202,45 @@ export function AlertTab({ pack }: { pack: ClientPack }) {
   const companion = useMemo(() => countryCells(data.a581g, area), [data.a581g, area]);
   const papers = useMemo(() => new Map<string, Paper>(pack.literature.papers.map((p) => [pmidStr(p.pmid), p])), [pack.literature.papers]);
   const country = countryName(area);
+
+  /* triggering-study context, as short notes for the feed, the timeline hovers and the year under the playhead */
+  const cellNote = useCallback(
+    (year: number): string => {
+      const c = studyCellFor(pack.studyContext, area, year);
+      if (!c) return "";
+      const alt = c.codon540_breakdown.alt_mutant_540N;
+      return `${EVIDENCE_TIER.genomes}: ${c.study_count} stud${c.study_count === 1 ? "y" : "ies"} (${c.studies.map((s) => s.study_id).join(", ")}) · ${geoScope(c, marker.mutation).short.replace(/ \([^)]*\)$/, "")} · ${methodText(c.dna_method_all)}${
+        alt > 0 ? ` · K540N also called in ${alt} of ${c.n}` : ""
+      }`;
+    },
+    [pack.studyContext, area, marker.mutation],
+  );
+  const chipsFor = useCallback(
+    (e: AlertEvent): { text: string; warn?: boolean }[] => {
+      if (e.source === "papers") {
+        const words = assayKeywords(e.pmid ? papers.get(e.pmid)?.title : null);
+        return [{ text: EVIDENCE_TIER.papers }, ...(words.length ? [{ text: `title mentions ${words.join(", ")}` }] : [])];
+      }
+      if (e.source === "graph") {
+        const f = e.graphFindingId ? pack.graph.haplotype_findings.find((x) => x.system_id === e.graphFindingId) : undefined;
+        return [{ text: EVIDENCE_TIER.graph }, ...(f ? [{ text: f.study_type ?? NO_STUDY_TYPE }] : [])];
+      }
+      const out: { text: string; warn?: boolean }[] = [{ text: EVIDENCE_TIER.genomes }];
+      if (!e.cell) return out;
+      const c = studyCellFor(pack.studyContext, area, e.cell.year);
+      if (c) {
+        const g = geoScope(c, marker.mutation);
+        out.push({ text: `${c.study_count} stud${c.study_count === 1 ? "y" : "ies"} · ${methodText(c.dna_method_all)}` });
+        if (g.kind === "single_site") out.push({ text: `single-site: ${g.site}`, warn: true });
+        if (g.kind === "clustered") out.push({ text: `all positives in ${g.site}`, warn: true });
+        if (c.codon540_breakdown.alt_mutant_540N > 0) out.push({ text: `K540N in ${c.codon540_breakdown.alt_mutant_540N} of ${c.n}`, warn: true });
+      }
+      const prior = localPrior(data.cells, area, e.cell.year);
+      out.push({ text: prior.kind === "zero" ? "zero local prior" : "established local prior", warn: prior.kind === "zero" });
+      return out;
+    },
+    [pack.studyContext, pack.graph.haplotype_findings, area, marker.mutation, data.cells, papers],
+  );
 
   /* replay */
   const lastYear = useMemo(
@@ -588,6 +628,8 @@ export function AlertTab({ pack }: { pack: ClientPack }) {
           country={country}
           minN={watch.minN}
           cells={cells}
+          cellNote={cellNote}
+          eventNote={(e) => `${eventCopy(e, watch, marker.label, country).title}. ${e.source === "genomes" ? cellNote(e.year) : chipsFor(e).map((c) => c.text).join(" · ")}`}
           papers={paperTicks}
           graph={graphTicks}
           events={events.filter((e) => !e.noCountryGiven)}
@@ -601,6 +643,12 @@ export function AlertTab({ pack }: { pack: ClientPack }) {
           <strong className="text-fg">{otherFiredNow}</strong> of {otherFiredAll} paper and graph item{otherFiredAll === 1 ? "" : "s"} for {country} existed. Genome counts sit at
           their collection year; they reached the public later, with each data release.
         </p>
+        {cells.some((c) => c.year === replayYear) && cellNote(replayYear) ? (
+          <p className="mt-1.5 text-xs" aria-live="polite">
+            <span className="font-mono text-[0.68rem] uppercase tracking-[0.12em] text-muted">Collected {replayYear} · study behind the cell</span>{" "}
+            {cellNote(replayYear)}
+          </p>
+        ) : null}
       </section>
 
       {/* feed + detail */}
@@ -655,6 +703,7 @@ export function AlertTab({ pack }: { pack: ClientPack }) {
                   marker={marker.label}
                   country={country}
                   paper={e.pmid ? papers.get(e.pmid) : undefined}
+                  chips={chipsFor(e)}
                   selected={e.id === selectedId}
                   fresh={freshYear === e.year && e.fired}
                   onSelect={() => select(e.id === selectedId ? null : e.id)}
@@ -673,6 +722,7 @@ export function AlertTab({ pack }: { pack: ClientPack }) {
               country={country}
               basis={basis}
               pack={pack}
+              cells={data.cells}
               papers={papers}
               asOfLine={asOfLine}
               emailConfigured={emailStatus ? emailStatus.configured : null}
@@ -727,6 +777,7 @@ function FeedItem({
   marker,
   country,
   paper,
+  chips,
   selected,
   fresh,
   onSelect,
@@ -736,6 +787,7 @@ function FeedItem({
   marker: string;
   country: string;
   paper: Paper | undefined;
+  chips: { text: string; warn?: boolean }[];
   selected: boolean;
   fresh: boolean;
   onSelect: () => void;
@@ -767,6 +819,14 @@ function FeedItem({
             {e.strength ? <span className={e.strength === "strong" ? "text-signal" : ""}>{e.strength === "strong" ? "strong signal" : e.strength === "weak" ? "weak signal" : "signal"}</span> : null}
             <span className={`rounded-full border px-1.5 py-px ${w.tone}`}>{w.text}</span>
             {e.noCountryGiven ? <span>no country stated</span> : null}
+          </span>
+          <span className="mt-1 flex flex-wrap items-center gap-1 font-mono text-[0.64rem] text-muted">
+            {chips.map((c) => (
+              <span key={c.text} className={`rounded-full border px-1.5 py-px ${c.warn ? "border-signal/60 text-signal" : "border-line"}`}>
+                {c.warn ? "⚠ " : ""}
+                {c.text}
+              </span>
+            ))}
           </span>
         </span>
       </button>

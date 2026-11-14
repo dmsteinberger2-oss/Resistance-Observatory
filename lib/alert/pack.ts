@@ -12,6 +12,7 @@ import type {
   MarkerKey,
   WhoBasis,
 } from "./derive";
+import type { StudyContextFile } from "./context";
 
 /* -------------------------------------------------------------- registry --- */
 
@@ -204,6 +205,8 @@ export type Pack = {
   literature: LiteratureFile;
   graph: GraphFile;
   thresholds: ThresholdsFile;
+  /** Sample-level study context per genome cell; null when the file is not installed. */
+  studyContext: StudyContextFile | null;
 };
 
 /** What the browser receives: the pack minus the long vetted-id list. */

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { pmidStr, type ClientPack, type MarkerDef } from "@/lib/alert/pack";
 import { TIER } from "@/lib/alert/receipt";
+import { EVIDENCE_TIER, NO_STUDY_TYPE, assayKeywords } from "@/lib/alert/context";
 import { useSystem, type LiveCoverage, type LiveStudies } from "./useSystem";
 
 /**
@@ -83,7 +84,8 @@ export function CurationQueue({ pack, marker, area, country, replayYear }: { pac
         </a>
         ), the live API returns two associations on variable <span className="font-mono">w1ktrLk4Wc</span>: <span className="font-mono">paFNq6MPX5</span> (adjusted prevalence ratio 2.76) and{" "}
         <span className="font-mono">AeI-laBxXr</span> (adjusted prevalence ratio 3.28). The extractor attached risks reported for the A581G-bearing sextuple haplotype onto {marker.mutation}. Neither id is in
-        the vetted set, so this tab counts them and never shows them as evidence about {marker.mutation}.
+        the vetted set, so this tab counts them and never shows them as evidence about {marker.mutation}. This is what happens when machine extraction drops a study’s
+        meta-context: which haplotype was measured, in whom, by what kind of study. Every item shown on this page therefore carries its evidence tier, study type and population.
       </p>
 
       <div className="mt-4 grid gap-6 xl:grid-cols-2">
@@ -126,7 +128,8 @@ export function CurationQueue({ pack, marker, area, country, replayYear }: { pac
                           <li key={f.system_id} className="leading-snug">
                             {f.variable_1} <span className="font-mono text-xs text-muted">↔</span> {f.variable_2}{" "}
                             <span className="font-mono text-[0.66rem] text-muted">
-                              {f.system_id} · {f.source_checked ? TIER.checked : TIER.unverified}
+                              {f.system_id} · {f.source_checked ? TIER.checked : TIER.unverified} · {f.study_type ? <strong className="text-fg">{f.study_type}</strong> : NO_STUDY_TYPE} · population:{" "}
+                              {f.population ?? "not given"}
                             </span>
                           </li>
                         ))}
@@ -178,6 +181,8 @@ export function CurationQueue({ pack, marker, area, country, replayYear }: { pac
                       <a href={p.url ?? `https://pubmed.ncbi.nlm.nih.gov/${id}/`} target="_blank" rel="noopener noreferrer" className="text-drug underline underline-offset-2">
                         PMID {id} ↗
                       </a>
+                      <span className="rounded-full border border-gap/60 px-1.5 text-gap">{EVIDENCE_TIER.papers}</span>
+                      {assayKeywords(p.title).length ? <span>title mentions {assayKeywords(p.title).join(", ")}</span> : null}
                       {figure ? <span className="rounded-full border border-gap/60 px-1.5 text-gap">states a K540E figure</span> : null}
                       {claim ? <span className="rounded-full border border-gap/60 px-1.5 text-gap">first-report claim</span> : null}
                       {a ? <span className="rounded-full border border-line-strong px-1.5">association sentence</span> : null}

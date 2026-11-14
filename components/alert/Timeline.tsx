@@ -24,6 +24,10 @@ type Props = {
   country: string;
   minN: number;
   cells: CellStat[];
+  /** Study behind a genome cell (partner studies, site scope, DNA preparation), for the hover text. */
+  cellNote?: (year: number) => string;
+  /** One line on an alert and the study behind it, for the hover text. */
+  eventNote?: (e: AlertEvent) => string;
   papers: PaperTick[];
   graph: GraphTick[];
   events: AlertEvent[];
@@ -124,7 +128,7 @@ export function Timeline(p: Props) {
                 strokeDasharray={ok ? undefined : "2 1.6"}
                 className={`${css.mark} ${vis(c.year) ? "" : css.markHidden}`}
               >
-                <title>{`${p.country}, collected ${c.year}: ${c.x} of ${c.n}${ok ? "" : ` (under ${p.minN} samples)`}`}</title>
+                <title>{`${p.country}, collected ${c.year}: ${c.x} of ${c.n}${ok ? "" : ` (under ${p.minN} samples)`}${p.cellNote?.(c.year) ? `. ${p.cellNote(c.year)}` : ""}`}</title>
               </circle>
             );
           })}
@@ -136,7 +140,7 @@ export function Timeline(p: Props) {
               {d.inCountry > 0 ? (
                 <rect x={x(d.year) - 3} y={LANES.papers - barH(d.inCountry)} width={6} height={barH(d.inCountry)} rx={1.5} fill="var(--gap)" />
               ) : null}
-              <title>{`Published ${d.year}: ${d.total} paper${d.total === 1 ? "" : "s"} on the marker, ${d.inCountry} naming ${p.country}`}</title>
+              <title>{`Published ${d.year}: ${d.total} paper${d.total === 1 ? "" : "s"} on the marker, ${d.inCountry} naming ${p.country}. Published molecular / clinical papers, each with its own design; not pooled.`}</title>
             </g>
           ))}
 
@@ -195,6 +199,7 @@ export function Timeline(p: Props) {
                   }
                 }}
               >
+                {p.eventNote ? <title>{p.eventNote(e)}</title> : null}
                 <circle r={11} fill="transparent" />
                 {p.freshYear === e.year ? <circle className={css.pulse} r={6} /> : null}
                 {sel ? <circle r={10} fill="none" stroke="var(--signal)" strokeWidth={1.4} /> : null}

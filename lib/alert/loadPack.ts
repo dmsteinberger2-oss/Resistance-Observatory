@@ -6,6 +6,7 @@
  */
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import type { StudyContextFile } from "./context";
 import type { ClientPack, GenomesFile, GraphFile, LiteratureFile, Pack, ThresholdsFile } from "./pack";
 
 const dir = () => process.env.ALERT_PACK_DIR || path.join(process.cwd(), "k540e-data-pack");
@@ -25,7 +26,9 @@ export function loadPack(): Promise<Pack | null> {
         json<GraphFile>("k540e-graph.json"),
         json<ThresholdsFile>("k540e-thresholds.json"),
       ]);
-      return { genomes, literature, graph, thresholds };
+      // optional: the tab works without it and says the context is not recorded
+      const studyContext = await json<StudyContextFile>("k540e-study-context.json").catch(() => null);
+      return { genomes, literature, graph, thresholds, studyContext };
     } catch {
       return null;
     }

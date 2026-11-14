@@ -302,6 +302,7 @@ only; the link always holds the current watch.
 | Evidence | Source | Licence / notes |
 | --- | --- | --- |
 | Genome counts by country and collection year (K540E, A581G, A437G, quintuple haplotype) | MalariaGEN Pf8, <https://zenodo.org/records/18681980> (DOI 10.5281/zenodo.18681980) | CC BY 4.0. Convenience samples, dated by collection year. Wilson 95% intervals are computed in the app. |
+| Triggering-study context for every genome cell (`k540e-study-context.json`, 222 country-year cells): partner study codes, Admin-1 sites, DNA preparation (gDNA / sWGA / MDA), % callable genome, mixed-genotype and K540N calls, ENA run accessions | MalariaGEN Pf8 sample metadata and marker genotypes, <https://zenodo.org/records/18681980> | CC BY 4.0. Sites are attributed to MalariaGEN, never to the System graph. A unit test checks all 222 cells against the genome counts. |
 | 372 papers mentioning K540E, with abstract figures, association sentences and first-report claims | PubMed (NCBI E-utilities), searched 14 November 2026 | Abstract items were read by a language model; a program kept only quotes that appear word for word in the abstract. Not checked by hand, so every one is shown as a quote with its PubMed link. |
 | Graph findings, concept ids, vetted association ids; live queries | System Public Graph, <https://doi.org/10.7910/DVN/7V6JDO>; API <https://public-api.system.com> | Non-commercial. Work deriving from the graph is CC BY-NC. |
 | Marker status, SP-resistance categories, history | WHO guidelines for malaria, 13 August 2025, <https://iris.who.int/server/api/core/bitstreams/26a6af2d-060c-4449-8207-1f25e63c6cc3/content> (categories: PDF page 105; continuing IPTp-SP: PDF pages 104 and 107–108); WHO Compendium of molecular markers for antimalarial drug resistance, <https://www.who.int/publications/m/item/compendium-of-molecular-markers-for-antimalarial-drug-resistance>; other WHO documents linked inside `k540e-thresholds.json` | Quoted verbatim with page references. Presets outside East and Southern Africa are this project's, and are labelled as presets. |
@@ -325,6 +326,23 @@ DOI: <https://doi.org/10.7910/DVN/7V6JDO>
   Graph, unverified".
 - Alert sentences are templates filled from the data. No language model runs
   in the app.
+- Early-warning alerts fire on thin signals too. Nothing is suppressed;
+  instead every alert carries the study behind it, in the inspector, the
+  Decision Receipt, the feed cards, the timeline hovers and both email
+  formats: partner study codes, single-site and subnational-clustering flags,
+  DNA preparation and genome callability with ENA links to the raw reads,
+  mixed-genotype and alternative codon-540 (K540N) calls, the local prior
+  (genome cells for the same country collected earlier), and the cutoff shown
+  beside the observed proportion with its Wilson interval. The "next steps"
+  lines are surveillance follow-up a reviewer would look for (verification,
+  wider sampling, WHO therapeutic / chemoprevention efficacy studies). They
+  are not clinical guidance and not a WHO instruction.
+- The three lanes are badged as different kinds of study: "Curated WGS
+  Surveillance (MalariaGEN Pf8)", "Published Molecular / Clinical Paper"
+  (with site, population and any assay word in the title) and System Graph
+  findings (with `study_type` and `population` beside the statistic).
+- The email subject leads with evidence source, study scope and assay, e.g.
+  `[MalariaGEN Pf8 WGS · 1 study, single-site Kilifi (sWGA/gDNA)] Kenya K540E (SP marker) 78.6% (44/56) — WHO 60% line; confirm via TES/CES`.
 
 ### Running and testing
 

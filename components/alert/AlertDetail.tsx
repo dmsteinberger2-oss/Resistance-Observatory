@@ -2,10 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import type { AlertEvent, Watch, WhoBasis } from "@/lib/alert/derive";
+import type { AlertEvent, Cell, Watch, WhoBasis } from "@/lib/alert/derive";
+import { EVIDENCE_TIER, NEXT_STEPS_NOTE, NO_STUDY_TYPE, genomeContext, genomeSubject, itemSubject, matchingFigures, methodText } from "@/lib/alert/context";
+import { ItemTier, StudyContextPanel, TierBadge as EvidenceTierBadge } from "./StudyContext";
 import { BAND_LABEL, BAND_RULE, KIND_LABEL, SOURCE_LABEL, ci, eventCopy, frac, limits, pct, thresholdBasis, watchSentence } from "@/lib/alert/copy";
 import { pmidStr, type AbstractPrevalence, type ClientPack, type GraphFinding, type MarkerDef, type Paper } from "@/lib/alert/pack";
-import { PRESET_BADGE, SOURCES, TIER, buildEmail, buildReceipt, pickStakes, pubmedUrl, statText, type ReceiptSection } from "@/lib/alert/receipt";
+import { PRESET_BADGE, SOURCES, TIER, buildEmail, buildReceipt, graphTierDetail, paperTierDetail, pickStakes, pubmedUrl, statText, type ReceiptSection } from "@/lib/alert/receipt";
 import { KindGlyph, SourceGlyph, SOURCE_TONE } from "./glyphs";
 import { useSystem, type LiveFinding, type LivePaper } from "./useSystem";
 import css from "./alert.module.css";
@@ -37,7 +39,19 @@ export function FindingRow({ f, confirm = true, conceptLabel }: { f: GraphFindin
         </span>
         <span className="font-medium">{f.variable_2}</span>
       </p>
-      {statText(f) ? <p className="mt-1 font-mono text-[0.8rem] font-semibold">{statText(f)}</p> : null}
+      <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+        <span
+          className={`rounded-full border px-2 py-px font-mono text-[0.66rem] ${f.study_type ? "border-fg/50 font-semibold text-fg" : "border-dashed border-line-strong text-muted"}`}
+          title="Study type, as the System graph gives it"
+        >
+          {f.study_type ?? NO_STUDY_TYPE}
+        </span>
+        {statText(f) ? <span className="font-mono text-[0.8rem] font-semibold">{statText(f)}</span> : null}
+      </p>
+      <p className="mt-1 text-xs">
+        <span className="text-muted">Population, per the graph: </span>
+        {f.population ?? <span className="text-muted">not given</span>}
+      </p>
       {c?.comparison ? (
         <p className="mt-1 text-xs">
           <span className="text-muted">Comparison, from the paper: </span>
@@ -51,7 +65,6 @@ export function FindingRow({ f, confirm = true, conceptLabel }: { f: GraphFindin
           {c.sample_size ? <span className="not-italic text-muted"> · {c.sample_size}</span> : null}
         </p>
       ) : null}
-      {f.population ? <p className="mt-1 text-xs text-muted">Population, per the graph: {f.population}</p> : null}
       {c?.review_notes ? <p className="mt-1 text-xs text-gap">Reviewer note: {c.review_notes}</p> : null}
       <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[0.68rem] text-muted">
         <TierBadge checked={checked} />
@@ -133,6 +146,8 @@ type Props = {
   country: string;
   basis: WhoBasis;
   pack: ClientPack;
+  /** Every genome cell for the marker, any country: the local prior reads the earlier ones. */
+  cells: Cell[];
   papers: Map<string, Paper>;
   asOfLine: string;
   emailConfigured: boolean | null;
@@ -208,6 +223,48 @@ export function AlertDetail(p: Props) {
   const esa = basis === "east_southern_africa";
   const emailWho = esa && v?.continue_quote ? [...whoStatus, `WHO on SP in pregnancy: “${v.continue_quote}” (${v.continue_where})`] : whoStatus;
 
+  /* triggering-study context: scope, method, local prior, cutoff beside observed */
+  const ctx = useMemo(
+    () => genomeContext({ e, watch, basis, cells: p.cells, study: pack.studyContext, country, mutation: marker.mutation }),
+    [e, watch, basis, p.cells, pack.studyContext, country, marker.mutation],
+  );
+  const matched = ctx && e.cell ? matchingFigures(pack.literature.abstract_prevalence, watch.area, e.cell.year) : [];
+  const itemDetail = e.source === "papers" ? paperTierDetail(paper, figure) : e.source === "graph" ? (graphFinding ? graphTierDetail(graphFinding) : ["a paper the graph has read; what it extracted is listed below"]) : [];
+  const subject = ctx
+    ? genomeSubject({ e, ctx, country, mutation: marker.mutation, drugShort: marker.drugShort })
+    : itemSubject({
+        tier: e.source === "papers" ? `${EVIDENCE_TIER.papers}, machine-read abstract` : EVIDENCE_TIER.graph,
+        scope: itemDetail,
+        country,
+        mutation: marker.mutation,
+        drugShort: marker.drugShort,
+        title: copy.title,
+        fired: e.fired,
+      });
+  const weight = ctx
+    ? {
+        tier: `${ctx.tier} · ${ctx.tierDetail}`,
+        lines: [
+          ...ctx.flags.map((f) => ({ label: f.label, text: f.text, warn: f.tone === "warn" })),
+          ...(ctx.cell
+            ? [
+                { label: "Partner studies", text: ctx.cell.studies.map((s) => `${s.study_id} ${s.k}/${s.n} (${s.pct}%)`).join("; ") },
+                ...(ctx.geo && !ctx.geo.flag ? [{ label: "Geographic scope", text: ctx.geo.text }] : []),
+                {
+                  label: "DNA preparation",
+                  text: `all samples ${methodText(ctx.cell.dna_method_all)}${ctx.cell.k > 0 ? `; carrying ${marker.mutation} ${methodText(ctx.cell.dna_method_mutants)}` : ""}. ${ctx.measure?.note ?? ""} Genome callability: ${ctx.measure?.callable}.`,
+                },
+                { label: "Codon 540 calls", text: ctx.codon?.text ?? "" },
+              ]
+            : []),
+          { label: "Cutoff", text: ctx.cutoff.text },
+          { label: "Observed", text: `${ctx.observed}.${ctx.relation ? ` ${ctx.relation}` : ""}` },
+        ],
+        steps: ctx.prior.steps,
+        stepsNote: NEXT_STEPS_NOTE,
+      }
+    : { tier: e.source === "papers" ? EVIDENCE_TIER.papers : EVIDENCE_TIER.graph, lines: itemDetail.map((d) => ({ label: d.split(": ")[0], text: d.split(": ").slice(1).join(": ") || d })), steps: [], stepsNote: null };
+
   const receipt = buildReceipt({
     e,
     watch,
@@ -222,6 +279,9 @@ export function AlertDetail(p: Props) {
     stakes,
     extracted,
     graphFinding,
+    ctx,
+    matched,
+    papers: p.papers,
   });
 
   const stakesIntro = `${marker.label} is a mutation in the parasite's ${marker.gene} gene associated with reduced susceptibility to sulfadoxine, one half of ${marker.drug}. What the System graph holds on ${marker.drugShort} and on haplotypes containing ${marker.mutation}:`;
@@ -241,6 +301,8 @@ export function AlertDetail(p: Props) {
     graphLine,
     whoStatus: emailWho,
     receipt,
+    subject,
+    weight,
     limits: lim,
     link,
     asOf: p.asOfLine,
@@ -366,7 +428,15 @@ export function AlertDetail(p: Props) {
         </p>
       </Section>
 
-      <Section n={3} title="The evidence">
+      <Section n={3} title="How much weight to give this: the triggering study">
+        {ctx ? (
+          <StudyContextPanel ctx={ctx} mutation={marker.mutation} study={pack.studyContext} matched={matched} papers={p.papers} />
+        ) : e.source !== "genomes" ? (
+          <ItemTier source={e.source} detail={itemDetail} />
+        ) : null}
+      </Section>
+
+      <Section n={4} title="The evidence">
         {e.cell ? (
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 font-mono text-[0.8rem]">
             <dt className="text-muted">this cell</dt>
@@ -427,6 +497,11 @@ export function AlertDetail(p: Props) {
                   .join(" · ")}
               </p>
             ) : null}
+            {e.source === "papers" ? (
+              <p>
+                <EvidenceTierBadge source="papers" small />
+              </p>
+            ) : null}
             {graphFinding ? (
               <ul>
                 <FindingRow f={graphFinding} conceptLabel={conceptLabel} />
@@ -445,7 +520,7 @@ export function AlertDetail(p: Props) {
         )}
       </Section>
 
-      <Section n={4} title="What the graph has on it">
+      <Section n={5} title="What the graph has on it">
         <p className="text-sm">{graphLine}</p>
         {extracted.length > 0 ? (
           <>
@@ -471,7 +546,7 @@ export function AlertDetail(p: Props) {
         ) : null}
       </Section>
 
-      <Section n={5} title="WHO status of the marker">
+      <Section n={6} title="WHO status of the marker">
         {whoStatus.map((s) => (
           <p key={s} className="mb-1.5 text-sm">
             {s}
@@ -493,7 +568,7 @@ export function AlertDetail(p: Props) {
         ) : null}
       </Section>
 
-      <Section n={6} title="Threshold and its basis">
+      <Section n={7} title="Threshold and its basis">
         <p className="text-sm">
           <span className={`mr-2 inline-block rounded-full border px-2 py-0.5 font-mono text-[0.7rem] ${tb.published ? "border-drug/60 text-drug" : "border-gap/60 text-gap"}`}>
             {tb.published ? "Published by WHO" : watch.trigger === "first_detection" ? "Project rule" : PRESET_BADGE}
@@ -529,7 +604,7 @@ export function AlertDetail(p: Props) {
         ) : null}
       </Section>
 
-      <Section n={7} title="What this alert cannot tell you">
+      <Section n={8} title="What this alert cannot tell you">
         <ul className="list-disc space-y-1 pl-5 text-sm text-muted">
           {lim.map((l) => (
             <li key={l}>{l}</li>
@@ -601,7 +676,7 @@ function EmailPanel({ subject, text, html, configured, from }: { subject: string
         </div>
       </div>
       <p className="mt-2 text-sm">
-        <span className="font-mono text-[0.7rem] text-muted">Subject </span>
+        <span className="font-mono text-[0.7rem] text-muted">Subject: </span>
         {subject}
       </p>
       {view === "html" ? (

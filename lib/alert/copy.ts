@@ -88,7 +88,7 @@ const cellPhrase = (c: CellStat, marker: string, country: string) =>
   `among ${c.n} samples collected in ${country} in ${c.year}, ${c.x} carried ${marker} (${pct(c.pct)}, ${ci(c)})`;
 
 const prevPhrase = (c: CellStat, minN: number) =>
-  `The previous cell with at least ${minN} samples, collected in ${c.year}, had ${frac(c)} (${pct(c.pct)}, ${ci(c)})`;
+  `The previous sampled year with at least ${minN} samples, collected in ${c.year}, had ${frac(c)} (${pct(c.pct)}, ${ci(c)})`;
 
 export type EventCopy = {
   /** Short headline for the card. */
@@ -124,7 +124,7 @@ export function eventCopy(e: AlertEvent, w: Watch, marker: string, country: stri
       return {
         title: `${cap(BAND_LABEL[e.prevBand])} band to ${BAND_LABEL[e.band]} band`,
         statement: `${cap(cellPhrase(c, marker, country))}: the ${BAND_LABEL[e.band]} band. ${prevPhrase(p, w.minN)}: the ${BAND_LABEL[e.prevBand]} band.`,
-        basis: `Compared with the previous cell of at least ${w.minN} samples, ${years(e.yearsApart ?? 0)} earlier (${p.year}). Years in between were not sampled or fell under the minimum.`,
+        basis: `Compared with the previous sampled year of at least ${w.minN} samples, ${years(e.yearsApart ?? 0)} earlier (${p.year}). Years in between were not sampled or fell under the minimum.`,
       };
     }
     case "combo_reached":
@@ -144,10 +144,10 @@ export function eventCopy(e: AlertEvent, w: Watch, marker: string, country: stri
       return {
         title,
         statement: `${cap(cellPhrase(c, marker, country))}; ${aPhrase}. That is the ${BAND_LABEL[e.band]} band${
-          p && e.prevBand ? `; the previous cell (${p.year}) was in the ${BAND_LABEL[e.prevBand]} band` : ""
+          p && e.prevBand ? `; the previous sampled year (${p.year}) was in the ${BAND_LABEL[e.prevBand]} band` : ""
         }.`,
         basis: p
-          ? `Compared with the previous cell of at least ${w.minN} samples, ${years(e.yearsApart ?? 0)} earlier (${p.year}). “Very high” needs ${BAND_RULE.very_high} in the same cell.`
+          ? `Compared with the previous sampled year of at least ${w.minN} samples, ${years(e.yearsApart ?? 0)} earlier (${p.year}). “Very high” needs ${BAND_RULE.very_high} in the same cell.`
           : `“Very high” needs ${BAND_RULE.very_high} in the same cell.`,
       };
     }
@@ -174,7 +174,7 @@ export function eventCopy(e: AlertEvent, w: Watch, marker: string, country: stri
       return {
         title,
         statement: `${cap(cellPhrase(c, marker, country))}: ${now} ${w.level}%. ${prevPhrase(p, w.minN)}.${strength}`,
-        basis: `Compared with the previous cell of at least ${w.minN} samples, ${years(e.yearsApart ?? 0)} earlier (${p.year}).`,
+        basis: `Compared with the previous sampled year of at least ${w.minN} samples, ${years(e.yearsApart ?? 0)} earlier (${p.year}).`,
       };
     }
     case "change": {
@@ -185,7 +185,7 @@ export function eventCopy(e: AlertEvent, w: Watch, marker: string, country: stri
         statement: `${cap(cellPhrase(c, marker, country))}, ${dir} ${pts(e.delta)} from ${frac(p)} (${pct(p.pct)}, ${ci(p)}) in ${p.year}.${
           e.strength === "strong" ? " The two intervals do not overlap." : " The two intervals overlap."
         }`,
-        basis: `Compared with the previous cell of at least ${w.minN} samples, ${years(e.yearsApart ?? 0)} earlier (${p.year}). The two collections may come from different sites.`,
+        basis: `Compared with the previous sampled year of at least ${w.minN} samples, ${years(e.yearsApart ?? 0)} earlier (${p.year}). The two collections may come from different sites.`,
       };
     }
     case "first_detection": {
@@ -269,6 +269,7 @@ export function limits(e: AlertEvent, basis: WhoBasis, marker: string, drugShort
       "A graph finding is an association between a pair of variables. It is not cause and effect, and it does not say which variable is the exposure.",
       `No graph finding names ${marker} on its own; these concern haplotypes that contain it.`,
       "About a fifth of associations returned by the System API are known-bad extractions; only vetted ids are shown.",
+      "A vetted id can still be wrong. One SP finding (PEyo2A8Ol0, PMID 26429700) presented a trial’s comparison in the reverse direction; it was caught against the paper and excluded.",
     );
   }
   out.push("Nothing here is live surveillance or clinical guidance.");

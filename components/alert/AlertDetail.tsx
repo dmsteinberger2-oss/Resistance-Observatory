@@ -81,17 +81,17 @@ export function FindingRow({ f, confirm = true, conceptLabel }: { f: GraphFindin
         ) : null}
         {live?.state === "live" ? (
           live.data.vetted === false ? (
-            <span className="text-gap">live: id not in the vetted set</span>
+            <span className="text-gap">API: id not in the vetted set</span>
           ) : live.data.finding ? (
             <span title="Fetched from the System API just now" className="text-drug">
-              live ✓ {String(liveValue)}
+              API ✓ {String(liveValue)}
               {typeof liveValue === "number" && typeof f.statistic_value === "number" ? (liveValue === f.statistic_value ? " (matches snapshot)" : " (differs from snapshot)") : ""}
             </span>
           ) : (
-            <span>live: id not returned by the API</span>
+            <span>API: id not returned</span>
           )
         ) : live?.state === "loading" ? (
-          <span>live: checking…</span>
+          <span>API: checking…</span>
         ) : null}
       </p>
     </li>
@@ -433,14 +433,14 @@ export function AlertDetail(p: Props) {
         ) : null}
         {livePaper?.state === "live" ? (
           <p className="mt-2 font-mono text-[0.7rem] text-muted">
-            Live check:{" "}
+            API check:{" "}
             {livePaper.data.inGraph
               ? `the API holds this paper (study_id ${livePaper.data.study?.study_id}) with ${livePaper.data.total} association${livePaper.data.total === 1 ? "" : "s"}; ${livePaper.data.findings.length} in the vetted set`
               : "the API does not hold this paper"}
             {livePaper.data.quarantined > 0 ? `; ${livePaper.data.quarantined} more returned by the API are not in the vetted set and are not shown` : ""}.
           </p>
         ) : livePaper?.state === "snapshot" ? (
-          <p className="mt-2 font-mono text-[0.7rem] text-muted">Live check unavailable; the in-graph flag is from the data pack.</p>
+          <p className="mt-2 font-mono text-[0.7rem] text-muted">API check unavailable; the in-graph flag is from the data pack.</p>
         ) : null}
       </Section>
 

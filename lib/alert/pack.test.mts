@@ -79,9 +79,12 @@ test("papers: 372, 10 in the graph; 55 abstract figures from 49 papers in 25 cou
   assert.equal(new Set(lit.abstract_prevalence.map((f: { iso3: string }) => f.iso3)).size, 25);
 });
 
-test("graph: 3 haplotype findings, 23 SP findings, 21 paper findings all vetted, 4,912 vetted ids", () => {
+test("graph: 3 haplotype findings, 22 SP findings, 21 paper findings all vetted, 4,912 vetted ids", () => {
   assert.equal(graph.haplotype_findings.length, 3);
-  assert.equal(graph.stakes_sp.length, 23);
+  assert.equal(graph.stakes_sp.length, 22);
+  // PEyo2A8Ol0 reversed its trial arms (DP vs SP): vetted id, excluded after checking the paper
+  assert.equal(graph.stakes_sp.some((f: { system_id: string }) => f.system_id === "PEyo2A8Ol0"), false);
+  assert.deepEqual(graph.stakes_sp.filter((f: { source_checked?: boolean }) => f.source_checked).map((f: { system_id: string }) => f.system_id).sort(), ["6gHNBtEMhm", "FeOFp8SnEy", "Q9e3_2VwzW"]);
   assert.equal(graph.findings_from_k540e_papers.length, 21);
   const vetted = new Set(graph.vetted_association_ids);
   assert.equal(vetted.size, 4912);

@@ -29,7 +29,7 @@ function headline(e: AlertEvent, country: string, minN: number): string {
   const c = e.cell!;
   const count = `${c.x} of ${c.n} samples, ${p1(c.pct)}`;
   if (e.rule === "band_change") {
-    return `${country}, collected ${c.year}: K540E moves from the ${BAND[e.prevBand!]} to the ${BAND[e.band!]} WHO band (${count}; previous cell ${e.prev!.year}: ${p1(e.prev!.pct)})`;
+    return `${country}, collected ${c.year}: K540E moves from the ${BAND[e.prevBand!]} to the ${BAND[e.band!]} WHO band (${count}; previous sampled year ${e.prev!.year}: ${p1(e.prev!.pct)})`;
   }
   if (e.rule === "first_detection") {
     const weak = e.strength === "weak" ? "single positive sample" : e.belowMinN ? `fewer than ${minN} samples` : null;

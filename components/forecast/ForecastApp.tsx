@@ -24,8 +24,17 @@ const TOP_PX = 170; // the time control at the top centre
 const ZOOM_COL_PX = 16 + 70 + 12; // zoom buttons column plus gaps
 
 export function ForecastApp({ alertFeed }: { alertFeed: AlertFeed }) {
-  const { country, asOfYear, layer, setLayer, setCountry, setAsOfYear, hrefForAlert, hrefForAlertTab } =
-    useForecastUrl();
+  const {
+    country,
+    asOfYear,
+    layer,
+    setLayer,
+    setCountry,
+    setAsOfYear,
+    flushYear,
+    hrefForAlert,
+    hrefForAlertTab,
+  } = useForecastUrl();
   const totals = useMemo(() => papersTotals(asOfYear), [asOfYear]);
   const paperMax = useMemo(
     () => Object.values(papersCountsByCountry(asOfYear)).reduce((m, r) => Math.max(m, r.total), 0),
@@ -180,6 +189,11 @@ export function ForecastApp({ alertFeed }: { alertFeed: AlertFeed }) {
         <div
           data-slot="time-control"
           data-fc-avoid
+          onClickCapture={(e) => {
+            // Pausing playback: write the shown year to the URL at once.
+            const b = (e.target as Element).closest?.("button");
+            if (b?.getAttribute("aria-label") === "Pause") setTimeout(flushYear, 0);
+          }}
           className="absolute top-4 z-20 -translate-x-1/2"
           style={{ left: `calc(${leftPx}px + (100% - ${leftPx}px - ${panelPx}px) / 2)` }}
         >

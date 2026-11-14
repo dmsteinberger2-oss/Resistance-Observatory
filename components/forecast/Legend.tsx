@@ -139,8 +139,8 @@ export function LegendStrip({
 }) {
   const papers = layer === "papers";
   const source = papers
-    ? "Countries come from the papers (machine-read from abstracts). The Graph itself has no geography field."
-    : "Colours: genome data, MalariaGEN Pf8 (CC BY 4.0), by sample collection year. Shapes: Natural Earth.";
+    ? "Countries machine-read from paper abstracts · the Graph has no geography field"
+    : "Colours: MalariaGEN Pf8 (CC BY 4.0), by collection year · Shapes: Natural Earth";
   return (
     <section
       aria-label={papers ? `Legend: K540E papers and the Graph as of ${asOfYear}` : `Legend: K540E in genome data as of ${asOfYear}`}
@@ -156,7 +156,7 @@ export function LegendStrip({
           </button>
         </div>
         <h2 className="fc-label min-w-0 leading-tight">
-          {papers ? `K540E papers and the Graph · as of ${asOfYear}` : `K540E in genome data · as of ${asOfYear}`}
+          {papers ? `Papers and the Graph · as of ${asOfYear}` : `Genome data · as of ${asOfYear}`}
         </h2>
       </div>
       {papers ? (
@@ -181,16 +181,15 @@ export function LegendStrip({
           <li className="flex min-w-0 items-center gap-1.5">
             <Swatch kind="detected" />
             <span className="flex flex-col leading-tight">
+              <span className="max-w-[200px]">Detected, share of tested samples carrying K540E:</span>
               <span className="flex items-center gap-1.5 whitespace-nowrap">
-                Detected:
-                <Ramp css={rampGradientCss()} lo="0%" hi="100%" />
+                <Ramp css={rampGradientCss()} lo="above 0%" hi="100%" />
               </span>
-              <span className="whitespace-nowrap text-muted">share of samples</span>
             </span>
           </li>
           <Item mark={<ChangedGlyph />}>Changed in {asOfYear}</Item>
           <Item mark={<FlagGlyph placeholder={placeholder} />}>
-            Alert (Alert tab){placeholder ? ", placeholder" : ""}
+            Alert (Alert tab); a number = alerts for that country{placeholder ? "; placeholder" : ""}
           </Item>
           <Item mark={<FlagGlyph ring placeholder={placeholder} />}>New alert in {asOfYear}</Item>
         </ul>

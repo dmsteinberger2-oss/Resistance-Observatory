@@ -532,9 +532,37 @@ export function WorldMap({
 
   // Alert flags: a pennant on a pole, offset up-right of the state marker.
   const placeholderFeed = alertFeed.placeholder;
+  // Spread flags whose screen boxes overlap: try offsets on a short arc
+  // around the country's own marker; a leader line ties a moved flag to it.
+  const FLAG_OFFSETS: [number, number][] = [
+    [8, -3], [-22, -8], [10, -26], [-22, -30], [32, -16], [10, -48], [-24, -52],
+  ];
+  const flagOffset: Record<string, [number, number]> = {};
+  if (!isPapers && view && size) {
+    const placedFlags: { l: number; t: number; r: number; b: number }[] = [];
+    const entries = Object.entries(alertsByIso3)
+      .map(([iso3, list]) => ({ iso3, n: list.length, c: COUNTRY_BY_ISO3[iso3] }))
+      .filter((e) => e.c)
+      .sort((a, b) => a.c!.center[1] - b.c!.center[1] || a.c!.center[0] - b.c!.center[0]);
+    for (const e of entries) {
+      const p = projToPx(e.c!.center[0], e.c!.center[1]);
+      let chosen = FLAG_OFFSETS[0];
+      for (const off of FLAG_OFFSETS) {
+        const box = { l: p.x + off[0] - 5, r: p.x + off[0] + (e.n > 1 ? 25 : 17), t: p.y + off[1] - 24, b: p.y + off[1] + 3 };
+        if (!placedFlags.some((a) => box.l < a.r && box.r > a.l && box.t < a.b && box.b > a.t)) {
+          chosen = off;
+          placedFlags.push(box);
+          break;
+        }
+      }
+      flagOffset[e.iso3] = chosen;
+    }
+  }
   const flags = (isPapers ? [] : Object.entries(alertsByIso3)).map(([iso3, list]) => {
     const c = COUNTRY_BY_ISO3[iso3];
     if (!c) return null;
+    const [ox, oy] = flagOffset[iso3] ?? FLAG_OFFSETS[0];
+    const moved = ox !== FLAG_OFFSETS[0][0] || oy !== FLAG_OFFSETS[0][1];
     const n = list.length;
     const isNew = list.some((a) => a.year === asOfYear);
     const name = c.name;
@@ -546,8 +574,12 @@ export function WorldMap({
         role="button"
         tabIndex={0}
         aria-label={`${name}: ${n} ${n === 1 ? "alert" : "alerts"} as of ${asOfYear}. Open country view`}
-        transform={`translate(${c.center[0]} ${c.center[1]}) scale(${unit}) translate(8 -3)`}
+        transform={`translate(${c.center[0]} ${c.center[1]}) scale(${unit})`}
       >
+        {moved ? (
+          <line x1={0} y1={0} x2={ox} y2={oy + 1} stroke={AMBER} strokeWidth={1} strokeOpacity={0.8} pointerEvents="none" />
+        ) : null}
+        <g transform={`translate(${ox} ${oy})`}>
         <rect x={-5} y={-24} width={n > 1 ? 30 : 22} height={27} fill="transparent" />
         {isNew ? (
           <circle key={`new-${asOfYear}`} className="fc-pulse" cx={5} cy={-12} r={12.5} fill="none" stroke={AMBER} strokeWidth={1.7} pointerEvents="none" />
@@ -568,45 +600,66 @@ export function WorldMap({
             {n}
           </text>
         ) : null}
+        </g>
       </g>
     );
   });
 
   // Labels below the marker, at least 13px on screen, never under an overlay.
-  const labels = view && size
-    ? WORLD.countries
-        .filter(
-          (c) =>
-            c.iso3 === selected ||
-            (zoom > 2.5 && (isPapers ? (paperCounts[c.iso3]?.total ?? 0) > 0 : GENOME_ISO3.has(c.iso3))),
-        )
-        .map((c) => {
-          const pr = paperCounts[c.iso3];
-          const text =
-            isPapers && pr && pr.total > 0
-              ? `${mapLabel(c.iso3, c.name)} ${paperLabelSuffix(pr.readByGraph, pr.total)}`
-              : mapLabel(c.iso3, c.name);
-          const fs = c.iso3 === selected ? 15 : 13;
-          const p = projToPx(c.center[0], c.center[1]);
-          const half = (text.length * fs * 0.58) / 2;
-          const box = { l: p.x - half, r: p.x + half, t: p.y + 8, b: p.y + 12 + fs };
-          if (box.l < 0 || box.r > size.cw - panelPx || box.t < 0 || box.b > size.ch) return null;
-          if (avoid.some((a) => box.l < a.r && box.r > a.l && box.t < a.b && box.b > a.t)) return null;
-          return (
-            <text
-              key={c.iso3}
-              className="fc-label-text"
-              x={c.center[0]}
-              y={c.center[1] + (10 + fs) * unit}
-              textAnchor="middle"
-              fontSize={fs * unit}
-              strokeWidth={3.5 * unit}
-            >
-              {text}
-            </text>
-          );
-        })
-    : null;
+  // Labels below the marker, at least 13px on screen, never under an overlay
+  // or another label. Selected first; in the papers layer then by paper count.
+  const labels = (() => {
+    if (!view || !size) return null;
+    const cands = WORLD.countries.filter(
+      (c) =>
+        c.iso3 === selected ||
+        (zoom > 2.5 && (isPapers ? (paperCounts[c.iso3]?.total ?? 0) > 0 : GENOME_ISO3.has(c.iso3))),
+    );
+    cands.sort((a, b) => {
+      if (a.iso3 === selected) return -1;
+      if (b.iso3 === selected) return 1;
+      return isPapers ? (paperCounts[b.iso3]?.total ?? 0) - (paperCounts[a.iso3]?.total ?? 0) : 0;
+    });
+    const placed: { l: number; t: number; r: number; b: number }[] = [];
+    const out: React.JSX.Element[] = [];
+    for (const c of cands) {
+      const pr = paperCounts[c.iso3];
+      const name = mapLabel(c.iso3, c.name);
+      const second = isPapers && pr && pr.total > 0 ? paperLabelSuffix(pr.readByGraph, pr.total) : null;
+      const fs = c.iso3 === selected ? 15 : 13;
+      const p = projToPx(c.center[0], c.center[1]);
+      const longest = Math.max(name.length, second?.length ?? 0);
+      const half = (longest * fs * 0.58) / 2;
+      const lines = second ? 2 : 1;
+      const box = { l: p.x - half, r: p.x + half, t: p.y + 8, b: p.y + 12 + fs * lines * 1.15 };
+      if (box.l < 0 || box.r > size.cw - panelPx || box.t < 0 || box.b > size.ch) continue;
+      const hit = (a: { l: number; t: number; r: number; b: number }) =>
+        box.l < a.r && box.r > a.l && box.t < a.b && box.b > a.t;
+      if (avoid.some(hit) || placed.some(hit)) continue;
+      placed.push(box);
+      const x = c.center[0];
+      const y = c.center[1] + (10 + fs) * unit;
+      out.push(
+        <text
+          key={c.iso3}
+          className="fc-label-text"
+          x={x}
+          y={y}
+          textAnchor="middle"
+          fontSize={fs * unit}
+          strokeWidth={3.5 * unit}
+        >
+          {name}
+          {second ? (
+            <tspan x={x} dy={fs * 1.15 * unit} fontWeight={500}>
+              {second}
+            </tspan>
+          ) : null}
+        </text>,
+      );
+    }
+    return out;
+  })();
 
   const hoverSnap = hover ? genomeSnapshot(hover.iso3, asOfYear) : null;
   const hoverGeo = hover ? COUNTRY_BY_ISO3[hover.iso3] : undefined;

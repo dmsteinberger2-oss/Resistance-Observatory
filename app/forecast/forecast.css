@@ -207,3 +207,12 @@
 .fc-root .fc-seg button + button { border-left: 1px solid var(--line-strong); }
 .fc-root .fc-seg button[aria-pressed="true"] { background: var(--surface-2); color: var(--fg); box-shadow: inset 0 -2px 0 var(--fg); }
 .fc-root .fc-seg button:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; border-radius: 4px; }
+
+/* Scrolling inside the panel or the lists never drags the page. */
+.fc-root .fc-panel,
+.fc-root .fc-moved,
+.fc-root aside,
+.fc-root [data-scroll],
+.fc-root .overflow-y-auto,
+.fc-root .overflow-auto { overscroll-behavior: contain; }
+.fc-root .fc-stage { overscroll-behavior: contain; }

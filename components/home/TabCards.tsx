@@ -14,7 +14,7 @@ const CARDS = [
   },
   {
     href: "/forecast",
-    kicker: "02 · Forecast",
+    kicker: "02 · Map",
     title: "Where it has been observed.",
     body: "A map over time, drawn from a separately attributed observation source.",
     glyph: "map",

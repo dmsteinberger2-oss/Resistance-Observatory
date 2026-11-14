@@ -56,7 +56,9 @@ export function Scale() {
         </Reveal>
         <Reveal className="mt-10">
           <p className="max-w-3xl font-display text-2xl leading-snug sm:text-3xl text-pretty">
-            That is the entire published evidence base for this marker in the graph.
+            These are the findings the live API returns when a variable&rsquo;s name mentions codon 540. None
+            of them is in System&rsquo;s vetted release. The Map and Alert tabs also draw on the vetted findings
+            from the K540E papers the graph has read, so their counts differ.
           </p>
           <p className="mt-4 max-w-3xl text-base text-muted text-pretty">
             <strong className="text-fg">A coverage limitation, stated plainly:</strong> the graph indexes

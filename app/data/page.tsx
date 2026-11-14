@@ -91,7 +91,10 @@ export default function DataPage() {
             <p>
               These are the {ALL_STATS.GRAPH_MARKER_FINDINGS.value} findings in the graph that name codon 540 of
               pfdhps directly, the marker associated with reduced efficacy of sulfadoxine, from{" "}
-              {ALL_STATS.GRAPH_MARKER_STUDIES.value} studies. The graph indexes K540E only lightly: these findings
+              {ALL_STATS.GRAPH_MARKER_STUDIES.value} studies. These are the findings the live API returns when a
+              variable&rsquo;s name mentions codon 540. None of them is in System&rsquo;s vetted release. The Map
+              and Alert tabs also draw on the vetted findings from the K540E papers the graph has read, so their
+              counts differ. The graph indexes K540E only lightly: these findings
               sit at the pfdhps level, naming codon 540 inside a combination or a list, or comparing how common it
               is between two groups. No graph finding gives a prevalence figure for K540E. Each one links to its paper.
             </p>

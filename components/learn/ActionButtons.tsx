@@ -21,7 +21,7 @@ export function ActionButtons({ marker }: { marker: Marker }) {
       >
         <span>
           <span className="block text-lg font-semibold">See where it&rsquo;s been observed</span>
-          <span className="block text-sm opacity-75">Forecast · map over time</span>
+          <span className="block text-sm opacity-75">Map · observed over time</span>
         </span>
         <span aria-hidden className="text-2xl transition-transform group-hover:translate-x-1">→</span>
       </Link>

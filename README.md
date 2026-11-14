@@ -47,6 +47,7 @@ Taken from the production build of this repo.
 | --- | --- |
 | ![Story landing page](docs/screenshots/story.png) `/story.html` — the landing story | ![Overview evidence section](docs/screenshots/overview.png) `/overview` — how much evidence the graph holds |
 | ![Learn page](docs/screenshots/learn.png) `/learn` — the marker, its drug, the ladder | ![Data timeline](docs/screenshots/data.png) `/data` — findings by publication date |
+| ![Map tab](docs/screenshots/map.png) `/forecast` — Map: where K540E has been observed, year by year | ![Alert tab](docs/screenshots/alert.png) `/alert` — Alert: evidence watch for the marker |
 
 ## Tabs and owners
 
@@ -131,8 +132,9 @@ Other scripts: `npm run lint` (`tsc --noEmit`), `npm run build`,
 **Does the demo need a key?** Not for the story, Overview, Learn or Data. They
 read pinned data and make no API calls, so `npm run dev` works straight after
 `npm install` with no `.env.local`. `SYSTEM_API_KEY` is only needed to
-re-pull the pinned data (below). Whether Alert and Forecast need keys of their
-own (for example for Resend) is for David and Benjamin to state here.
+re-pull the pinned data (below). Alert: optional `SYSTEM_API_KEY` and
+`RESEND_API_KEY`; without them it shows the pinned snapshot and email is off.
+Map: no keys.
 
 Overview, Learn and Data run without any key: every figure they show is read from
 the pinned file `data/graph-stats.json`.

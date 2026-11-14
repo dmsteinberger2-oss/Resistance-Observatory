@@ -40,6 +40,11 @@ stalls, and the parasite starves of the building blocks it needs to replicate.
 This is competitive inhibition: the effect depends on how tightly the drug binds
 relative to the natural substrate.
 
+> **Superseded.** Paragraph 3 below is the original draft. The shipped text in
+> `content/markers.ts` was rewritten after measuring PDB 6JWX and 6KCL:
+> residue 540 is about 9–11 Å from the nearest ligand in both, so those
+> structures do not support "weakens the enzyme's grip on sulfadoxine".
+
 **3. What the mutation changes.**
 K540E swaps a lysine for a glutamate — a positively charged residue for a
 negatively charged one — in the region of the enzyme that shapes that binding

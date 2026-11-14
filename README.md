@@ -313,7 +313,14 @@ What the viewer does and does not say (`components/learn/StructureViewer.tsx`):
   DOI or PMID lookup on studies (`search` on `/studies` reports no searchable
   fields), so its unvetted records could not be searched. Learn states this as
   a coverage observation under the viewer.
-- It makes no claim about binding geometry or mechanism.
+- **What the distance means for the mechanism text.** At 9.0 Å and 10.7 Å,
+  residue 540 is not in contact with the bound ligand in either structure.
+  Learn's third mechanism paragraph was rewritten to say only that: the
+  charge swap at 540, no direct contact in these structures, and K540E used as
+  a marker for the haplotype it is reported in, not established as the direct
+  cause of reduced binding. It does not say K540E has no mechanistic role.
+  `docs/MARKER-CONTENT.md` still holds the earlier draft wording.
+- Beyond that, the viewer makes no claim about binding geometry or mechanism.
 - If the CDN or RCSB is unreachable, each panel shows a short message with a
   link to the RCSB page.
 - **The structure and the graph findings are not linked in either source.**

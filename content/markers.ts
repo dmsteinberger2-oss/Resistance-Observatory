@@ -161,7 +161,11 @@ export const MARKERS: Record<string, Marker> = {
       },
       {
         heading: "What the mutation changes",
-        body: "K540E swaps a lysine for a glutamate \u2014 a positively charged residue for a negatively charged one \u2014 in the region of the enzyme that shapes that binding pocket. The charge reversal weakens the enzyme\u2019s grip on sulfadoxine more than its grip on pABA. The natural substrate still gets through; the drug competes less well. In practice K540E rarely appears alone, and the literature usually reports it alongside A437G as a double mutant, with resistance increasing as further changes accumulate.",
+        // Rewritten after measuring the deposited structures (PDB 6JWX, 6KCL):
+        // residue 540 is about 9-11 \u00c5 from the nearest ligand in both, so the
+        // earlier wording about weakening the enzyme's grip on the drug is not
+        // supported by them. docs/MARKER-CONTENT.md still carries the old text.
+        body: "K540E swaps a lysine for a glutamate at position 540 \u2014 a positively charged residue for a negatively charged one. In both deposited crystal structures that position sits roughly 9\u201311 \u00c5 from the bound ligand, so it is not in contact with it: these structures do not show a direct contact between residue 540 and what is bound. In practice K540E rarely appears alone. The literature reports it as part of a haplotype, usually alongside A437G as the double mutant, so it is used as a marker for that combination rather than being established as the direct cause of reduced binding.",
       },
     ]),
     keyPoint: {

@@ -10,7 +10,9 @@
  *   read from what 3Dmol reports for the loaded coordinates. Nothing is
  *   hard-coded per residue. A position is highlighted only if BOTH structures
  *   actually have coordinates there.
- * - No claim is made about binding geometry or mechanism.
+ * - The only structural statement made is the measured distance from the
+ *   marker residue to the nearest ligand, and that at that distance the two
+ *   are not in contact.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -27,6 +29,9 @@ const POSITIONS = [437, 540] as const;
 const CONTEXT_COLOR_VAR = "--quiet"; // 437
 const CARTOON_COLOR = "#6f8499"; // muted blue-grey
 const LIGAND_COLOR = "#c9a7ff"; // distinct from the residue colours; ligands are also labelled
+/** The "not in contact" line is shown only if both measured distances exceed
+ *  this. Direct contacts are a few \u00e5ngstr\u00f6ms; this is a conservative cut-off. */
+const CONTACT_LIMIT_ANGSTROM = 6;
 /** Checked in both entries to say what they do not carry. */
 const OTHER_PFDHPS_POSITION = 581;
 
@@ -495,6 +500,13 @@ export function StructureViewer({
         <figcaption className="mt-5 max-w-3xl text-sm text-muted">
           Published crystal structures, loaded live from RCSB PDB. Drag to rotate, click a highlighted residue to
           compare. Rendered with 3Dmol.js.
+          {ligands[0]?.nearest && ligands[1]?.nearest && Math.min(ligands[0].nearest.angstrom, ligands[1].nearest.angstrom) > CONTACT_LIMIT_ANGSTROM ? (
+            <span className="mt-2 block">
+              At this distance ({ligands[0].nearest.angstrom.toFixed(1)} {"\u00c5"} and{" "}
+              {ligands[1].nearest.angstrom.toFixed(1)} {"\u00c5"}), residue {POSITIONS[POSITIONS.length - 1]} is not
+              in contact with the bound ligand in either structure.
+            </span>
+          ) : null}
           <span className="mt-2 block">
             What these structures do not show: residues 436&ndash;444 are unmodelled in both, so A437G cannot be
             displayed.{" "}

@@ -67,6 +67,11 @@ export function LearnView({ structureFigure }: { structureFigure?: ReactNode }) 
           <section aria-label="Marker identity" className="border-b border-line pb-5">
             {/* The story's eyebrow hairline, carried over. */}
             <span aria-hidden className="mb-4 block h-px w-[34px] bg-drug" />
+            {/* What this page is, for a reader with no biology background. */}
+            <p className="mb-4 max-w-3xl text-lg text-[var(--body)] text-pretty">
+              This page explains one mutation in the malaria parasite, {marker.gene} {marker.alteration}: a mutation
+              linked to a malaria drug working less well.
+            </p>
             <p className="flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-sm sm:text-base">
               <span className="italic">{marker.organism}</span>
               <Dot />
@@ -141,14 +146,19 @@ export function LearnView({ structureFigure }: { structureFigure?: ReactNode }) 
             <p className="mt-3 max-w-3xl text-lg leading-relaxed text-pretty">{marker.keyPoint.body}</p>
           </div>
         ) : null}
-        <div className="grid gap-8 md:grid-cols-3">
-          {mechanism.value.map((para, i) => (
-            <div key={i}>
-              <h3 className="mb-2 font-mono text-xs text-muted">{para.heading}</h3>
-              <p className="text-lg leading-relaxed text-pretty">{para.body}</p>
-            </div>
-          ))}
-        </div>
+        <details className="border-t border-line pt-4">
+          <summary className="cursor-pointer text-lg font-semibold hover:text-drug">
+            The biochemistry, in three short paragraphs
+          </summary>
+          <div className="mt-6 grid gap-8 md:grid-cols-3">
+            {mechanism.value.map((para, i) => (
+              <div key={i}>
+                <h3 className="mb-2 font-mono text-xs text-muted">{para.heading}</h3>
+                <p className="text-lg leading-relaxed text-pretty">{para.body}</p>
+              </div>
+            ))}
+          </div>
+        </details>
       </section>
 
       {/* Why this matters — points to Alert's stakes chain; no figures restated here. */}
@@ -161,8 +171,7 @@ export function LearnView({ structureFigure }: { structureFigure?: ReactNode }) 
         </p>
         <p className="mt-3 max-w-3xl text-base text-muted text-pretty">
           Alert follows that chain of evidence one finding at a time, each linked to its paper. These are
-          associations reported in published studies. They are not a prediction for any patient, and not
-          clinical guidance.
+          associations reported in published studies.
         </p>
         <Link
           href={hrefWithSelection("/alert", { markerId: marker.id })}

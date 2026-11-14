@@ -487,6 +487,21 @@ export function StructureViewer({
           ) : null}
         </div>
 
+        <figcaption className="mt-5 max-w-3xl text-sm text-muted">
+          Published crystal structures, loaded live from RCSB PDB. Drag to rotate, click a highlighted residue to
+          compare. Rendered with 3Dmol.js.
+          {ligands[0]?.nearest && ligands[1]?.nearest && Math.min(ligands[0].nearest.angstrom, ligands[1].nearest.angstrom) > CONTACT_LIMIT_ANGSTROM ? (
+            <span className="mt-2 block">
+              At this distance ({ligands[0].nearest.angstrom.toFixed(1)} {"\u00c5"} and{" "}
+              {ligands[1].nearest.angstrom.toFixed(1)} {"\u00c5"}), residue {POSITIONS[POSITIONS.length - 1]} is not
+              in contact with the bound ligand in either structure.
+            </span>
+          ) : null}
+        </figcaption>
+
+        <details className="mt-4 max-w-3xl border-t border-line pt-3">
+          <summary className="cursor-pointer text-sm font-semibold hover:text-drug">Notes on these structures</summary>
+          <div className="text-sm text-muted">
         {unresolved.length ? (
           <p className="mt-4 text-sm text-muted">
             {unresolved.map((r) => `Position ${r}`).join(" and ")} {unresolved.length > 1 ? "have" : "has"} no
@@ -515,17 +530,8 @@ export function StructureViewer({
           </p>
         ) : null}
 
-        <figcaption className="mt-5 max-w-3xl text-sm text-muted">
-          Published crystal structures, loaded live from RCSB PDB. Drag to rotate, click a highlighted residue to
-          compare. Rendered with 3Dmol.js.
-          {ligands[0]?.nearest && ligands[1]?.nearest && Math.min(ligands[0].nearest.angstrom, ligands[1].nearest.angstrom) > CONTACT_LIMIT_ANGSTROM ? (
-            <span className="mt-2 block">
-              At this distance ({ligands[0].nearest.angstrom.toFixed(1)} {"\u00c5"} and{" "}
-              {ligands[1].nearest.angstrom.toFixed(1)} {"\u00c5"}), residue {POSITIONS[POSITIONS.length - 1]} is not
-              in contact with the bound ligand in either structure.
-            </span>
-          ) : null}
-          <span className="mt-2 block">
+            <p className="mt-4">
+          <span className="block">
             What these structures do not show: residues 436&ndash;444 are unmodelled in both, so A437G cannot be
             displayed.{" "}
             {ligands[0]?.otherPosition && ligands[1]?.otherPosition
@@ -533,7 +539,10 @@ export function StructureViewer({
               : ""}
             The dhfr positions are not part of these entries at all.
           </span>
-        </figcaption>
+            </p>
+          </div>
+        </details>
+
       </figure>
     </section>
   );

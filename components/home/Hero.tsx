@@ -19,7 +19,11 @@ export function Hero({ learnHref }: { learnHref: string }) {
           A researcher tracking a resistance marker has no simple way to know when the
           evidence has <em className="not-italic text-drug">shifted enough to matter.</em>
         </h1>
-        <div className="mt-12 flex flex-wrap items-center gap-4">
+        <p className="mt-8 max-w-3xl text-xl leading-relaxed text-[var(--body)] text-pretty">
+          Resistance Observatory watches the published evidence on one mutation that is linked to a malaria drug
+          working less well, and shows when a new finding changes the picture.
+        </p>
+        <div className="mt-10 flex flex-wrap items-center gap-4">
           <Link
             href={learnHref}
             className="rounded-[5px] bg-drug px-6 py-3 font-bold text-bg transition-transform hover:-translate-y-0.5"

@@ -20,14 +20,14 @@ export const metadata: Metadata = {
 };
 
 const TOC = [
-  ["why", "Why markers are tracked"],
-  ["timeline", "The findings, by publication date"],
-  ["review", "Caught in review"],
-  ["markers", "Five markers"],
-  ["antifolate", "How antifolate resistance stacks"],
-  ["method", "How we read the evidence"],
-  ["limits", "What evidence can’t tell you"],
+  ["why", "Why this is tracked"],
+  ["timeline", "Every finding, oldest first"],
+  ["review", "Findings we excluded, and why"],
+  ["limits", "What the evidence can’t tell you"],
   ["numbers", "Key numbers"],
+  ["markers", "For specialists: five markers"],
+  ["antifolate", "For specialists: how they stack"],
+  ["method", "How we queried the graph"],
   ["glossary", "Glossary"],
 ] as const;
 
@@ -55,8 +55,9 @@ export default function DataPage() {
           Drugs, mutations, and the slow arithmetic of evidence.
         </h1>
         <p className="mt-8 max-w-2xl text-xl leading-relaxed text-muted text-pretty">
-          A field guide to how antimalarial resistance is tracked, what the evidence can and cannot say, and
-          the vocabulary this project uses. Every count on this page comes from the System Public Graph; publication dates come from OpenAlex.
+          Every finding the evidence graph holds on one mutation linked to a malaria drug working less well.
+          Each is linked to its paper, and the ones we excluded are shown with the reason. Counts come from the
+          System Public Graph; publication dates come from OpenAlex.
         </p>
       </header>
 
@@ -78,7 +79,7 @@ export default function DataPage() {
         </nav>
 
         <article className="min-w-0 text-lg leading-[1.75] [&_p]:text-pretty">
-          <Section id="why" n={1} title="Why markers are tracked">
+          <Section id="why" n={1} title="Why this is tracked">
             {(
               <>
                 {ONE_PARAGRAPH.value.map((p, i) => (
@@ -101,25 +102,11 @@ export default function DataPage() {
             </p>
           </Section>
 
-          <Section id="timeline" n={2} title="pfdhps K540E and sulfadoxine: the findings, by publication date" wide>
+          <Section id="timeline" n={2} title="Every finding the graph holds on this mutation, oldest first" wide>
             <p>
-              These are the {ALL_STATS.GRAPH_MARKER_FINDINGS.value} findings in the graph that name codon 540 of
-              pfdhps directly, the marker associated with reduced efficacy of sulfadoxine, from{" "}
-              {ALL_STATS.GRAPH_MARKER_STUDIES.value} studies. These are the findings the live API returns when a
-              variable&rsquo;s name mentions codon 540. None of them is in System&rsquo;s vetted release. The Map
-              and Alert tabs also draw on the vetted findings from the K540E papers the graph has read, so their
-              counts differ. The graph indexes K540E only lightly: these findings
-              sit at the pfdhps level, naming codon 540 inside a combination or a list, or comparing how common it
-              is between two groups. No graph finding gives a prevalence figure for K540E. Each one links to its paper.
-            </p>
-            <p className="mt-4">
-              The graph has no per-finding publication date, so each date here is the paper&rsquo;s publication
-              date from OpenAlex, matched on the finding&rsquo;s PubMed ID. It resolved for{" "}
-              {ALL_STATS.OPENALEX_MARKER_DATED_FINDINGS.value} of these {ALL_STATS.GRAPH_MARKER_FINDINGS.value}.
-              Other tabs ask the graph different questions about this marker and show different counts; that is
-              expected. By
-              System&rsquo;s own documentation roughly {ALL_STATS.GRAPH_KNOWN_BAD_SHARE.value}
-              {ALL_STATS.GRAPH_KNOWN_BAD_SHARE.unit} of API extractions are known-bad.
+              The mutation is pfdhps K540E: a mutation in the malaria parasite linked to a malaria drug,
+              sulfadoxine, working less well. The graph holds {ALL_STATS.GRAPH_MARKER_FINDINGS.value} findings
+              that mention it, from {ALL_STATS.GRAPH_MARKER_STUDIES.value} studies. Each one links to its paper.
             </p>
             <p className="mt-4">
               What was checked, and how: every finding here was compared with its paper&rsquo;s PubMed abstract,
@@ -130,13 +117,36 @@ export default function DataPage() {
               entry carries its result. Findings the check contradicted are listed under &ldquo;Caught in
               review&rdquo;, not here.
             </p>
-            <p className="mt-4">
-              Evidence carries different weight depending on how it was produced: a therapeutic efficacy study
-              and a general surveillance report are not the same thing. Each entry shows its study type as the
-              graph recorded it, not as our judgement. The graph records a study type for{" "}
-              {ALL_STATS.GRAPH_MARKER_TYPED_FINDINGS.value} of these {ALL_STATS.GRAPH_MARKER_FINDINGS.value}{" "}
-              findings; where it records none, the entry says &ldquo;type not recorded&rdquo;.
-            </p>
+            <details className="mt-6 border-t border-line pt-4 text-base">
+              <summary className="cursor-pointer font-semibold hover:text-drug">
+                How these were counted, dated and typed
+              </summary>
+              <p className="mt-4">
+                These are the {ALL_STATS.GRAPH_MARKER_FINDINGS.value} findings in the graph that name codon 540 of
+                pfdhps directly, the marker associated with reduced efficacy of sulfadoxine. These are the
+                findings the live API returns when a variable&rsquo;s name mentions codon 540. None of them is in
+                System&rsquo;s vetted release. The Map and Alert tabs also draw on the vetted findings from the
+                K540E papers the graph has read, so their counts differ. The graph indexes K540E only lightly:
+                these findings sit at the pfdhps level, naming codon 540 inside a combination or a list, or
+                comparing how common it is between two groups. No graph finding gives a prevalence figure for
+                K540E.
+              </p>
+              <p className="mt-4">
+                The graph has no per-finding publication date, so each date here is the paper&rsquo;s publication
+                date from OpenAlex, matched on the finding&rsquo;s PubMed ID. It resolved for{" "}
+                {ALL_STATS.OPENALEX_MARKER_DATED_FINDINGS.value} of these {ALL_STATS.GRAPH_MARKER_FINDINGS.value}.
+                Other tabs ask the graph different questions about this marker and show different counts; that is
+                expected. By System&rsquo;s own documentation roughly {ALL_STATS.GRAPH_KNOWN_BAD_SHARE.value}
+                {ALL_STATS.GRAPH_KNOWN_BAD_SHARE.unit} of API extractions are known-bad.
+              </p>
+              <p className="mt-4">
+                Evidence carries different weight depending on how it was produced: a therapeutic efficacy study
+                and a general surveillance report are not the same thing. Each entry shows its study type as the
+                graph recorded it, not as our judgement. The graph records a study type for{" "}
+                {ALL_STATS.GRAPH_MARKER_TYPED_FINDINGS.value} of these {ALL_STATS.GRAPH_MARKER_FINDINGS.value}{" "}
+                findings; where it records none, the entry says &ldquo;type not recorded&rdquo;.
+              </p>
+            </details>
             <FindingsTimeline findings={MARKER_FINDINGS} />
             <p className="font-mono text-xs text-muted">
               Source: System Public Graph v{ALL_STATS.GRAPH_VERSION.value}, {ALL_STATS.GRAPH_SNAPSHOT_DATE.value}{" "}
@@ -144,7 +154,7 @@ export default function DataPage() {
             </p>
           </Section>
 
-          <Section id="review" n={3} title="Caught in review">
+          <Section id="review" n={3} title={`${ALL_STATS.GRAPH_MARKER_EXCLUDED_FINDINGS.value} findings we excluded, and why`}>
             <p>
               Domain experts warn that automated extraction can place a large clinical trial and a small
               observational report side by side as if they carried equal weight. That is why every finding
@@ -212,7 +222,52 @@ export default function DataPage() {
             </p>
           </Section>
 
-          <Section id="markers" n={4} title="Five markers worth knowing">
+          <Section id="limits" n={4} title="What the evidence can’t tell you">
+            <ul className="space-y-3">
+              {[
+                "That a marker’s presence means a patient’s treatment will fail.",
+                "That a divergent finding is wrong, refuted, or an error. Studies differ for good reasons.",
+                "Any prevalence figure. The graph holds associations, not prevalence.",
+                "Where a marker is, from the graph alone. The graph has no geography.",
+                "Any numerical forecast. No forecasting model has been evaluated.",
+                "A comparison of effect sizes across different statistic types.",
+                "That absence of evidence is evidence of absence. A missing relationship may reflect extraction gaps, grounding failures, or no published study.",
+                "Any treatment recommendation, for anyone. Nor any WHO endorsement, integration or operational readiness.",
+              ].map((t) => (
+                <li key={t} className="flex gap-3">
+                  <span aria-hidden className="mt-1 font-mono text-sm font-bold text-signal">✕</span>
+                  <span>{t}</span>
+                </li>
+              ))}
+            </ul>
+            <PullQuote cite="Our rule for disagreement">We flag disagreement; we do not adjudicate.</PullQuote>
+          </Section>
+
+          <Section id="numbers" n={5} title="Key numbers" wide>
+            <p>
+              Every number in this app lives in one file, <code className="font-mono text-base">lib/stats.ts</code>,
+              and every one is read from a pinned data pull: counts from the System Public Graph API, dates from
+              OpenAlex. Nothing is typed in by hand. Each count is labelled with the question it answers.
+            </p>
+            <div className="mt-10 grid gap-x-10 gap-y-12 sm:grid-cols-2">
+              {(
+                [
+                  "GRAPH_MARKER_FINDINGS",
+                  "GRAPH_MARKER_STUDIES",
+                  "GRAPH_PFDHPS_FINDINGS",
+                  "GRAPH_PFDHPS_STUDIES",
+                  "GRAPH_MARKER_EXCLUDED_FINDINGS",
+                  "OPENALEX_MARKER_LAST_PUBLISHED",
+                ] as const
+              ).map((k, i) => (
+                <Reveal key={k} delay={(i % 2) * 100}>
+                  <StatFigure stat={ALL_STATS[k]} size="md" />
+                </Reveal>
+              ))}
+            </div>
+          </Section>
+
+          <Section id="markers" n={6} title="For specialists: five markers and their drugs" collapsed>
             <p>A marker means nothing without its drug, so they are always listed together.</p>
             {(
               <div className="mt-6 overflow-x-auto rounded-xl border border-line">
@@ -238,7 +293,7 @@ export default function DataPage() {
             )}
           </Section>
 
-          <Section id="antifolate" n={5} title="How antifolate resistance stacks">
+          <Section id="antifolate" n={7} title="For specialists: how these mutations stack" collapsed>
             {(
               <>
                 <p className="mt-4">{ANTIFOLATE.value.body}</p>
@@ -247,7 +302,7 @@ export default function DataPage() {
             )}
           </Section>
 
-          <Section id="method" n={6} title="How this project reads the evidence">
+          <Section id="method" n={8} title="How we queried the graph" collapsed>
             <p>
               The evidence comes from the System Public Graph, version {String(ALL_STATS.GRAPH_VERSION.value)},
               a snapshot frozen on {String(ALL_STATS.GRAPH_SNAPSHOT_DATE.value)}. Its atomic unit is
@@ -279,52 +334,9 @@ export default function DataPage() {
             </p>
           </Section>
 
-          <Section id="limits" n={7} title="What the evidence can’t tell you">
-            <ul className="space-y-3">
-              {[
-                "That a marker’s presence means a patient’s treatment will fail.",
-                "That a divergent finding is wrong, refuted, or an error. Studies differ for good reasons.",
-                "Any prevalence figure. The graph holds associations, not prevalence.",
-                "Where a marker is, from the graph alone. The graph has no geography.",
-                "Any numerical forecast. No forecasting model has been evaluated.",
-                "A comparison of effect sizes across different statistic types.",
-                "That absence of evidence is evidence of absence. A missing relationship may reflect extraction gaps, grounding failures, or no published study.",
-                "Any treatment recommendation, for anyone. Nor any WHO endorsement, integration or operational readiness.",
-              ].map((t) => (
-                <li key={t} className="flex gap-3">
-                  <span aria-hidden className="mt-1 font-mono text-sm font-bold text-signal">✕</span>
-                  <span>{t}</span>
-                </li>
-              ))}
-            </ul>
-            <PullQuote cite="Our rule for disagreement">We flag disagreement; we do not adjudicate.</PullQuote>
-          </Section>
 
-          <Section id="numbers" n={8} title="Key numbers" wide>
-            <p>
-              Every number in this app lives in one file, <code className="font-mono text-base">lib/stats.ts</code>,
-              and every one is read from a pinned data pull: counts from the System Public Graph API, dates from
-              OpenAlex. Nothing is typed in by hand. Each count is labelled with the question it answers.
-            </p>
-            <div className="mt-10 grid gap-x-10 gap-y-12 sm:grid-cols-2">
-              {(
-                [
-                  "GRAPH_MARKER_FINDINGS",
-                  "GRAPH_MARKER_STUDIES",
-                  "GRAPH_PFDHPS_FINDINGS",
-                  "GRAPH_PFDHPS_STUDIES",
-                  "GRAPH_MARKER_EXCLUDED_FINDINGS",
-                  "OPENALEX_MARKER_LAST_PUBLISHED",
-                ] as const
-              ).map((k, i) => (
-                <Reveal key={k} delay={(i % 2) * 100}>
-                  <StatFigure stat={ALL_STATS[k]} size="md" />
-                </Reveal>
-              ))}
-            </div>
-          </Section>
 
-          <Section id="glossary" n={9} title="Glossary">
+          <Section id="glossary" n={9} title="Glossary" collapsed>
             <dl className="divide-y divide-line border-y border-line">
               {GLOSSARY.map((g) => (
                 <div key={g.term} className="grid gap-1 py-5 sm:grid-cols-[11rem_1fr] sm:gap-6">
@@ -352,13 +364,31 @@ function Section({
   title,
   children,
   wide = false,
+  collapsed = false,
 }: {
   id: string;
   n: number;
   title: string;
   children: ReactNode;
   wide?: boolean;
+  /** Reference material: shown behind a disclosure so the page reads short. */
+  collapsed?: boolean;
 }) {
+  if (collapsed) {
+    return (
+      <section id={id} aria-labelledby={`${id}-h`} className={`scroll-mt-24 pb-8 ${wide ? "" : "max-w-[44rem]"}`}>
+        <details className="border-t border-line pt-4">
+          <summary className="cursor-pointer hover:text-drug">
+            <span className="mr-3 font-mono text-xs tabular-nums text-drug">{String(n).padStart(2, "0")}</span>
+            <h2 id={`${id}-h`} className="inline font-display text-2xl font-semibold">
+              {title}
+            </h2>
+          </summary>
+          <div className="mt-5">{children}</div>
+        </details>
+      </section>
+    );
+  }
   return (
     <section id={id} aria-labelledby={`${id}-h`} className={`scroll-mt-24 pb-16 ${wide ? "" : "max-w-[44rem]"}`}>
       <p className="font-mono text-xs tabular-nums text-drug">{String(n).padStart(2, "0")}</p>

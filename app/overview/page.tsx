@@ -1,50 +1,12 @@
-"use client";
+import { OverviewView } from "@/components/home/OverviewView";
+// Read-only: the Alert tab's literature pack. Only two counts are taken from
+// it here, on the server, so the pack is not shipped to the browser.
+import literature from "@/k540e-data-pack/k540e-literature.json";
 
-import { useSelection } from "@/lib/selection";
-import { Hero } from "@/components/home/Hero";
-import { Scale } from "@/components/home/Scale";
-import { StepScene } from "@/components/home/StepScene";
-import { ParasiteScene } from "@/components/home/ParasiteScene";
-import { Gap } from "@/components/home/Gap";
-import { TabCards } from "@/components/home/TabCards";
+export const metadata = { title: "Overview" };
 
+/** Overview. The body is a client component (it reads the shared selection). */
 export default function OverviewPage() {
-  const { hrefWithSelection } = useSelection();
-  return (
-    <>
-      <Hero learnHref={hrefWithSelection("/learn")} />
-      <Scale />
-      <StepScene
-        id="works"
-        eyebrow="The drug works"
-        tone="drug"
-        heading="A drug finds the parasite."
-        steps={[
-          "Malaria is caused by Plasmodium parasites, most dangerously P. falciparum.",
-          "An antimalarial drug reaches the parasite.",
-          "The drug works, and the parasite is cleared.",
-        ]}
-        visual={(s) => <ParasiteScene step={s} mutant={false} title="Schematic: drug acting on a parasite" />}
-      />
-      <StepScene
-        id="mutation"
-        eyebrow="The turn"
-        tone="signal"
-        heading={
-          <>
-            Same drug. <span className="text-signal">One mutation.</span>
-          </>
-        }
-        steps={[
-          "The same parasite — now carrying a specific mutation in one of its genes.",
-          "The same drug reaches it.",
-          "Specific mutations reduce how well particular drugs work. Those mutations are tracked as resistance markers.",
-        ]}
-        note="This illustrates how resistance mutations work in general. It is not the mechanism of K540E specifically."
-        visual={(s) => <ParasiteScene step={s} mutant title="Schematic: drug reaching a parasite that carries a mutation" />}
-      />
-      <Gap />
-      <TabCards />
-    </>
-  );
+  const papers = (literature as { papers: { in_graph?: boolean }[] }).papers;
+  return <OverviewView papers={{ read: papers.filter((p) => p.in_graph).length, total: papers.length }} />;
 }

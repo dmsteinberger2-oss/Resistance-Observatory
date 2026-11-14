@@ -343,22 +343,23 @@ pinned under `data/forecast/` (checksums and regeneration commands in
   these papers.
 - **System Public Graph v2.1**: snapshot 1 July 2026, CC BY-NC 4.0,
   doi:10.7910/DVN/7V6JDO. 443 findings whose variable names refer to SP, of
-  which 139 name a country in the study's population text; 9 API-only records
-  that mention codon 540 (two more are hidden as mis-extracted, as on the Data
-  and Alert tabs); and the 3 vetted haplotype findings, shown as not
+  which 139 name a country in the study's population text; 7 API-only records
+  that mention codon 540 (four more are hidden as mis-extracted, the same four
+  the Data tab excludes); and the 3 vetted haplotype findings, shown as not
   country-specific. The graph has no geography field: a finding is tied to a
   country only by a text match on that population text, and no location on the
   map is attributed to the System graph. Raw API responses are in
   `data/forecast/raw/graph/`.
 - **Vetted-release check**: each displayed finding was looked up by
   `system_id` in `system-public-graph-v1-associations.csv` (Harvard Dataverse,
-  doi:10.7910/DVN/7V6JDO, checksum verified). 72 of the 148 country-naming
+  doi:10.7910/DVN/7V6JDO, checksum verified). 72 of the 146 country-naming
   findings are in the vetted release.
 - **Spot-check against the papers**: every displayed finding was compared with
-  its paper's abstract or open full text (PubMed, Europe PMC). Of the 148
-  country-naming findings, 86 match, 35 partly match, 24 differ and 3 could
+  its paper's abstract or open full text (PubMed, Europe PMC). Of the 146
+  country-naming findings, 86 match, 35 partly match, 22 differ and 3 could
   not be checked. AI-assisted and **not reviewed by a human**
-  (`data/forecast/graph-verification.json`).
+  (`data/forecast/graph-verification.json`, which Learn, Data and Overview
+  also read; its path and record fields are frozen).
 - **OpenAlex**: publication dates and titles for the Graph findings' papers.
   CC0.
 - **Natural Earth**: country shapes and city names, bundled. Public domain.

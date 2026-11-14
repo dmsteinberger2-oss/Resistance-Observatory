@@ -14,20 +14,20 @@ const FONT = "var(--font-sans)";
 const CHAR_W = 13.4; // approx px per char at fontSize 21 (bold)
 
 function Ladder({ d }: { d: LadderDiagram }) {
-  const W = 1290;
+  const W = 1110;
   const rungGap = 130;
   const top = 70;
   const n = d.rungs.length;
   const H = top + 60 + (n - 1) * rungGap + 70;
-  const barX = 350;
-  const barW = 700;
+  const barX = 240;
+  const barW = 640;
   const hasCarried = d.rungs.some((r) => r.alterations.some((a) => !a.isNew));
   const effX = barX + barW + 24;
 
   return (
     <figure>
       <div className="overflow-x-auto">
-        <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby="ladder-t ladder-d" className="w-full min-w-[900px]">
+        <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby="ladder-t ladder-d" className="w-full min-w-[780px] xl:min-w-0">
           <title id="ladder-t">{d.title}</title>
           <desc id="ladder-d">
             {d.rungs

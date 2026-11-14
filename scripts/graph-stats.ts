@@ -194,7 +194,7 @@ async function verify(pinned: Json[]) {
     vetted_csv: VETTED_CSV,
     vetted_csv_checked: !skipCsv,
     verified_at: new Date().toISOString(),
-    note: "in_vetted_csv says whether a finding's system_id is a row in the vetted associations CSV. That CSV holds only associations whose two variables are both grounded to a concept, so false is conclusive only for those. vetted: false marks a finding a person checked against its source paper and found mis-extracted; see vetting_note.",
+    note: "in_vetted_csv says whether a finding's system_id is a row in the vetted associations CSV. That CSV holds only associations whose two variables are both grounded to a concept, so false is conclusive only for those. vetted: false marks a finding compared with its source paper and found mis-extracted; vetting_method says how it was found, and vetting_note says what was wrong.",
   };
 }
 

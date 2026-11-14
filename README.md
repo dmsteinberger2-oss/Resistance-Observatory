@@ -49,6 +49,9 @@ Taken from the production build of this repo.
 | ![Learn page](docs/screenshots/learn.png) `/learn` — the marker, its drug, the ladder | ![Data timeline](docs/screenshots/data.png) `/data` — findings by publication date |
 | ![Map tab](docs/screenshots/map.png) `/forecast` — Map: where K540E has been observed, year by year | ![Alert tab](docs/screenshots/alert.png) `/alert` — Alert: evidence watch for the marker |
 
+The hackathon submission README is in
+[`docs/SUBMISSION-README.md`](docs/SUBMISSION-README.md).
+
 ## Tabs and owners
 
 | Route       | What                                               | Owner    |

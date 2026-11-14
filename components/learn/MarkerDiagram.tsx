@@ -14,13 +14,14 @@ const FONT = "var(--font-sans)";
 const CHAR_W = 13.4; // approx px per char at fontSize 21 (bold)
 
 function Ladder({ d }: { d: LadderDiagram }) {
-  const W = 1110;
+  const W = 1240;
   const rungGap = 130;
   const top = 70;
   const n = d.rungs.length;
   const H = top + 60 + (n - 1) * rungGap + 70;
   const barX = 350;
-  const barW = 600;
+  const barW = 700;
+  const hasCarried = d.rungs.some((r) => r.alterations.some((a) => !a.isNew));
   const effX = barX + barW + 24;
 
   return (
@@ -32,7 +33,7 @@ function Ladder({ d }: { d: LadderDiagram }) {
             {d.rungs
               .map((r) => `${r.name}: ${r.alterations.map((a) => `${a.gene} ${a.codon}`).join(", ")}`)
               .join(". ")}
-            . Earlier combinations sit lower.
+            . Earlier rungs sit lower.
           </desc>
 
           {/* rails */}
@@ -64,7 +65,21 @@ function Ladder({ d }: { d: LadderDiagram }) {
             return (
               <g key={rung.name}>
                 {/* rung bar */}
-                <rect x={barX - 12} y={y - 36} width={barW + 24} height="72" rx="10" fill="var(--surface-2)" stroke="var(--line-strong)" strokeWidth="2" />
+                <rect
+                  x={barX - 12}
+                  y={y - 36}
+                  width={barW + 24}
+                  height="72"
+                  rx="10"
+                  fill="var(--surface-2)"
+                  stroke={rung.highlight ? "var(--fg)" : "var(--line-strong)"}
+                  strokeWidth={rung.highlight ? 5 : 2}
+                />
+                {rung.highlight ? (
+                  <text x={barX + barW + 30} y={y + 7} fontSize="18" fontWeight="700" fontFamily={FONT} fill="var(--fg)">
+                    ◀ this marker
+                  </text>
+                ) : null}
                 {/* step number + name */}
                 <text x="72" y={y - 6} fontSize="26" fontWeight="700" fontFamily={FONT} fill="var(--fg)">
                   {rung.name}
@@ -107,7 +122,8 @@ function Ladder({ d }: { d: LadderDiagram }) {
                 })}
                 {/* effect on the drug */}
                 {rung.effect ? (
-                  <text x={effX} y={y + 7} fontSize="20" fontFamily={FONT} fill="var(--fg)">
+                  // Sits inside the bar, after the chips.
+                  <text x={cx + 8} y={y + 7} fontSize="19" fontFamily={FONT} fill="var(--fg)">
                     {rung.effect}
                   </text>
                 ) : (
@@ -129,8 +145,12 @@ function Ladder({ d }: { d: LadderDiagram }) {
             <rect x="0" y="-14" width="44" height="22" rx="11" fill="var(--signal)" />
             <text x="22" y="2" textAnchor="middle" fontSize="13" fontWeight="700" fill="var(--bg)">+</text>
             <text x="54" y="2">new at this rung</text>
-            <rect x="210" y="-14" width="44" height="22" rx="11" fill="var(--bg)" stroke="var(--line-strong)" strokeWidth="2" strokeDasharray="5 5" />
-            <text x="264" y="2">carried from the rung below</text>
+            {hasCarried ? (
+              <>
+                <rect x="210" y="-14" width="44" height="22" rx="11" fill="var(--bg)" stroke="var(--line-strong)" strokeWidth="2" strokeDasharray="5 5" />
+                <text x="264" y="2">carried from the rung below</text>
+              </>
+            ) : null}
           </g>
         </svg>
       </div>

@@ -290,8 +290,6 @@ async function main() {
       api_base: BASE,
       // From System's API documentation, not from an API response.
       documented_known_bad_extraction_share_percent: 20,
-      // From System's API documentation, not from an API response.
-      documented_known_bad_extraction_share_percent: 20,
     },
     generated_at: new Date().toISOString(),
     generated_by: "scripts/graph-stats.ts",

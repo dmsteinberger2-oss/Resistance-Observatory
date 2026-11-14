@@ -2,14 +2,12 @@
  * Marker content for the Learn tab. Swapping the demo marker is ONE edit:
  * change DEMO_MARKER_ID below.
  *
- * Source of every field: docs/SCIENCE.md "Candidate markers" table and the
- * antifolate accumulation paragraph. Nothing here goes beyond that file.
- * Everything is `reviewed: false` until the science lead signs it off — see
- * content/review.ts for what that does on screen.
- *
- * Fields the science lead must write (one-sentence answer for markers where the
- * LEARN.md template does not fit, the three mechanism paragraphs, the ladder
- * rung effect labels) are `null` here on purpose. Do not fill them from memory.
+ * The demo marker, pfdhps-K540E, is transcribed from docs/MARKER-CONTENT.md
+ * and is `reviewed: true`. Every other marker comes from docs/SCIENCE.md
+ * ("Candidate markers" table and the antifolate paragraph), goes no further
+ * than that file, and stays `reviewed: false` — see content/review.ts for what
+ * that does on screen. Their unwritten fields are `null` on purpose. Do not
+ * fill them from memory.
  */
 import type { Reviewable } from "./review";
 
@@ -22,6 +20,8 @@ export type LadderRung = {
   alterations: { gene: string; codon: string; isNew: boolean }[];
   /** Effect on the drug. Science lead writes this. null = pending. */
   effect: string | null;
+  /** The rung the page is about. Rendered with a text tag, not colour alone. */
+  highlight?: boolean;
 };
 
 export type LadderDiagram = {
@@ -50,23 +50,31 @@ export type Marker = {
   id: string;
   organism: "Plasmodium falciparum";
   gene: string;
+  /** Full name of the gene product, shown in the identity strip. */
+  geneFullName?: string;
   alteration: string;
+  /** The alteration in plain words. */
+  alterationPlain?: string;
   /** The drug, named every time the marker is named. */
   drug: string;
+  /** Clinical context for the drug, shown beside it. */
+  drugNote?: string;
   /** Sourced classification chip. null = omit the chip entirely (LEARN.md). */
   classification: { label: string; source: string } | null;
   identity: Reviewable<true>;
   /** The one bolded sentence. null = science lead has not written it. */
   oneSentence: Reviewable<string> | null;
-  /** Three paragraphs: normal function, what changes, why the drug is blunted. */
-  mechanism: Reviewable<[string, string, string]> | null;
+  /** Three headed paragraphs. */
+  mechanism: Reviewable<[MechanismPara, MechanismPara, MechanismPara]> | null;
   diagram: Reviewable<Diagram> | null;
+  /** "What this doesn't tell you" bullets. Omitted = the page's default three. */
+  limits?: [string, string, string];
 };
 
+export type MechanismPara = { heading: string; body: string };
+
 /** The marker Learn shows when the URL carries none. ONE EDIT to swap.
- *  Provisional: docs/SCIENCE.md says freeze at kickoff from the coverage check.
- *  Chosen for now only because the dhfr/dhps ladder is fully specified by
- *  docs/SCIENCE.md. Replace with the frozen marker. */
+ *  Confirmed as the demo marker. */
 export const DEMO_MARKER_ID = "pfdhps-K540E";
 
 /** LEARN.md template. Science lead reviews the result before it ships. */
@@ -122,20 +130,71 @@ function beforeAfter(gene: string, alteration: string, drug: string): BeforeAfte
   };
 }
 
+/* pfdhps ladder for the demo marker — docs/MARKER-CONTENT.md, verbatim. */
+const PFDHPS_LADDER: LadderDiagram = {
+  kind: "ladder",
+  title: "pfdhps changes and sulfadoxine",
+  rungs: [
+    {
+      name: "A437G",
+      alterations: [{ gene: "pfdhps", codon: "A437G", isNew: true }],
+      effect: "usually the first change to appear",
+    },
+    {
+      name: "K540E",
+      alterations: [{ gene: "pfdhps", codon: "K540E", isNew: true }],
+      effect: "with A437G forms the \u201cdouble mutant\u201d",
+      highlight: true,
+    },
+    {
+      name: "A581G",
+      alterations: [{ gene: "pfdhps", codon: "A581G", isNew: true }],
+      effect: "further reduction in sulfadoxine efficacy",
+    },
+  ],
+  caption:
+    "These changes accumulate in individual parasites. A region\u2019s position on this ladder can only be read from studies that genotyped the combination directly \u2014 never by adding up separate single-mutation results.",
+};
+
 const p = <T,>(value: T): Reviewable<T> => ({ value, reviewed: false });
+/** Signed off for display. */
+const ok = <T,>(value: T): Reviewable<T> => ({ value, reviewed: true });
 
 export const MARKERS: Record<string, Marker> = {
   "pfdhps-K540E": {
     id: "pfdhps-K540E",
     organism: "Plasmodium falciparum",
     gene: "pfdhps",
+    geneFullName: "dihydropteroate synthase",
     alteration: "K540E",
-    drug: "sulfadoxine (with pyrimethamine, as SP)",
+    alterationPlain: "lysine replaced by glutamate at codon 540",
+    drug: "sulfadoxine",
+    drugNote: "used clinically with pyrimethamine, as SP",
     classification: null,
-    identity: p(true),
-    oneSentence: p(templateSentence("pfdhps", "K540E", "sulfadoxine-pyrimethamine (SP)")),
-    mechanism: null,
-    diagram: p(ANTIFOLATE_LADDER),
+    identity: ok(true),
+    oneSentence: ok(
+      "Parasites carrying K540E in pfdhps are associated with reduced efficacy of sulfadoxine, one half of the SP combination used to prevent malaria in pregnancy and in seasonal chemoprevention.",
+    ),
+    mechanism: ok([
+      {
+        heading: "What the enzyme normally does",
+        body: "Every cell needs folate to build DNA. Humans don\u2019t make it \u2014 we absorb it from food \u2014 but Plasmodium falciparum has to synthesize its own. Dihydropteroate synthase, DHPS, catalyses one step of that synthesis: it joins a small molecule called para-aminobenzoic acid, or pABA, onto a pterin backbone. Without that step the parasite runs out of folate, and without folate it cannot copy its DNA or divide. Because we don\u2019t share this pathway, it is an unusually clean drug target.",
+      },
+      {
+        heading: "What the drug does",
+        body: "Sulfadoxine is a sulfonamide, and sulfonamides are shaped like pABA. The drug slots into the DHPS active site where pABA is meant to go and competes for it. With the site occupied, the enzyme turns over far more slowly, folate synthesis stalls, and the parasite starves of the building blocks it needs to replicate. This is competitive inhibition: the effect depends on how tightly the drug binds relative to the natural substrate.",
+      },
+      {
+        heading: "What the mutation changes",
+        body: "K540E swaps a lysine for a glutamate \u2014 a positively charged residue for a negatively charged one \u2014 in the region of the enzyme that shapes that binding pocket. The charge reversal weakens the enzyme\u2019s grip on sulfadoxine more than its grip on pABA. The natural substrate still gets through; the drug competes less well. In practice K540E rarely appears alone, and the literature usually reports it alongside A437G as a double mutant, with resistance increasing as further changes accumulate.",
+      },
+    ]),
+    diagram: ok(PFDHPS_LADDER),
+    limits: [
+      "Carrying this marker is not the same as a patient\u2019s treatment failing. Outcome depends on the drug, the rest of the parasite\u2019s genetic background, and the clinical setting.",
+      "A marker not appearing in the evidence here does not mean it is absent in the world. It may mean nobody has published on it, or that the extraction missed it.",
+      "Nothing here is clinical guidance. It describes published research, not treatment decisions.",
+    ],
   },
   "pfdhfr-S108N": {
     id: "pfdhfr-S108N",

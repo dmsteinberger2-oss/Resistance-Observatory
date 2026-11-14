@@ -48,12 +48,19 @@ export default function LearnPage() {
         <p className="flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-sm sm:text-base">
           <span className="italic">{marker.organism}</span>
           <Dot />
-          <span className="font-semibold">{marker.gene}</span>
+          <span>
+            <span className="font-semibold">{marker.gene}</span>
+            {marker.geneFullName ? <span className="text-muted"> ({marker.geneFullName})</span> : null}
+          </span>
           <Dot />
-          <span className="font-semibold text-signal">{marker.alteration}</span>
+          <span>
+            <span className="font-semibold text-signal">{marker.alteration}</span>
+            {marker.alterationPlain ? <span className="text-muted"> ({marker.alterationPlain})</span> : null}
+          </span>
           <Dot />
           <span>
             affects <span className="font-semibold text-drug">{marker.drug}</span>
+            {marker.drugNote ? <span className="text-muted"> ({marker.drugNote})</span> : null}
           </span>
           {marker.classification ? (
             <Chip tone="neutral" title={`Source: ${marker.classification.source}`}>
@@ -61,8 +68,8 @@ export default function LearnPage() {
             </Chip>
           ) : null}
           {!marker.identity.reviewed ? (
-            <Chip tone="gap" glyph="triangle" title="Demo marker is frozen at kickoff from the coverage check, then reviewed by the science lead.">
-              Provisional demo marker · awaiting review
+            <Chip tone="gap" glyph="triangle" title="This marker's content has not been reviewed by the science lead.">
+              Awaiting review
             </Chip>
           ) : null}
         </p>
@@ -108,17 +115,15 @@ export default function LearnPage() {
           <div className="grid gap-8 md:grid-cols-3">
             {mechanism.value.map((para, i) => (
               <div key={i}>
-                <p className="mb-2 font-mono text-xs text-muted">
-                  {["What the gene normally does", "What the mutation changes", "Why that blunts the drug"][i]}
-                </p>
-                <p className="text-lg leading-relaxed text-pretty">{para}</p>
+                <h3 className="mb-2 font-mono text-xs text-muted">{para.heading}</h3>
+                <p className="text-lg leading-relaxed text-pretty">{para.body}</p>
               </div>
             ))}
             {isDraft(mechanism) ? <DraftTag /> : null}
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-3">
-            {["What the gene normally does", "What the mutation changes", "Why that blunts the drug"].map((t) => (
+            {["What the enzyme normally does", "What the drug does", "What the mutation changes"].map((t) => (
               <Held key={t} what={t}>
                 Science lead supplies this paragraph.
               </Held>
@@ -132,7 +137,7 @@ export default function LearnPage() {
         <div>
           <h2 className="font-display text-2xl font-semibold">What this doesn&rsquo;t tell you</h2>
           <ul className="mt-5 space-y-4">
-            {[
+            {(marker.limits ?? [
               <>
                 Finding this marker in a parasite does <strong>not</strong> mean any individual
                 patient&rsquo;s treatment will fail.
@@ -145,7 +150,7 @@ export default function LearnPage() {
                 <strong>This is not clinical guidance</strong> and is never a treatment
                 recommendation.
               </>,
-            ].map((item, i) => (
+            ]).map((item, i) => (
               <li key={i} className="flex gap-3 text-pretty">
                 <span aria-hidden className="mt-1 font-mono text-sm font-bold text-signal">
                   ✕

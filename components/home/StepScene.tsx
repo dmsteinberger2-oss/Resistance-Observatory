@@ -112,7 +112,7 @@ export function StepScene({
           style={{ top: `${i * 90}vh`, height: "90vh" }}
         />
       ))}
-      <div className="sticky top-0 flex h-dvh items-center">{panel}</div>
+      <div className="sticky top-[57px] flex h-[calc(100dvh-57px)] items-center">{panel}</div>
     </section>
   );
 }

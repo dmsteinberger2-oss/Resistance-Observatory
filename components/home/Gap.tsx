@@ -47,7 +47,7 @@ export function Gap() {
                 {lagText ? (
                   <span className="font-display text-3xl font-semibold text-gap">{lagText}</span>
                 ) : (
-                  <span className="placeholder-token !text-sm" title="Unsourced — fill PLACEHOLDER_EVIDENCE_LAG_MONTHS in lib/stats.ts">
+                  <span className="placeholder-token !text-xs !whitespace-normal break-all" title="Unsourced — fill PLACEHOLDER_EVIDENCE_LAG_MONTHS in lib/stats.ts">
                     PLACEHOLDER_EVIDENCE_LAG_MONTHS · source pending
                   </span>
                 )}

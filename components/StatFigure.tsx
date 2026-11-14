@@ -52,9 +52,12 @@ export function StatFigure({
     <div ref={ref} className={className}>
       <p className="font-display text-6xl sm:text-8xl font-semibold tracking-tight tabular-nums leading-none">
         {stat.value === null ? (
-          <span className="placeholder-token" title={`Unsourced — fill ${name} in lib/stats.ts`}>
-            {name}
-            <span className="block text-[0.8em] opacity-80">source pending</span>
+          <span
+            title={`Unsourced — fill ${name} in lib/stats.ts`}
+            className="inline-block min-w-[3ch] border-b-4 border-dashed border-gap text-gap/40"
+          >
+            <span aria-hidden>?</span>
+            <span className="sr-only">Figure not yet sourced.</span>
           </span>
         ) : target !== null ? (
           <>
@@ -79,6 +82,11 @@ export function StatFigure({
         )}
       </p>
       {showLabel ? <p className="mt-3 max-w-xs text-sm text-muted">{stat.label}</p> : null}
+      {stat.value === null ? (
+        <p className="mt-2 inline-block max-w-full break-all rounded border border-dashed border-gap/70 bg-gap-soft/60 px-2 py-1 font-mono text-[0.7rem] text-gap">
+          {name} · source pending
+        </p>
+      ) : null}
       {stat.source ? (
         <p className="mt-1 font-mono text-[0.7rem] text-muted">Source: {stat.source}</p>
       ) : null}

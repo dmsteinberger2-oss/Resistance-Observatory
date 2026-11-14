@@ -111,7 +111,8 @@ it links to doi.org first, PubMed second.
   labels are real `<text>`.
 - `content/data.ts` — Data tab content, taken from `docs/SCIENCE.md`.
 - Science content carries a `reviewed` flag (`content/review.ts`). Everything
-  shipped is flagged `true`, and nothing is held on screen. Both source docs
+  shipped is flagged `true` so that it displays; the flag does not record a
+  human review, and nothing is held on screen. Both source docs
   still say their claims were written from general knowledge and should be
   checked against the literature; that check has not been recorded here.
 - K540E is usually reported with A437G as the double mutant. Learn says so in
@@ -381,7 +382,12 @@ coding assistant, under the direction of the team. This includes the app
 code, the data-pull script `scripts/graph-stats.ts`, and the transcription of
 the Learn content from `docs/MARKER-CONTENT.md`. Separately, the Alert tab's
 PubMed abstract fields were extracted by an AI model and not hand-checked
-(see Data sources). All science content is gated on human review (see `docs/SCIENCE.md`, `docs/LEARN.md`).
+(see Data sources).
+
+The science content (Learn's marker text and the Data tab's background, from
+`docs/MARKER-CONTENT.md` and `docs/SCIENCE.md`) was drafted with AI
+assistance. The review gate that originally held it back from display was
+removed, and no human review of it is recorded in this repository.
 
 ## Alert tab — sources, method and disclosure
 

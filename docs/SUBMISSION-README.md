@@ -229,9 +229,11 @@ cdnjs and RCSB; if either is unreachable it shows a link instead.
     subagent and has not been reviewed by a human.
 - **No language model runs in the shipped app.** Alert explanations are
   templates filled from matched fields.
-- The Learn page's biology text was drafted with AI assistance. Its source
-  docs say the claims were written from general knowledge and should be
-  checked against the literature; that check has not been recorded.
+- The science content (Learn's marker text and the Data tab's background) was
+  drafted with AI assistance. A review gate originally held it back from
+  display; that gate was removed, and no human review of the content is
+  recorded in the repository. Its source docs say the claims were written from
+  general knowledge and should be checked against the literature.
 
 ## Screenshot
 

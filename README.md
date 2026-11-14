@@ -128,6 +128,7 @@ different counts. That is expected.
 | `GRAPH_MARKER_FINDINGS` | 6 | findings that **name codon 540 directly**: associations of those variables, `GET /variables/{id}/associations`, de-duplicated |
 | `GRAPH_MARKER_K540E_ALONE_FINDINGS` | 0 | of those, findings whose variable names K540E on its own, with no other codon or combination |
 | `GRAPH_MARKER_STUDIES` | 4 | studies that **name codon 540 directly**: distinct `study_id` over those associations |
+| `GRAPH_MARKER_TYPED_FINDINGS` | 0 | of the 6, findings whose study has a `study_type` in the graph (`GET /studies/{study_id}`); the Data timeline shows each as a chip, or "type not recorded" |
 | `GRAPH_MARKER_EXCLUDED_FINDINGS` | 2 | codon-540 findings the live API returned that were checked against their paper, found mis-extracted, and excluded from every other count |
 | `GRAPH_PFDHPS_FINDINGS` | 30 | findings that **cover pfdhps overall**: associations of every variable whose name identifies P. falciparum dhps (includes the 6 above) |
 | `GRAPH_PFDHPS_STUDIES` | 23 | studies that **cover pfdhps overall**: distinct `study_id` over those associations |

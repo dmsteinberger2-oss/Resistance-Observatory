@@ -15,6 +15,8 @@ export type MarkerFinding = {
   variable2: string;
   statisticType: string;
   population: string | null;
+  /** study_type exactly as the graph's Studies table records it; null = not recorded. */
+  studyType: string | null;
   /** ISO publication date (YYYY-MM-DD) of the paper, from OpenAlex; null = unknown. */
   published: string | null;
 };
@@ -44,6 +46,7 @@ const toFinding = (a: RawAssociation): MarkerFinding => {
       variable2: a.variable_2_name,
       statisticType: a.statistic_type.replaceAll("_", " "),
       population: study?.population ?? null,
+      studyType: (study?.study_type as string | null | undefined)?.trim() || null,
       published: publishedDate(pmid),
     };
 };

@@ -10,6 +10,7 @@ import { ALL_STATS } from "@/lib/stats";
 import { StatFigure } from "@/components/StatFigure";
 import { PullQuote } from "@/components/PullQuote";
 import { FindingsTimeline } from "@/components/data/FindingsTimeline";
+import { StudyTypeChip } from "@/components/data/StudyTypeChip";
 import { EXCLUDED_FINDINGS, MARKER_FINDINGS } from "@/lib/findings";
 import { Reveal } from "@/components/Reveal";
 
@@ -104,6 +105,13 @@ export default function DataPage() {
               {ALL_STATS.GRAPH_KNOWN_BAD_SHARE.unit} of API extractions are known-bad, and these findings are not
               yet cross-verified against the source papers.
             </p>
+            <p className="mt-4">
+              Evidence carries different weight depending on how it was produced: a therapeutic efficacy study
+              and a general surveillance report are not the same thing. Each entry shows its study type as the
+              graph recorded it, not as our judgement. The graph records a study type for{" "}
+              {ALL_STATS.GRAPH_MARKER_TYPED_FINDINGS.value} of these {ALL_STATS.GRAPH_MARKER_FINDINGS.value}{" "}
+              findings; where it records none, the entry says &ldquo;type not recorded&rdquo;.
+            </p>
             <FindingsTimeline findings={MARKER_FINDINGS} />
             <p className="font-mono text-xs text-muted">
               Source: System Public Graph v{ALL_STATS.GRAPH_VERSION.value}, {ALL_STATS.GRAPH_SNAPSHOT_DATE.value}{" "}
@@ -113,13 +121,22 @@ export default function DataPage() {
 
           <Section id="review" n={3} title="Caught in review">
             <p>
+              Domain experts warn that automated extraction can place a large clinical trial and a small
+              observational report side by side as if they carried equal weight. That is why every finding
+              here shows its study type and links to its source, and why the findings below were checked against
+              their paper.
+            </p>
+            <p className="mt-4">
               The live API returned {ALL_STATS.GRAPH_MARKER_EXCLUDED_FINDINGS.value} more findings for this
               marker. They are not on the timeline above, and they are in none of the counts on this site.
             </p>
             <ul className="mt-6 space-y-5 border-l-2 border-dashed border-line-strong pl-6">
               {EXCLUDED_FINDINGS.map((f) => (
                 <li key={f.systemId}>
-                  <p className="font-mono text-sm font-semibold">Excluded · mis-extracted</p>
+                  <p className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-sm font-semibold">
+                    Excluded · mis-extracted
+                    <StudyTypeChip studyType={f.studyType} />
+                  </p>
                   <p className="mt-1 text-base leading-snug">
                     <span className="font-semibold">{f.variable1}</span>
                     <span className="text-muted"> — recorded against — </span>

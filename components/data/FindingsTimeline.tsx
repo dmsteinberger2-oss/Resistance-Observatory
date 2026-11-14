@@ -1,4 +1,5 @@
 import { EvidenceLink } from "@/components/EvidenceLink";
+import { StudyTypeChip } from "@/components/data/StudyTypeChip";
 import { formatGraphDate } from "@/lib/stats";
 import type { MarkerFinding } from "@/lib/findings";
 
@@ -39,8 +40,9 @@ function Group({ title, note, findings }: { title: string; note: string; finding
               aria-hidden
               className={`absolute -left-[7px] top-1.5 h-3 w-3 border-2 border-fg ${f.published ? "rounded-full bg-fg" : "rotate-45 bg-bg"}`}
             />
-            <p className="font-mono text-sm font-semibold tabular-nums">
+            <p className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-sm font-semibold tabular-nums">
               {f.published ? <time dateTime={f.published}>{formatGraphDate(f.published)}</time> : "Date unknown"}
+              <StudyTypeChip studyType={f.studyType} />
             </p>
             <p className="mt-1 text-base leading-snug">
               <span className="font-semibold">{f.variable1}</span>

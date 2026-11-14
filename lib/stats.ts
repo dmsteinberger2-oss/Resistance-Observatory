@@ -140,6 +140,18 @@ export const OPENALEX_MARKER_LAST_PUBLISHED = {
   query: "max publication_date over GET https://api.openalex.org/works?filter=pmid:<ids>&select=id,doi,ids,publication_date&per-page=50",
 } satisfies Stat;
 
+// GET /studies/{study_id} for each marker association's study -> study_type.
+// Counts the findings whose study has a non-empty study_type.
+const STUDY_TYPES = new Map(
+  graph.marker.studies.map((s) => [s.study_id, (s.study_type as string | null) || null]),
+);
+export const GRAPH_MARKER_TYPED_FINDINGS = {
+  value: MARKER.filter((a) => STUDY_TYPES.get(a.study_id)).length,
+  label: "Findings that name codon 540 directly and whose study type the graph records",
+  source: SOURCE,
+  query: "GET /studies/{study_id} per marker association; study_type present",
+} satisfies Stat;
+
 // Marker associations flagged `vetted: false` in graph-stats.json
 // (same query as GRAPH_MARKER_FINDINGS; flagged after a check against the paper).
 export const GRAPH_MARKER_EXCLUDED_FINDINGS = {
@@ -206,6 +218,7 @@ export const ALL_STATS = {
   GRAPH_MARKER_FINDINGS,
   GRAPH_MARKER_K540E_ALONE_FINDINGS,
   GRAPH_MARKER_EXCLUDED_FINDINGS,
+  GRAPH_MARKER_TYPED_FINDINGS,
   GRAPH_MARKER_STUDIES,
   OPENALEX_MARKER_DATED_FINDINGS,
   OPENALEX_MARKER_LAST_PUBLISHED,

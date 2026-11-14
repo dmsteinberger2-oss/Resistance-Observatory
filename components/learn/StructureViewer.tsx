@@ -29,6 +29,9 @@ const POSITIONS = [437, 540] as const;
 const CONTEXT_COLOR_VAR = "--quiet"; // 437
 const CARTOON_COLOR = "#6f8499"; // muted blue-grey
 const LIGAND_COLOR = "#c9a7ff"; // distinct from the residue colours; ligands are also labelled
+/** Crystallisation additives and ions: present in the entries, not drawn and
+ *  not measured against. Names are the entries' own HETNAM records. */
+const NOT_SHOWN: Record<string, string> = { GOL: "glycerol", ACT: "acetate", CA: "calcium", MG: "magnesium" };
 /** The "not in contact" line is shown only if both measured distances exceed
  *  this. Direct contacts are a few \u00e5ngstr\u00f6ms; this is a conservative cut-off. */
 const CONTACT_LIMIT_ANGSTROM = 6;
@@ -53,8 +56,10 @@ function changeNote(wt: string, mut: string): string {
 type Atom = { resn: string; resi: number; chain: string; x: number; y: number; z: number; label?: unknown };
 /** What a loaded structure reports about its ligands (non-water HETATM). */
 type LigandInfo = {
-  /** PDB chemical component IDs present, in file order. */
+  /** PDB chemical component IDs drawn, in file order. */
   ids: string[];
+  /** Additives and ions present in the entry but left out (keys of NOT_SHOWN). */
+  hidden: string[];
   /** Shortest atom-to-atom distance from the marker residue to any ligand atom. */
   nearest: { resn: string; angstrom: number } | null;
   /** Residue name at OTHER_PFDHPS_POSITION, if resolved. */
@@ -204,13 +209,17 @@ export function StructureViewer({
           setOne(i, v ? "ready" : "failed");
         });
 
-        // Base style: protein as cartoon; every non-water ligand as sticks, in
-        // one distinct colour, labelled with its PDB chemical component ID.
+        // Base style: protein as cartoon; ligands as sticks in one distinct
+        // colour, labelled with their PDB chemical component ID. Waters and the
+        // additives/ions in NOT_SHOWN are left out.
         const ligandInfo: (LigandInfo | null)[] = loaded.map((v) => {
           if (!v) return null;
           v.setStyle({}, {});
           v.setStyle({ hetflag: false }, { cartoon: { color: CARTOON_COLOR } });
-          const het = v.selectedAtoms({ hetflag: true }).filter((a) => a.resn !== "HOH" && a.resn !== "DOD");
+          const allHet = v.selectedAtoms({ hetflag: true }).filter((a) => a.resn !== "HOH" && a.resn !== "DOD");
+          // Only the ligands that are drawn are labelled and measured against.
+          const het = allHet.filter((a) => !(a.resn in NOT_SHOWN));
+          const hidden = [...new Set(allHet.filter((a) => a.resn in NOT_SHOWN).map((a) => a.resn))];
           const ids = [...new Set(het.map((a) => a.resn))];
           if (ids.length) {
             v.setStyle(
@@ -242,7 +251,7 @@ export function StructureViewer({
             }
           }
           const other = v.selectedAtoms({ resi: OTHER_PFDHPS_POSITION, hetflag: false })[0];
-          return { ids, nearest, otherPosition: other ? other.resn : null };
+          return { ids, hidden, nearest, otherPosition: other ? other.resn : null };
         });
         setLigands(ligandInfo);
 
@@ -494,6 +503,15 @@ export function StructureViewer({
             )
               .filter(Boolean)
               .join(" ")}
+            {(() => {
+              const present = new Set(ligands.flatMap((l) => l?.hidden ?? []));
+              const hidden = Object.keys(NOT_SHOWN).filter((id) => present.has(id));
+              return hidden.length
+                ? ` Crystallisation additives and ions present in the entries (${hidden
+                    .map((id) => NOT_SHOWN[id])
+                    .join(", ")}) are not shown.`
+                : "";
+            })()}
           </p>
         ) : null}
 

@@ -295,9 +295,11 @@ What the viewer does and does not say (`components/learn/StructureViewer.tsx`):
   viewer says so on screen, and only 540 is highlighted.
 - Residue names, numbers and the charge note in the compare panel are read
   from what 3Dmol reports for the loaded structures, not hard-coded.
-- **Ligands are shown.** Every non-water HETATM group is drawn as sticks in
-  one colour and labelled with its PDB chemical component ID (6JWX: CKL, PH2,
-  AMP, MG, ACT, CA; 6KCL: PE0, PHB, ATP, GOL, MG, CA, ACT).
+- **Ligands are shown.** The biologically meaningful ligands are drawn as
+  sticks in one colour and labelled with their PDB chemical component IDs:
+  CKL, PH2 and AMP in 6JWX; PE0, PHB and ATP in 6KCL. Waters, and the
+  crystallisation additives and ions also present in the entries (glycerol,
+  acetate, calcium, magnesium), are not drawn and are not measured against.
 - **One distance is measured and reported, not interpreted.** The compare
   panel shows the shortest atom-to-atom distance from residue 540 to the
   nearest ligand atom in each entry, computed in the browser from the loaded

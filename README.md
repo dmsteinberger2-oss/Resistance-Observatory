@@ -2,6 +2,8 @@
 
 When does new evidence change the picture for a malaria drug-resistance marker?
 
+**Live site:** <https://resistance-observatory.vercel.app/>
+
 A hackathon prototype (System Public Challenge, Build Challenge 3). Next.js App
 Router + Tailwind, deployed on Vercel (import this repo at vercel.com/new —
 framework auto-detects as Next.js; the site needs no env vars at build or run

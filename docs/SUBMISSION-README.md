@@ -1,10 +1,10 @@
 # Resistance Observatory
 
-Team: TODO — team name as registered on Devpost  
+Team: Resistance Observatory  
 Members: Solayman Ararba, David Steinberger, Benjamin Gatica Morales  
 Challenge: Build 3: When does new evidence change the picture for a malaria drug resistance marker?  
-Pitch slides: TODO — link to slides  
-Live site: TODO — deployed URL  
+Pitch slides: https://docs.google.com/presentation/d/14Pf7EBcu342gcFyR_Quo6vvOm-tNH7X9pXxYQcqEHXE/edit?usp=sharing  
+Live site: https://resistance-observatory.vercel.app/  
 Repository: https://github.com/dmsteinberger2-oss/Resistance-Observatory
 
 ## What it does

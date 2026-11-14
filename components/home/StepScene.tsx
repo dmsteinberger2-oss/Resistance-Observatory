@@ -19,6 +19,7 @@ export function StepScene({
   steps,
   visual,
   tone = "drug",
+  note,
 }: {
   id: string;
   eyebrow: string;
@@ -26,6 +27,8 @@ export function StepScene({
   steps: ReactNode[];
   visual: (step: number) => ReactNode;
   tone?: "drug" | "signal";
+  /** A short caption shown under the steps for the whole scene. */
+  note?: ReactNode;
 }) {
   const reduced = usePrefersReducedMotion();
   const [step, setStep] = useState(0);
@@ -80,6 +83,7 @@ export function StepScene({
             </li>
           ))}
         </ol>
+        {note ? <p className="mt-8 max-w-md border-t border-line pt-4 text-sm text-muted text-pretty">{note}</p> : null}
       </div>
       <div className="order-1 md:order-2">{visual(active)}</div>
     </div>

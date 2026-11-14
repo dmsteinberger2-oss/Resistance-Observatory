@@ -40,6 +40,7 @@ export default function OverviewPage() {
           "The same drug reaches it.",
           "Specific mutations reduce how well particular drugs work. Those mutations are tracked as resistance markers.",
         ]}
+        note="This illustrates how resistance mutations work in general. It is not the mechanism of K540E specifically."
         visual={(s) => <ParasiteScene step={s} mutant title="Schematic: drug reaching a parasite that carries a mutation" />}
       />
       <Gap />

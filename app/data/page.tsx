@@ -10,7 +10,7 @@ import { ALL_STATS } from "@/lib/stats";
 import { StatFigure } from "@/components/StatFigure";
 import { PullQuote } from "@/components/PullQuote";
 import { FindingsTimeline } from "@/components/data/FindingsTimeline";
-import { MARKER_FINDINGS } from "@/lib/findings";
+import { EXCLUDED_FINDINGS, MARKER_FINDINGS } from "@/lib/findings";
 import { Reveal } from "@/components/Reveal";
 
 export const metadata: Metadata = {
@@ -21,6 +21,7 @@ export const metadata: Metadata = {
 const TOC = [
   ["why", "Why markers are tracked"],
   ["timeline", "The findings, by publication date"],
+  ["review", "Caught in review"],
   ["markers", "Five markers"],
   ["antifolate", "How antifolate resistance stacks"],
   ["method", "How we read the evidence"],
@@ -89,11 +90,9 @@ export default function DataPage() {
             <p>
               These are the {ALL_STATS.GRAPH_MARKER_FINDINGS.value} findings in the graph that name codon 540 of
               pfdhps directly, the marker associated with reduced efficacy of sulfadoxine, from{" "}
-              {ALL_STATS.GRAPH_MARKER_STUDIES.value} studies. The graph indexes K540E only lightly:{" "}
-              {ALL_STATS.GRAPH_MARKER_K540E_ALONE_FINDINGS.value} of these findings name K540E on its own, and
-              the rest sit at the pfdhps level, naming codon 540 inside a combination or a list, or comparing how common it is between two
-              groups. No graph finding
-              gives a prevalence figure for K540E. Each one links to its paper.
+              {ALL_STATS.GRAPH_MARKER_STUDIES.value} studies. The graph indexes K540E only lightly: these findings
+              sit at the pfdhps level, naming codon 540 inside a combination or a list, or comparing how common it
+              is between two groups. No graph finding gives a prevalence figure for K540E. Each one links to its paper.
             </p>
             <p className="mt-4">
               The graph has no per-finding publication date, so each date here is the paper&rsquo;s publication
@@ -112,7 +111,58 @@ export default function DataPage() {
             </p>
           </Section>
 
-          <Section id="markers" n={3} title="Five markers worth knowing">
+          <Section id="review" n={3} title="Caught in review">
+            <p>
+              The live API returned {ALL_STATS.GRAPH_MARKER_EXCLUDED_FINDINGS.value} more findings for this
+              marker. They are not on the timeline above, and they are in none of the counts on this site.
+            </p>
+            <ul className="mt-6 space-y-5 border-l-2 border-dashed border-line-strong pl-6">
+              {EXCLUDED_FINDINGS.map((f) => (
+                <li key={f.systemId}>
+                  <p className="font-mono text-sm font-semibold">Excluded · mis-extracted</p>
+                  <p className="mt-1 text-base leading-snug">
+                    <span className="font-semibold">{f.variable1}</span>
+                    <span className="text-muted"> — recorded against — </span>
+                    <span className="font-semibold">{f.variable2}</span>
+                  </p>
+                  <p className="mt-1 font-mono text-[0.72rem] text-muted">
+                    system_id {f.systemId} · statistic recorded: {f.statisticType}
+                  </p>
+                  {f.pubmedId ? (
+                    <a
+                      href={`https://pubmed.ncbi.nlm.nih.gov/${f.pubmedId}/`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1 inline-flex items-center gap-1 text-base font-medium text-drug underline decoration-drug/40 underline-offset-4 hover:decoration-drug"
+                    >
+                      PubMed record, PMID {f.pubmedId} <span aria-hidden>↗</span>
+                      <span className="sr-only">(opens in a new tab)</span>
+                    </a>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-6">
+              We checked both against the abstract of the paper they cite. The numbers they carry belong to a
+              different mutation, the A581G sextuple mutant. K540E appears in that sentence only as a proxy
+              definition, and the extraction attached the numbers to it. System&rsquo;s vetted release of the
+              graph does not include either finding.
+            </p>
+            <p className="mt-4">
+              This is not a criticism of the graph. System&rsquo;s API documentation says roughly{" "}
+              {ALL_STATS.GRAPH_KNOWN_BAD_SHARE.value}
+              {ALL_STATS.GRAPH_KNOWN_BAD_SHARE.unit} of the associations it serves are known-bad extractions.
+              This is that rate, found in our own data, and it is why every finding here links to its paper.
+              Both findings stay in our pinned data file, flagged with the reason.
+            </p>
+            <p className="mt-4 text-base text-muted">
+              The vetted release holds only findings whose two variables are both matched to a concept, so it
+              cannot confirm most of the findings on the timeline. Those have not been checked against their
+              papers.
+            </p>
+          </Section>
+
+          <Section id="markers" n={4} title="Five markers worth knowing">
             <p>A marker means nothing without its drug, so they are always listed together.</p>
             {(
               <div className="mt-6 overflow-x-auto rounded-xl border border-line">
@@ -138,7 +188,7 @@ export default function DataPage() {
             )}
           </Section>
 
-          <Section id="antifolate" n={4} title="How antifolate resistance stacks">
+          <Section id="antifolate" n={5} title="How antifolate resistance stacks">
             {(
               <>
                 <p className="mt-4">{ANTIFOLATE.value.body}</p>
@@ -147,7 +197,7 @@ export default function DataPage() {
             )}
           </Section>
 
-          <Section id="method" n={5} title="How this project reads the evidence">
+          <Section id="method" n={6} title="How this project reads the evidence">
             <p>
               The evidence comes from the System Public Graph, version {String(ALL_STATS.GRAPH_VERSION.value)},
               a snapshot frozen on {String(ALL_STATS.GRAPH_SNAPSHOT_DATE.value)}. Its atomic unit is
@@ -164,8 +214,8 @@ export default function DataPage() {
               {String(ALL_STATS.GRAPH_KNOWN_BAD_SHARE.value)}
               {ALL_STATS.GRAPH_KNOWN_BAD_SHARE.unit} of associations served by its API are known-bad
               extractions, and variables that failed to ground to a Wikidata concept were removed from the public
-              release. A codon-level mutation may be missing or only lightly indexed, as K540E is. The findings shown here are not yet cross-verified against the source papers; the project
-              README records this.
+              release. A codon-level mutation may be missing or only lightly indexed, as K540E is. Two findings were checked against their paper and excluded; the rest are not yet verified
+              against theirs. The project README records what was checked.
             </p>
             <PullQuote cite="How the alert demo works">
               The logic is tested on real history; the feed is a snapshot.
@@ -178,7 +228,7 @@ export default function DataPage() {
             </p>
           </Section>
 
-          <Section id="limits" n={6} title="What the evidence can’t tell you">
+          <Section id="limits" n={7} title="What the evidence can’t tell you">
             <ul className="space-y-3">
               {[
                 "That a marker’s presence means a patient’s treatment will fail.",
@@ -199,7 +249,7 @@ export default function DataPage() {
             <PullQuote cite="Our rule for disagreement">We flag disagreement; we do not adjudicate.</PullQuote>
           </Section>
 
-          <Section id="numbers" n={7} title="Key numbers" wide>
+          <Section id="numbers" n={8} title="Key numbers" wide>
             <p>
               Every number in this app lives in one file, <code className="font-mono text-base">lib/stats.ts</code>,
               and every one is read from a pinned data pull: counts from the System Public Graph API, dates from
@@ -212,8 +262,8 @@ export default function DataPage() {
                   "GRAPH_MARKER_STUDIES",
                   "GRAPH_PFDHPS_FINDINGS",
                   "GRAPH_PFDHPS_STUDIES",
+                  "GRAPH_MARKER_EXCLUDED_FINDINGS",
                   "OPENALEX_MARKER_LAST_PUBLISHED",
-                  "GRAPH_KNOWN_BAD_SHARE",
                 ] as const
               ).map((k, i) => (
                 <Reveal key={k} delay={(i % 2) * 100}>
@@ -223,7 +273,7 @@ export default function DataPage() {
             </div>
           </Section>
 
-          <Section id="glossary" n={8} title="Glossary">
+          <Section id="glossary" n={9} title="Glossary">
             <dl className="divide-y divide-line border-y border-line">
               {GLOSSARY.map((g) => (
                 <div key={g.term} className="grid gap-1 py-5 sm:grid-cols-[11rem_1fr] sm:gap-6">

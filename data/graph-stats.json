@@ -2551,7 +2551,10 @@
         "pubmed_id": 25564249,
         "system_statistic_type": "prevalence_ratio",
         "marker_variable_id": "w1ktrLk4Wc",
-        "relationship": null
+        "relationship": null,
+        "in_vetted_csv": false,
+        "vetted": false,
+        "vetting_note": "Mis-extraction (PMID 25564249). Checked against the source abstract: the prevalence ratio recorded here belongs to the A581G sextuple mutant, not to K540E; K540E appears in that sentence only as a proxy definition. Not in System's vetted Dataverse CSV."
       },
       {
         "system_id": "AeI-laBxXr",
@@ -2588,7 +2591,10 @@
             "wikidata_label": "Placental Circulation",
             "wikidata_id": "Q71151469"
           }
-        }
+        },
+        "in_vetted_csv": false,
+        "vetted": false,
+        "vetting_note": "Mis-extraction (PMID 25564249). Checked against the source abstract: the prevalence ratio recorded here belongs to the A581G sextuple mutant, not to K540E; K540E appears in that sentence only as a proxy definition. Not in System's vetted Dataverse CSV."
       },
       {
         "system_id": "KL67h5A5Ml",
@@ -2603,7 +2609,8 @@
         "pubmed_id": 36680454,
         "system_statistic_type": "mean_difference_unstandardized",
         "marker_variable_id": "4PX5Wm7Ytz",
-        "relationship": null
+        "relationship": null,
+        "in_vetted_csv": false
       },
       {
         "system_id": "iD_4aq3uIs",
@@ -2620,7 +2627,8 @@
         "pubmed_id": 29854394,
         "system_statistic_type": "mean_difference_unstandardized",
         "marker_variable_id": "5bJrK_wJcx",
-        "relationship": null
+        "relationship": null,
+        "in_vetted_csv": false
       },
       {
         "system_id": "ZPGDdrkvVI",
@@ -2639,7 +2647,8 @@
         "pubmed_id": 25583123,
         "system_statistic_type": "odds_ratio",
         "marker_variable_id": "6nc-md3xWP",
-        "relationship": null
+        "relationship": null,
+        "in_vetted_csv": false
       },
       {
         "system_id": "5cnJAspBYN",
@@ -2658,7 +2667,8 @@
         "pubmed_id": 25583123,
         "system_statistic_type": "odds_ratio",
         "marker_variable_id": "bkHgD5M-T3",
-        "relationship": null
+        "relationship": null,
+        "in_vetted_csv": false
       },
       {
         "system_id": "QIrkddNp_j",
@@ -2695,7 +2705,8 @@
             "wikidata_label": "pyrimethamine",
             "wikidata_id": "Q421072"
           }
-        }
+        },
+        "in_vetted_csv": false
       },
       {
         "system_id": "rgO2bc-iSN",
@@ -2714,7 +2725,8 @@
         "pubmed_id": 25583123,
         "system_statistic_type": "odds_ratio",
         "marker_variable_id": "TaKS18jKT6",
-        "relationship": null
+        "relationship": null,
+        "in_vetted_csv": false
       }
     ],
     "studies": [
@@ -3152,7 +3164,8 @@
         "variable_2_name": "Prevalence of Pfdhps 437G mutation",
         "study_id": "5Aedo_Mrvp",
         "pubmed_id": 23916206,
-        "statistic_type": "mean_difference_unstandardized"
+        "statistic_type": "mean_difference_unstandardized",
+        "in_vetted_csv": false
       },
       {
         "system_id": "JNKsUWLxEZ",
@@ -3160,7 +3173,8 @@
         "variable_2_name": "Prevalence of Pfdhps 437G mutation",
         "study_id": "Ilg6nxyyWY",
         "pubmed_id": 23589534,
-        "statistic_type": "mean_difference_unstandardized"
+        "statistic_type": "mean_difference_unstandardized",
+        "in_vetted_csv": false
       },
       {
         "system_id": "UvZ-jRjpFA",
@@ -3168,7 +3182,8 @@
         "variable_2_name": "Prevalence of Pfdhps 437G mutation",
         "study_id": "Ilg6nxyyWY",
         "pubmed_id": 23589534,
-        "statistic_type": "mean_difference_unstandardized"
+        "statistic_type": "mean_difference_unstandardized",
+        "in_vetted_csv": false
       },
       {
         "system_id": "9uTFvbAcu2",
@@ -3176,7 +3191,8 @@
         "variable_2_name": "in vivo treatment outcomes (among the patients enrolled in the study)",
         "study_id": "Dp5QIYwYwT",
         "pubmed_id": 19707564,
-        "statistic_type": "relative_risk_ratio"
+        "statistic_type": "relative_risk_ratio",
+        "in_vetted_csv": false
       },
       {
         "system_id": "UZUVvFga1e",
@@ -3184,7 +3200,8 @@
         "variable_2_name": "in vivo treatment outcomes (among patients)",
         "study_id": "Dp5QIYwYwT",
         "pubmed_id": 19707564,
-        "statistic_type": "relative_risk_ratio"
+        "statistic_type": "relative_risk_ratio",
+        "in_vetted_csv": false
       },
       {
         "system_id": "l3EndGI_ph",
@@ -3192,7 +3209,8 @@
         "variable_2_name": "in vivo treatment outcomes (among patients with uncomplicated falciparum malaria)",
         "study_id": "Dp5QIYwYwT",
         "pubmed_id": 19707564,
-        "statistic_type": "relative_risk_ratio"
+        "statistic_type": "relative_risk_ratio",
+        "in_vetted_csv": false
       },
       {
         "system_id": "489sn1mPQa",
@@ -3200,7 +3218,8 @@
         "variable_2_name": "birth weight",
         "study_id": "Cxsr7UsKD_",
         "pubmed_id": 33684211,
-        "statistic_type": "mean_difference_unstandardized"
+        "statistic_type": "mean_difference_unstandardized",
+        "in_vetted_csv": true
       },
       {
         "system_id": "gD0V6goixf",
@@ -3208,7 +3227,8 @@
         "variable_2_name": "birth weight",
         "study_id": "Cxsr7UsKD_",
         "pubmed_id": 33684211,
-        "statistic_type": "mean_difference_unstandardized"
+        "statistic_type": "mean_difference_unstandardized",
+        "in_vetted_csv": true
       },
       {
         "system_id": "peitXdsBF5",
@@ -3216,7 +3236,8 @@
         "variable_2_name": "Prevalence of quadruple dhfr-mutants + dhps-437G",
         "study_id": "diutippUQd",
         "pubmed_id": 20064223,
-        "statistic_type": "mean_difference_unstandardized"
+        "statistic_type": "mean_difference_unstandardized",
+        "in_vetted_csv": false
       },
       {
         "system_id": "tpQmPftMjJ",
@@ -3224,7 +3245,8 @@
         "variable_2_name": "Prevalence of quadruple dhfr-mutants + dhps-437G",
         "study_id": "diutippUQd",
         "pubmed_id": 20064223,
-        "statistic_type": "mean_difference_unstandardized"
+        "statistic_type": "mean_difference_unstandardized",
+        "in_vetted_csv": false
       },
       {
         "system_id": "paFNq6MPX5",
@@ -3232,7 +3254,10 @@
         "variable_2_name": "Patent infection in peripheral blood",
         "study_id": "ISjODSn06i",
         "pubmed_id": 25564249,
-        "statistic_type": "prevalence_ratio"
+        "statistic_type": "prevalence_ratio",
+        "in_vetted_csv": false,
+        "vetted": false,
+        "vetting_note": "Mis-extraction (PMID 25564249). Checked against the source abstract: the prevalence ratio recorded here belongs to the A581G sextuple mutant, not to K540E; K540E appears in that sentence only as a proxy definition. Not in System's vetted Dataverse CSV."
       },
       {
         "system_id": "AeI-laBxXr",
@@ -3240,7 +3265,10 @@
         "variable_2_name": "Patent infection in placental blood",
         "study_id": "ISjODSn06i",
         "pubmed_id": 25564249,
-        "statistic_type": "prevalence_ratio"
+        "statistic_type": "prevalence_ratio",
+        "in_vetted_csv": false,
+        "vetted": false,
+        "vetting_note": "Mis-extraction (PMID 25564249). Checked against the source abstract: the prevalence ratio recorded here belongs to the A581G sextuple mutant, not to K540E; K540E appears in that sentence only as a proxy definition. Not in System's vetted Dataverse CSV."
       },
       {
         "system_id": "y5nghPrl5_",
@@ -3248,7 +3276,8 @@
         "variable_2_name": "Prevalence of sulfadoxine-pyrimethamine resistance-associated mutations in dhfr and dhps genes of P. falciparum",
         "study_id": "1GUcQ9Jcua",
         "pubmed_id": 24055717,
-        "statistic_type": "mean_difference_unstandardized"
+        "statistic_type": "mean_difference_unstandardized",
+        "in_vetted_csv": false
       },
       {
         "system_id": "_0IwC4n9Rv",
@@ -3256,7 +3285,8 @@
         "variable_2_name": "birth weight",
         "study_id": "EwimqyckFY",
         "pubmed_id": 32221555,
-        "statistic_type": "mean_difference_unstandardized"
+        "statistic_type": "mean_difference_unstandardized",
+        "in_vetted_csv": false
       },
       {
         "system_id": "KL67h5A5Ml",
@@ -3264,7 +3294,8 @@
         "variable_2_name": "dhps-540K/E prevalence",
         "study_id": "jMqeVgkFL0",
         "pubmed_id": 36680454,
-        "statistic_type": "mean_difference_unstandardized"
+        "statistic_type": "mean_difference_unstandardized",
+        "in_vetted_csv": false
       },
       {
         "system_id": "Zh360F19Yv",
@@ -3272,7 +3303,8 @@
         "variable_2_name": "Pfdhps double mutation",
         "study_id": "xhlZ2PHLTn",
         "pubmed_id": 26431464,
-        "statistic_type": "mean_difference_unstandardized"
+        "statistic_type": "mean_difference_unstandardized",
+        "in_vetted_csv": false
       },
       {
         "system_id": "iD_4aq3uIs",
@@ -3280,7 +3312,8 @@
         "variable_2_name": "Prevalence of antifolate drugs resistance in the 51I, 59R, 108N, or 540E SNPs",
         "study_id": "qYX21-LU0d",
         "pubmed_id": 29854394,
-        "statistic_type": "mean_difference_unstandardized"
+        "statistic_type": "mean_difference_unstandardized",
+        "in_vetted_csv": false
       },
       {
         "system_id": "ZPGDdrkvVI",
@@ -3288,7 +3321,8 @@
         "variable_2_name": "treatment failure (among the patients with the presence of the double mutant dhps A437G/K540E)",
         "study_id": "xdBifnj4pj",
         "pubmed_id": 25583123,
-        "statistic_type": "odds_ratio"
+        "statistic_type": "odds_ratio",
+        "in_vetted_csv": false
       },
       {
         "system_id": "5cnJAspBYN",
@@ -3296,7 +3330,8 @@
         "variable_2_name": "treatment failure (among the study participants)",
         "study_id": "xdBifnj4pj",
         "pubmed_id": 25583123,
-        "statistic_type": "odds_ratio"
+        "statistic_type": "odds_ratio",
+        "in_vetted_csv": false
       },
       {
         "system_id": "xuL1x4ORrj",
@@ -3304,7 +3339,8 @@
         "variable_2_name": "efficacy of chlorproguanil-dapsone plus artesunate (CPG-DDS+A)",
         "study_id": "3vayGNjOdw",
         "pubmed_id": 19841150,
-        "statistic_type": "odds_ratio"
+        "statistic_type": "odds_ratio",
+        "in_vetted_csv": false
       },
       {
         "system_id": "Meqo31WUtn",
@@ -3312,7 +3348,8 @@
         "variable_2_name": "Prevalence of pfdhps mutations",
         "study_id": "3QoiFxiIh5",
         "pubmed_id": 26452541,
-        "statistic_type": "mean_difference_unstandardized"
+        "statistic_type": "mean_difference_unstandardized",
+        "in_vetted_csv": false
       },
       {
         "system_id": "hb7U_0XS5L",
@@ -3320,7 +3357,8 @@
         "variable_2_name": "treatment failures (among the study participants)",
         "study_id": "IWm-53wdva",
         "pubmed_id": 23870667,
-        "statistic_type": "odds_ratio"
+        "statistic_type": "odds_ratio",
+        "in_vetted_csv": false
       },
       {
         "system_id": "TIBuU6xBZ3",
@@ -3328,7 +3366,8 @@
         "variable_2_name": "frequency of pfdhfr/pfdhps quintuple mutants associated with sulfadoxine-pyrimethamine resistance",
         "study_id": "8xzWeEYm25",
         "pubmed_id": 37291425,
-        "statistic_type": "mean_difference_unstandardized"
+        "statistic_type": "mean_difference_unstandardized",
+        "in_vetted_csv": false
       },
       {
         "system_id": "qwzM9Lx9x2",
@@ -3336,7 +3375,8 @@
         "variable_2_name": "prevalence of Pfdhps A437G mutation",
         "study_id": "0V45kaRJyi",
         "pubmed_id": 39414909,
-        "statistic_type": "mean_difference_unstandardized"
+        "statistic_type": "mean_difference_unstandardized",
+        "in_vetted_csv": false
       },
       {
         "system_id": "ntTxGcZt2J",
@@ -3344,7 +3384,8 @@
         "variable_2_name": "treatment failure with amodiaquine+SP",
         "study_id": "FjlzFZSK8o",
         "pubmed_id": 18423045,
-        "statistic_type": "odds_ratio"
+        "statistic_type": "odds_ratio",
+        "in_vetted_csv": false
       },
       {
         "system_id": "o81I-56Mt5",
@@ -3352,7 +3393,8 @@
         "variable_2_name": "frequency of the SP-resistance associated Pfdhps double mutant (SGEAA) haplotype",
         "study_id": "NzCtX3gQQ5",
         "pubmed_id": 18590577,
-        "statistic_type": "mean_difference_unstandardized"
+        "statistic_type": "mean_difference_unstandardized",
+        "in_vetted_csv": false
       },
       {
         "system_id": "40m8-yN8gE",
@@ -3360,7 +3402,8 @@
         "variable_2_name": "frequency of clinical episodes of malaria caused by P. falciparum parasites with mutations in dhfr and dhps",
         "study_id": "durHZUTJxi",
         "pubmed_id": 18419347,
-        "statistic_type": "odds_ratio"
+        "statistic_type": "odds_ratio",
+        "in_vetted_csv": false
       },
       {
         "system_id": "QIrkddNp_j",
@@ -3368,7 +3411,8 @@
         "variable_2_name": "sulfadoxine-pyrimethamine treatment failure in children aged less than 5 years",
         "study_id": "wC3yE3mRbl",
         "pubmed_id": 16023986,
-        "statistic_type": "odds_ratio"
+        "statistic_type": "odds_ratio",
+        "in_vetted_csv": false
       },
       {
         "system_id": "rgO2bc-iSN",
@@ -3376,7 +3420,8 @@
         "variable_2_name": "treatment failure (among the study participants)",
         "study_id": "xdBifnj4pj",
         "pubmed_id": 25583123,
-        "statistic_type": "odds_ratio"
+        "statistic_type": "odds_ratio",
+        "in_vetted_csv": false
       },
       {
         "system_id": "pV6EBLWT_L",
@@ -3384,7 +3429,8 @@
         "variable_2_name": "mutant allele frequencies in the Plasmodium falciparum genes dhfr and dhps in mixed isolates",
         "study_id": "ylygSUkqFa",
         "pubmed_id": 23908494,
-        "statistic_type": "pearson_r"
+        "statistic_type": "pearson_r",
+        "in_vetted_csv": false
       },
       {
         "system_id": "iA0zb6Dzku",
@@ -3392,7 +3438,8 @@
         "variable_2_name": "prevalence of 437G and 581G alleles in the pfdhps gene",
         "study_id": "oLKAAy9DZD",
         "pubmed_id": 22462737,
-        "statistic_type": "mean_difference_unstandardized"
+        "statistic_type": "mean_difference_unstandardized",
+        "in_vetted_csv": false
       },
       {
         "system_id": "iJcN4hRRVc",
@@ -3400,7 +3447,8 @@
         "variable_2_name": "prevalence of Plasmodium falciparum dihydropteroate synthetase gene vagKgs quintuple mutant",
         "study_id": "6X-wA3I__7",
         "pubmed_id": 36611259,
-        "statistic_type": "mean_difference_unstandardized"
+        "statistic_type": "mean_difference_unstandardized",
+        "in_vetted_csv": false
       }
     ],
     "study_ids": [
@@ -3429,5 +3477,15 @@
       "oLKAAy9DZD",
       "6X-wA3I__7"
     ]
+  },
+  "verification": {
+    "vetted_csv": {
+      "doi": "10.7910/DVN/7V6JDO",
+      "filename": "system-public-graph-v1-associations.csv",
+      "url": "https://dataverse.harvard.edu/api/access/datafile/14061020"
+    },
+    "vetted_csv_checked": true,
+    "verified_at": "2026-11-14T16:26:34.346Z",
+    "note": "in_vetted_csv says whether a finding's system_id is a row in the vetted associations CSV. That CSV holds only associations whose two variables are both grounded to a concept, so false is conclusive only for those. vetted: false marks a finding a person checked against its source paper and found mis-extracted; see vetting_note."
   }
 }

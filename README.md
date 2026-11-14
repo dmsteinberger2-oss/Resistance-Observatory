@@ -40,6 +40,11 @@ const {
 ```
 
 The URL is the source of truth: `?marker=<id>&range=<from>-<to>&finding=<id>`.
+`hrefWithSelection` also passes through `&area=<ISO3>` (for example
+`area=MWI`) when the current URL has one, so links to Forecast and Alert carry
+both marker and area. Set or drop it with a third argument:
+`hrefWithSelection("/forecast", {}, { area: "MWI" })`. The current value is
+exposed as `area` from `useSelection()`.
 A copied link restores the selection; the top nav carries it across tabs. No
 localStorage.
 
@@ -93,7 +98,10 @@ node --env-file=.env.local scripts/graph-stats.ts
 ```
 
 The script is server-side only. It makes about 300 requests to the System API
-(the limit is 10,000 per day per key) and one to OpenAlex. It never logs or
+(the limit is 10,000 per day per key), one to OpenAlex, and streams the
+~440 MB vetted associations CSV from Dataverse without saving it. To re-run
+only that verification step on the pinned file, with no API key:
+`VERIFY_ONLY=1 node scripts/graph-stats.ts`. It never logs or
 writes the key, and the email is sent to OpenAlex only. Commit the regenerated
 JSON.
 
@@ -110,31 +118,38 @@ different counts. That is expected.
 
 | Constant | Value | How it is derived |
 | --- | --- | --- |
-| `GRAPH_MARKER_VARIABLES` | 8 | variables that **name codon 540 directly**: hits of `GET /variables?search=name:<term>` whose name mentions codon 540 of pfdhps |
-| `GRAPH_MARKER_FINDINGS` | 8 | findings that **name codon 540 directly**: associations of those variables, `GET /variables/{id}/associations`, de-duplicated |
-| `GRAPH_MARKER_K540E_ALONE_FINDINGS` | 2 | of those 8, findings whose variable names K540E on its own, with no other codon or combination |
-| `GRAPH_MARKER_STUDIES` | 5 | studies that **name codon 540 directly**: distinct `study_id` over those associations, `GET /studies/{study_id}` |
-| `GRAPH_PFDHPS_FINDINGS` | 32 | findings that **cover pfdhps overall**: associations of every variable whose name identifies P. falciparum dhps (includes the 8 above) |
-| `GRAPH_PFDHPS_STUDIES` | 24 | studies that **cover pfdhps overall**: distinct `study_id` over those associations |
-| `OPENALEX_MARKER_DATED_FINDINGS` | 8 | codon-540 findings whose paper's publication date resolved in OpenAlex, matched on `pubmed_id` |
+| `GRAPH_MARKER_VARIABLES` | 7 | variables that **name codon 540 directly**: hits of `GET /variables?search=name:<term>` whose name mentions codon 540 of pfdhps |
+| `GRAPH_MARKER_FINDINGS` | 6 | findings that **name codon 540 directly**: associations of those variables, `GET /variables/{id}/associations`, de-duplicated |
+| `GRAPH_MARKER_K540E_ALONE_FINDINGS` | 0 | of those, findings whose variable names K540E on its own, with no other codon or combination |
+| `GRAPH_MARKER_STUDIES` | 4 | studies that **name codon 540 directly**: distinct `study_id` over those associations |
+| `GRAPH_MARKER_EXCLUDED_FINDINGS` | 2 | codon-540 findings the live API returned that were checked against their paper, found mis-extracted, and excluded from every other count |
+| `GRAPH_PFDHPS_FINDINGS` | 30 | findings that **cover pfdhps overall**: associations of every variable whose name identifies P. falciparum dhps (includes the 6 above) |
+| `GRAPH_PFDHPS_STUDIES` | 23 | studies that **cover pfdhps overall**: distinct `study_id` over those associations |
+| `OPENALEX_MARKER_DATED_FINDINGS` | 6 | codon-540 findings whose paper's publication date resolved in OpenAlex, matched on `pubmed_id` |
 | `OPENALEX_MARKER_LAST_PUBLISHED` | January 21, 2023 | latest of those publication dates |
 | `GRAPH_VERSION`, `GRAPH_SNAPSHOT_DATE` | 2.1, July 1, 2026 | release metadata, not an API field |
 | `GRAPH_KNOWN_BAD_SHARE` | ~20% | System's API documentation, not an API field |
 
 Coverage limitations, stated on screen as well:
 
-- **The graph indexes K540E only lightly.** 2 findings name K540E on its own
-  (variable "Presence of K540 E: in dihydropteroate synthase"). The other 6
-  codon-540 findings sit at the pfdhps level: their variables name codon 540
-  inside a combination or a list (for example the A437G/K540E double mutant),
-  or compare how common it is between two groups.
+- **The graph indexes K540E only lightly.** After review, no finding names
+  K540E on its own. The 6 codon-540 findings sit at the pfdhps level: their
+  variables name codon 540 inside a combination or a list (for example the
+  A437G/K540E double mutant), or compare how common it is between two groups.
   No graph finding gives a prevalence figure for K540E. `search=name:K540E`
   returns nothing because of how names are written, so the script matches on
   name text; the selection rules are recorded in `data/graph-stats.json`
   (`marker.selection_rule`, `pfdhps_context.selection_rule`).
+- **Two findings were caught in review and excluded.** `paFNq6MPX5` and
+  `AeI-laBxXr` (variable "Presence of K540 E: in dihydropteroate synthase",
+  PMID 25564249) were returned by the live API. Checked against the source
+  abstract, their numbers belong to the A581G sextuple mutant, not K540E. They
+  stay in `data/graph-stats.json` flagged `vetted: false` with a note, and are
+  left out of every count and list. The Data tab shows them under "Caught in
+  review".
 - **The graph has no per-finding publication date.** Dates on Home and on the
   Data-tab timeline are each paper's publication date from OpenAlex, matched
-  on the finding's `pubmed_id`. All 8 resolved. A finding whose date does not
+  on the finding's `pubmed_id`. All 6 resolved. A finding whose date does not
   resolve is shown as "Date unknown", outside the timeline.
 - The search terms and filters are name-text matches, so a relevant variable
   with an unusual name can be missed.
@@ -149,12 +164,32 @@ Coverage limitations, stated on screen as well:
   on Home, Learn and Data comes from it. Work deriving from the graph inherits
   CC BY-NC.
 
-**Extraction errors and verification.** System's own documentation says
-roughly 20% of the associations its API serves are known-bad extractions. The
-findings shown on Home and Data have **not yet been cross-verified** against
-the Dataverse CSV or the source papers (Alert's finding IDs were vetted
-against the CSV; see below). Every finding keeps its `system_id`,
-`pubmed_id` and `doi`, and links to the paper so a reader can check it.
+**Extraction errors.** System's own documentation says roughly 20% of the
+associations its API serves are known-bad extractions. Every finding keeps its
+`system_id`, `pubmed_id` and `doi`, and links to the paper so a reader can
+check it.
+
+### Verification layer
+
+- **System Public Graph, vetted Dataverse release** — the same dataset DOI,
+  file `system-public-graph-v1-associations.csv`. Live API results are checked
+  against it: `scripts/graph-stats.ts` looks up every finding it pins by
+  `system_id` and records `in_vetted_csv` on it. Alert's finding IDs are
+  vetted against the same file.
+
+What that check does and does not show for Home and Data:
+
+- The vetted CSV holds only associations whose two variables are both matched
+  to a concept. Most findings the API returns for this marker have one
+  unmatched variable, so they cannot appear in it. Of the 32 findings pinned,
+  2 are in the vetted CSV (both in the wider pfdhps set).
+- Two codon-540 findings were then checked by hand against the source
+  abstract, found mis-extracted, and excluded (see Figures).
+- The remaining 6 codon-540 findings have **not** been checked against their
+  papers. One of them, `QIrkddNp_j` (PMID 16023986), has both variables
+  matched to a concept and is still absent from the vetted CSV, the same
+  pattern as an excluded finding. It is still shown; it should be checked
+  next.
 
 ### Publication dates
 
@@ -177,8 +212,8 @@ to fill in.
   bands Alert displays. Citing the guidelines is not a WHO endorsement of this
   project, and the bands are shown as published context, not as a clinical
   action rule.
-- **System Public Graph, Dataverse CSV** (same release and DOI as above) —
-  used to vet the finding IDs Alert shows.
+- **System Public Graph, vetted Dataverse CSV** — used to vet the finding IDs
+  Alert shows (see Verification layer above).
 - **Resend** — email delivery service for alert emails. A service, not a data
   source; listed because the shipped app uses it.
 

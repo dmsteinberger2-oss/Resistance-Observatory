@@ -4,6 +4,7 @@ import {
   GRAPH_DOI,
   GRAPH_KNOWN_BAD_SHARE,
   GRAPH_LICENSE,
+  GRAPH_MARKER_EXCLUDED_FINDINGS,
   GRAPH_MARKER_FINDINGS,
   GRAPH_MARKER_K540E_ALONE_FINDINGS,
   GRAPH_MARKER_STUDIES,
@@ -59,10 +60,17 @@ export function Scale() {
           </p>
           <p className="mt-4 max-w-3xl text-base text-muted text-pretty">
             <strong className="text-fg">A coverage limitation, stated plainly:</strong> the graph indexes
-            K540E only lightly. {GRAPH_MARKER_K540E_ALONE_FINDINGS.value} findings name K540E on its own. The
-            other {GRAPH_MARKER_FINDINGS.value - GRAPH_MARKER_K540E_ALONE_FINDINGS.value} codon-540 findings sit
-            at the pfdhps level: they name codon 540 inside a combination or a list, such as the A437G/K540E
-            double mutant, or compare how common it is between two groups. No graph finding gives a prevalence figure for K540E.
+            K540E only lightly.{" "}
+            {GRAPH_MARKER_K540E_ALONE_FINDINGS.value === 0
+              ? "No finding that survived review names K540E on its own."
+              : `${GRAPH_MARKER_K540E_ALONE_FINDINGS.value} findings name K540E on its own.`}{" "}
+            The {GRAPH_MARKER_FINDINGS.value - GRAPH_MARKER_K540E_ALONE_FINDINGS.value} codon-540 findings counted
+            here sit at the pfdhps level: they name codon 540 inside a combination or a list, such as the
+            A437G/K540E double mutant, or compare how common it is between two groups. No graph finding gives a
+            prevalence figure for K540E.
+            {GRAPH_MARKER_EXCLUDED_FINDINGS.value > 0
+              ? ` ${GRAPH_MARKER_EXCLUDED_FINDINGS.value} more findings the live API returned were checked against their paper, found to be mis-extracted, and left out. The Data tab shows them.`
+              : ""}
           </p>
         </Reveal>
 

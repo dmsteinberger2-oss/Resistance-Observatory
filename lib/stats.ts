@@ -29,6 +29,24 @@ export type Stat = {
 };
 
 const SOURCE = `System Public Graph v${graph.source.version}`;
+
+/* A finding a person checked against its paper and found mis-extracted is
+ * flagged `vetted: false` in graph-stats.json. It stays in the file but is not
+ * evidence: every count and list below leaves it out. */
+type Pinned = {
+  system_id: string;
+  study_id: string;
+  pubmed_id?: number | null;
+  variable_1_id?: string;
+  variable_2_id?: string;
+  variable_1_name: string;
+  variable_2_name: string;
+  vetted?: boolean;
+};
+const ALL_MARKER = graph.marker.associations as Pinned[];
+const MARKER = ALL_MARKER.filter((a) => a.vetted !== false);
+const CONTEXT = (graph.pfdhps_context.associations as Pinned[]).filter((a) => a.vetted !== false);
+const distinct = (xs: (string | undefined)[]) => new Set(xs.filter(Boolean)).size;
 const SEARCHES = graph.searches.map((s) => s.term).join(", ");
 
 /** "2015-06-15" -> "June 15, 2015", without timezone drift. */
@@ -49,7 +67,7 @@ export function publishedDate(pubmedId: string | number | null | undefined): str
   return pubmedId == null ? null : (DATES_BY_PMID.get(String(pubmedId)) ?? null);
 }
 
-const markerDates = (graph.marker.associations as { pubmed_id?: number | null }[])
+const markerDates = MARKER
   .map((a) => publishedDate(a.pubmed_id))
   .filter((d): d is string => d !== null)
   .sort();
@@ -63,7 +81,9 @@ const markerDates = (graph.marker.associations as { pubmed_id?: number | null }[
 //   for <term> in dhps, pfdhps, dihydropteroate, K540E, 540E, sulfadoxine,
 //   sulfadoxine-pyrimethamine; keep hits whose name matches /540\s*E|540\s*K\/E|Glu-540/i
 export const GRAPH_MARKER_VARIABLES = {
-  value: graph.marker.variables.length,
+  value: graph.marker.variables.filter((v) =>
+    MARKER.some((a) => a.variable_1_id === v.system_id || a.variable_2_id === v.system_id),
+  ).length,
   label: "Graph variables that name codon 540 of pfdhps directly",
   source: SOURCE,
   query: `GET /variables?search=name:<term>&limit=50&offset=<n>&include_total=true (terms: ${SEARCHES}), name-filtered`,
@@ -73,7 +93,7 @@ export const GRAPH_MARKER_VARIABLES = {
 // GET /variables/{id}/associations?limit=50&offset=<n>&include_total=true
 //   de-duplicated by association system_id
 export const GRAPH_MARKER_FINDINGS = {
-  value: graph.marker.associations.length,
+  value: MARKER.length,
   label: "Findings that name codon 540 of pfdhps directly",
   source: SOURCE,
   query: "GET /variables/{id}/associations?limit=50&offset=<n>&include_total=true, per marker variable",
@@ -85,7 +105,7 @@ export const GRAPH_MARKER_FINDINGS = {
 const NAMES_K540E_ALONE = (name: string) =>
   /K540\s*E/i.test(name) && !/437|581|51I|59R|108|dhfr|reductase|mutant/i.test(name);
 export const GRAPH_MARKER_K540E_ALONE_FINDINGS = {
-  value: (graph.marker.associations as { variable_1_name: string; variable_2_name: string }[]).filter(
+  value: MARKER.filter(
     (a) => NAMES_K540E_ALONE(a.variable_1_name) || NAMES_K540E_ALONE(a.variable_2_name),
   ).length,
   label: "Findings that name K540E on its own, with no other codon",
@@ -96,7 +116,7 @@ export const GRAPH_MARKER_K540E_ALONE_FINDINGS = {
 // Distinct study_id over those associations; each resolved with
 // GET /studies/{study_id}
 export const GRAPH_MARKER_STUDIES = {
-  value: graph.marker.studies.length,
+  value: distinct(MARKER.map((a) => a.study_id)),
   label: "Studies that name codon 540 of pfdhps directly",
   source: SOURCE,
   query: "distinct study_id over the marker associations; GET /studies/{study_id}",
@@ -120,6 +140,15 @@ export const OPENALEX_MARKER_LAST_PUBLISHED = {
   query: "max publication_date over GET https://api.openalex.org/works?filter=pmid:<ids>&select=id,doi,ids,publication_date&per-page=50",
 } satisfies Stat;
 
+// Marker associations flagged `vetted: false` in graph-stats.json
+// (same query as GRAPH_MARKER_FINDINGS; flagged after a check against the paper).
+export const GRAPH_MARKER_EXCLUDED_FINDINGS = {
+  value: ALL_MARKER.length - MARKER.length,
+  label: "Findings the live API returned for codon 540 that review found mis-extracted, and that are excluded",
+  source: SOURCE,
+  query: "GET /variables/{id}/associations?limit=50&offset=<n>&include_total=true, per marker variable; vetted = false",
+} satisfies Stat;
+
 /* ------------------------------------------------- Context: pfdhps overall --- */
 /* Variables whose name explicitly identifies the P. falciparum dhps gene
  * (graph.pfdhps_context.selection_rule). Includes the marker set. */
@@ -128,7 +157,7 @@ export const OPENALEX_MARKER_LAST_PUBLISHED = {
 // GET /variables/{id}/associations?limit=50&offset=<n>&include_total=true
 //   per variable, de-duplicated by association system_id
 export const GRAPH_PFDHPS_FINDINGS = {
-  value: graph.pfdhps_context.associations.length,
+  value: CONTEXT.length,
   label: "Findings that cover pfdhps overall, any alteration",
   source: SOURCE,
   query: "GET /variables/{id}/associations?limit=50&offset=<n>&include_total=true, per pfdhps variable",
@@ -136,7 +165,7 @@ export const GRAPH_PFDHPS_FINDINGS = {
 
 // Distinct study_id over those associations.
 export const GRAPH_PFDHPS_STUDIES = {
-  value: graph.pfdhps_context.study_ids.length,
+  value: distinct(CONTEXT.map((a) => a.study_id)),
   label: "Studies that cover pfdhps overall, any alteration",
   source: SOURCE,
   query: "distinct study_id over the pfdhps associations",
@@ -176,6 +205,7 @@ export const ALL_STATS = {
   GRAPH_MARKER_VARIABLES,
   GRAPH_MARKER_FINDINGS,
   GRAPH_MARKER_K540E_ALONE_FINDINGS,
+  GRAPH_MARKER_EXCLUDED_FINDINGS,
   GRAPH_MARKER_STUDIES,
   OPENALEX_MARKER_DATED_FINDINGS,
   OPENALEX_MARKER_LAST_PUBLISHED,

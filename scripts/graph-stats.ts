@@ -12,12 +12,12 @@
  * API: https://public-api.system.com/v1, header x-api-key. `limit` is always
  * set explicitly (the default is 10). Pipes in relationship_id are sent as %7C.
  */
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
 const BASE = "https://public-api.system.com/v1";
 const KEY = process.env.SYSTEM_API_KEY;
-if (!KEY) {
+if (!KEY && process.env.VERIFY_ONLY !== "1") {
   console.error("SYSTEM_API_KEY is not set. Run with --env-file=.env.local");
   process.exit(1);
 }
@@ -64,6 +64,50 @@ const isPfdhpsName = (name: string) =>
  */
 const OPENALEX = "https://api.openalex.org";
 const OPENALEX_MAILTO = process.env.OPENALEX_MAILTO;
+/**
+ * Verification layer: System's vetted release of the graph on Harvard
+ * Dataverse (doi:10.7910/DVN/7V6JDO). The live API serves more associations
+ * than the vetted associations CSV holds, so every finding this script pins is
+ * looked up in that CSV by system_id and gets `in_vetted_csv: true | false`.
+ * The file is ~440 MB and is streamed, not saved. Set SKIP_VETTED_CSV=1 to
+ * skip the download (the field is then null).
+ */
+const VETTED_CSV = {
+  doi: "10.7910/DVN/7V6JDO",
+  filename: "system-public-graph-v1-associations.csv",
+  url: "https://dataverse.harvard.edu/api/access/datafile/14061020",
+};
+
+/**
+ * Findings checked by a person against the source paper and found to be
+ * mis-extracted. They stay in the output, flagged `vetted: false`, and the app
+ * excludes them from every count and list presented as evidence.
+ */
+const MIS_EXTRACTED: Record<string, string> = {
+  paFNq6MPX5:
+    "Mis-extraction (PMID 25564249). Checked against the source abstract: the prevalence ratio recorded here belongs to the A581G sextuple mutant, not to K540E; K540E appears in that sentence only as a proxy definition. Not in System's vetted Dataverse CSV.",
+  "AeI-laBxXr":
+    "Mis-extraction (PMID 25564249). Checked against the source abstract: the prevalence ratio recorded here belongs to the A581G sextuple mutant, not to K540E; K540E appears in that sentence only as a proxy definition. Not in System's vetted Dataverse CSV.",
+};
+
+/** Streams the vetted CSV and returns which of `ids` appear as a row's system_id. */
+async function idsInVettedCsv(ids: Set<string>): Promise<Set<string>> {
+  const found = new Set<string>();
+  const res = await fetch(VETTED_CSV.url);
+  if (!res.ok || !res.body) throw new Error(`Dataverse ${res.status}`);
+  const decoder = new TextDecoder();
+  let tail = "";
+  for await (const chunk of res.body as unknown as AsyncIterable<Uint8Array>) {
+    const lines = (tail + decoder.decode(chunk, { stream: true })).split("\n");
+    tail = lines.pop() ?? "";
+    for (const line of lines) {
+      const comma = line.indexOf(",");
+      if (comma === 10 && ids.has(line.slice(0, 10))) found.add(line.slice(0, 10));
+    }
+  }
+  return found;
+}
+
 const OUT = resolve(import.meta.dirname, "..", "data", "graph-stats.json");
 
 type Json = Record<string, unknown>;
@@ -118,7 +162,42 @@ async function pool<T, R>(items: T[], size: number, fn: (item: T) => Promise<R>)
   return out;
 }
 
+/** Step 9. Annotates each pinned finding in place and returns the summary block. */
+async function verify(pinned: Json[]) {
+  const skipCsv = process.env.SKIP_VETTED_CSV === "1";
+  const ids = new Set(pinned.map((a) => String(a.system_id)));
+  const inCsv = skipCsv ? null : await idsInVettedCsv(ids);
+  for (const a of pinned) {
+    const id = String(a.system_id);
+    a.in_vetted_csv = inCsv ? inCsv.has(id) : null;
+    if (MIS_EXTRACTED[id]) {
+      a.vetted = false;
+      a.vetting_note = MIS_EXTRACTED[id];
+    }
+  }
+  if (inCsv) console.log(`vetted CSV: ${inCsv.size} of ${ids.size} pinned findings present`);
+  return {
+    vetted_csv: VETTED_CSV,
+    vetted_csv_checked: !skipCsv,
+    verified_at: new Date().toISOString(),
+    note: "in_vetted_csv says whether a finding's system_id is a row in the vetted associations CSV. That CSV holds only associations whose two variables are both grounded to a concept, so false is conclusive only for those. vetted: false marks a finding a person checked against its source paper and found mis-extracted; see vetting_note.",
+  };
+}
+
 async function main() {
+  /* VERIFY_ONLY=1: re-run only the verification step on the pinned file,
+   * without calling the System API. */
+  if (process.env.VERIFY_ONLY === "1") {
+    const pinnedFile = JSON.parse(readFileSync(OUT, "utf8"));
+    pinnedFile.verification = await verify([
+      ...pinnedFile.marker.associations,
+      ...pinnedFile.pfdhps_context.associations,
+    ]);
+    writeFileSync(OUT, JSON.stringify(pinnedFile, null, 2) + "\n");
+    console.log(`verified ${OUT}`);
+    return;
+  }
+
   /* 1 — variable search, one term at a time (only `name` is searchable). */
   const searches: Json[] = [];
   const variables = new Map<string, { system_id: string; name: string; concept_id: string | null; matched_terms: string[] }>();
@@ -310,6 +389,9 @@ async function main() {
   console.log(`pfdhps context: ${contextVars.length} variables, ${contextAssoc.size} associations, ${contextStudyIds.length} studies`);
   console.log(`marker: ${markerVars.length} variables, ${markerAssoc.length} associations, ${markerStudies.length} studies`);
 
+  /* 9 — verification: vetted-CSV membership and human review flags. */
+  const verification = await verify([...markerAssoc, ...contextAssoc.values()]);
+
   const out = {
     source: {
       name: "System Public Graph",
@@ -321,6 +403,7 @@ async function main() {
       // From System's API documentation, not from an API response.
       documented_known_bad_extraction_share_percent: 20,
     },
+    verification,
     generated_at: new Date().toISOString(),
     generated_by: "scripts/graph-stats.ts",
     requests_made: 0,

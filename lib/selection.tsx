@@ -39,8 +39,17 @@ export type SelectionContextValue = Selection & {
   setMarkerId: (markerId: string | null) => void;
   setTimeRange: (timeRange: TimeRange | null) => void;
   setSelectedFindingId: (selectedFindingId: string | null) => void;
-  /** Build an href to another route that carries the current selection. */
-  hrefWithSelection: (pathname: string, patch?: Partial<Selection>) => string;
+  /** ISO3 area code from `?area=`, upper-cased; null when absent or malformed.
+   *  Not part of the selection: Forecast and Alert own it, the shell only
+   *  carries it. */
+  area: string | null;
+  /** Build an href to another route that carries the current selection, plus
+   *  the current `area` (pass `opts.area` to set it, or null to drop it). */
+  hrefWithSelection: (
+    pathname: string,
+    patch?: Partial<Selection>,
+    opts?: { area?: string | null },
+  ) => string;
 };
 
 export const PARAM = {
@@ -48,6 +57,13 @@ export const PARAM = {
   timeRange: "range",
   selectedFindingId: "finding",
 } as const;
+
+/** Passthrough param: an ISO 3166-1 alpha-3 code, e.g. `area=MWI`. */
+export const AREA_PARAM = "area";
+
+export function parseArea(raw: string | null | undefined): string | null {
+  return raw && /^[A-Za-z]{3}$/.test(raw) ? raw.toUpperCase() : null;
+}
 
 export function parseTimeRange(raw: string | null): TimeRange | null {
   if (!raw) return null;
@@ -91,13 +107,18 @@ export function SelectionProvider({ children }: { children: ReactNode }) {
     [searchParams],
   );
 
+  const area = useMemo(() => parseArea(searchParams.get(AREA_PARAM)), [searchParams]);
+
   const hrefWithSelection = useCallback(
-    (target: string, patch: Partial<Selection> = {}) => {
+    (target: string, patch: Partial<Selection> = {}, opts: { area?: string | null } = {}) => {
       const next = { ...current, ...patch };
-      const qs = selectionToParams(next).toString();
+      const params = selectionToParams(next);
+      const nextArea = opts.area === undefined ? area : parseArea(opts.area);
+      if (nextArea) params.set(AREA_PARAM, nextArea);
+      const qs = params.toString();
       return qs ? `${target}?${qs}` : target;
     },
-    [current],
+    [current, area],
   );
 
   const setSelection = useCallback(
@@ -115,6 +136,7 @@ export function SelectionProvider({ children }: { children: ReactNode }) {
   const value = useMemo<SelectionContextValue>(
     () => ({
       ...current,
+      area,
       setSelection,
       setMarkerId: (markerId) => setSelection({ markerId }),
       setTimeRange: (timeRange) => setSelection({ timeRange }),
@@ -122,7 +144,7 @@ export function SelectionProvider({ children }: { children: ReactNode }) {
         setSelection({ selectedFindingId }),
       hrefWithSelection,
     }),
-    [current, setSelection, hrefWithSelection],
+    [current, area, setSelection, hrefWithSelection],
   );
 
   return (

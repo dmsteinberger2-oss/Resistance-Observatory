@@ -26,13 +26,13 @@ type RawAssociation = {
   variable_1_name: string;
   variable_2_name: string;
   statistic_type: string;
+  vetted?: boolean;
+  vetting_note?: string;
 };
 
 const studies = new Map(graph.marker.studies.map((s) => [s.study_id, s]));
 
-/** Dated findings first, oldest to newest; then any with no resolved date. */
-export const MARKER_FINDINGS: MarkerFinding[] = (graph.marker.associations as RawAssociation[])
-  .map((a) => {
+const toFinding = (a: RawAssociation): MarkerFinding => {
     const study = studies.get(a.study_id);
     const pmid = a.pubmed_id ?? study?.pubmed_id ?? null;
     return {
@@ -46,7 +46,18 @@ export const MARKER_FINDINGS: MarkerFinding[] = (graph.marker.associations as Ra
       population: study?.population ?? null,
       published: publishedDate(pmid),
     };
-  })
+};
+
+const RAW = graph.marker.associations as RawAssociation[];
+
+/** Findings flagged `vetted: false`: checked against the paper and found
+ *  mis-extracted. Kept in the pinned file, never shown as evidence. */
+export const EXCLUDED_FINDINGS: MarkerFinding[] = RAW.filter((a) => a.vetted === false).map(toFinding);
+
+/** The marker's evidence. Dated findings first, oldest to newest; then any
+ *  with no resolved date. Excludes anything flagged `vetted: false`. */
+export const MARKER_FINDINGS: MarkerFinding[] = RAW.filter((a) => a.vetted !== false)
+  .map(toFinding)
   .sort((a, b) => {
     if (a.published && b.published) return a.published.localeCompare(b.published);
     if (a.published) return -1;

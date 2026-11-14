@@ -2,19 +2,30 @@
 
 /**
  * Forecast URL state.
- *   country=<ISO3>        selected country (unknown codes are ignored)
+ *   area=<ISO3>           selected country (the shell's shared param). A legacy
+ *                         `country=<ISO3>` (the Alert tab's back-link) is read
+ *                         when present and replaced by `area` on first write.
  *   range=<from>-<to>     the app's shared time range; the as-of year is the
  *                         UPPER bound, clamped. Absent -> MAX_YEAR.
- * Writes always start from the current params so unknown params survive, and
- * one user action issues exactly one router.replace.
+ * Writes start from the live params so unknown params (marker, ...) survive.
+ * The as-of year lives in local state so the map responds instantly; it is
+ * synced to the URL with a 250 ms debounce (one replace after the user stops).
  */
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { PARAM, parseTimeRange } from "@/lib/selection";
-import { MAX_YEAR, MIN_YEAR, clampYear } from "./data";
+import { AREA_PARAM, PARAM, parseTimeRange } from "@/lib/selection";
+import { MARKER_ID, MAX_YEAR, MIN_YEAR, clampYear } from "./data";
 import { COUNTRY_BY_ISO3 } from "./geo";
 
-export const COUNTRY_PARAM = "country";
+export const LEGACY_COUNTRY_PARAM = "country";
+/** `layer=papers` shows the "Papers and the Graph" layer; absent = genome. */
+export const LAYER_PARAM = "layer";
+export type ForecastLayer = "genome" | "papers";
+const YEAR_DEBOUNCE_MS = 250;
+/** A change within this window of the previous one is part of a run (Play, held key). */
+const YEAR_RUN_WINDOW_MS = 1500;
+/** During a run, wait past the slowest Play step (1.2 s under reduced motion). */
+const YEAR_RUN_DEBOUNCE_MS = 1300;
 
 export function parseCountry(raw: string | null): string | null {
   if (!raw) return null;
@@ -35,20 +46,36 @@ export function useForecastUrl() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const qs = searchParams.toString();
 
-  const country = useMemo(() => parseCountry(searchParams.get(COUNTRY_PARAM)), [searchParams]);
-  const asOfYear = useMemo(
-    () => parseAsOfYear(searchParams.get(PARAM.timeRange)),
+  const country = useMemo(
+    () =>
+      parseCountry(searchParams.get(LEGACY_COUNTRY_PARAM)) ??
+      parseCountry(searchParams.get(AREA_PARAM)),
     [searchParams],
   );
+  const layer: ForecastLayer = searchParams.get(LAYER_PARAM) === "papers" ? "papers" : "genome";
+  const urlYear = useMemo(() => parseAsOfYear(searchParams.get(PARAM.timeRange)), [searchParams]);
+
+  const [asOfYear, setLocalYear] = useState(urlYear);
+  const pendingYearRef = useRef<number | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastYearCallRef = useRef(0);
+
+  // Follow the URL when it changes from outside (back button, a pasted link).
+  useEffect(() => {
+    if (pendingYearRef.current === null) setLocalYear(urlYear);
+  }, [urlYear]);
 
   const write = useCallback(
     (patch: Record<string, string | null>) => {
-      // Read the live URL so two quick actions do not clobber each other.
-      const live =
-        typeof window !== "undefined" ? window.location.search.replace(/^\?/, "") : qs;
-      const p = new URLSearchParams(live);
+      const p = new URLSearchParams(window.location.search);
+      // Fold in a pending year so one action issues exactly one replace.
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = null;
+      if (pendingYearRef.current !== null && !(PARAM.timeRange in patch)) {
+        p.set(PARAM.timeRange, rangeFor(pendingYearRef.current));
+      }
+      pendingYearRef.current = null;
       for (const [k, v] of Object.entries(patch)) {
         if (v === null) p.delete(k);
         else p.set(k, v);
@@ -56,30 +83,69 @@ export function useForecastUrl() {
       const next = p.toString();
       router.replace(next ? `${pathname}?${next}` : pathname, { scroll: false });
     },
-    [pathname, qs, router],
+    [pathname, router],
+  );
+
+  // A legacy ?country= link: normalise to ?area= once, so the shell carries it.
+  const legacy = searchParams.get(LEGACY_COUNTRY_PARAM);
+  useEffect(() => {
+    if (legacy === null) return;
+    const code = parseCountry(legacy);
+    write({ [AREA_PARAM]: code ?? searchParams.get(AREA_PARAM), [LEGACY_COUNTRY_PARAM]: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [legacy]);
+
+  useEffect(
+    () => () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    },
+    [],
   );
 
   const setCountry = useCallback(
-    (iso3: string | null) => write({ [COUNTRY_PARAM]: iso3 ? iso3.toUpperCase() : null }),
+    (iso3: string | null) =>
+      write({ [AREA_PARAM]: iso3 ? iso3.toUpperCase() : null, [LEGACY_COUNTRY_PARAM]: null }),
     [write],
   );
+
+  const setLayer = useCallback(
+    (next: ForecastLayer) => write({ [LAYER_PARAM]: next === "papers" ? "papers" : null }),
+    [write],
+  );
+
   const setAsOfYear = useCallback(
-    (year: number) => write({ [PARAM.timeRange]: rangeFor(year) }),
-    [write],
-  );
-
-  const hrefFor = useCallback(
-    (target: string, extra: Record<string, string> = {}) => {
-      const p = new URLSearchParams();
-      if (country) p.set(COUNTRY_PARAM, country);
-      p.set(PARAM.timeRange, rangeFor(asOfYear));
-      const marker = searchParams.get(PARAM.markerId);
-      if (marker) p.set(PARAM.markerId, marker);
-      for (const [k, v] of Object.entries(extra)) p.set(k, v);
-      return `${target}?${p.toString()}`;
+    (year: number) => {
+      const y = clampYear(year);
+      setLocalYear(y);
+      pendingYearRef.current = y;
+      const now = Date.now();
+      const inRun = now - lastYearCallRef.current < YEAR_RUN_WINDOW_MS;
+      lastYearCallRef.current = now;
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => {
+        timerRef.current = null;
+        const pending = pendingYearRef.current;
+        pendingYearRef.current = null;
+        if (pending === null) return;
+        const p = new URLSearchParams(window.location.search);
+        p.set(PARAM.timeRange, rangeFor(pending));
+        router.replace(`${pathname}?${p.toString()}`, { scroll: false });
+      }, inRun ? YEAR_RUN_DEBOUNCE_MS : YEAR_DEBOUNCE_MS);
     },
-    [asOfYear, country, searchParams],
+    [pathname, router],
   );
 
-  return { country, asOfYear, setCountry, setAsOfYear, hrefFor };
+  const hrefForAlert = useCallback(
+    (alertId: string) =>
+      `/alert?${new URLSearchParams({ alert: alertId, [PARAM.markerId]: MARKER_ID }).toString()}`,
+    [],
+  );
+  const hrefForAlertTab = useMemo(() => {
+    const p = new URLSearchParams();
+    if (country) p.set(AREA_PARAM, country);
+    p.set(PARAM.markerId, MARKER_ID);
+    return `/alert?${p.toString()}`;
+  }, [country]);
+
+  return { country, asOfYear, layer, setLayer, setCountry, setAsOfYear, hrefForAlert, hrefForAlertTab };
 }

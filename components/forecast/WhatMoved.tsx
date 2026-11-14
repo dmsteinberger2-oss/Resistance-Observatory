@@ -1,11 +1,12 @@
 "use client";
 
-import { MIN_YEAR, genomeChangesInYear } from "@/lib/forecast/data";
+import { useMemo } from "react";
+import { GENOME_MAX_YEAR, MIN_YEAR, PAPERS, genomeChangesInYear } from "@/lib/forecast/data";
 import { countryName } from "@/lib/forecast/geo";
 import type { AlertFeed, GenomeChange } from "@/lib/forecast/types";
 
 const ROW =
-  "block w-full rounded-[5px] px-2 py-1.5 text-left text-[0.8rem] leading-snug hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-drug";
+  "block w-full rounded-[5px] px-2 py-1.5 text-left text-[0.8125rem] leading-snug hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-drug";
 
 interface Row {
   key: string;
@@ -48,6 +49,17 @@ export function WhatMoved(props: {
   className?: string;
 }): React.JSX.Element {
   const { year, alertFeed, onSelectCountry, className } = props;
+  const firstPaperYear = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const p of PAPERS.papers) for (const c of p.countries) if (!m.has(c) || p.year < (m.get(c) as number)) m.set(c, p.year);
+    return m;
+  }, []);
+  const papersNow = PAPERS.papers.filter((p) => p.year === year);
+  const paperN = papersNow.length;
+  const paperRead = papersNow.filter((p) => p.readByGraph).length;
+  const firstPaperIsos = Array.from(firstPaperYear.entries()).filter(([, y]) => y === year).map(([c]) => c);
+  const paperCountryRows = firstPaperIsos.slice(0, 6);
+  const paperMore = firstPaperIsos.length - paperCountryRows.length;
   const now = genomeRows(year);
   const alerts = alertFeed.alerts.filter((a) => a.year === year);
 
@@ -59,35 +71,41 @@ export function WhatMoved(props: {
   }
 
   const empty = now.length === 0 && alerts.length === 0;
-  const total = now.length + alerts.length;
-
+  const anyPaper = paperN > 0;
+  
   return (
-    <section aria-label="What moved" className={`fc-card w-full max-w-[320px] p-3 ${className ?? ""}`}>
-      <h2 className="text-[0.68rem] uppercase tracking-[0.18em] text-muted">What moved</h2>
+    <section aria-label="What moved" className={`fc-card flex max-h-full min-h-0 w-full flex-col p-3 ${className ?? ""}`}>
+      <h2 className="text-xs uppercase tracking-[0.18em] text-muted">What moved</h2>
 
-      <h3 className="mt-2 text-[0.75rem] font-semibold tabular-nums text-fg">In {year}</h3>
-      <div className={total > 6 ? "max-h-[150px] overflow-y-auto" : ""}>
+      <div className="min-h-0 flex-1 overflow-y-auto pb-3 [mask-image:linear-gradient(to_bottom,black_calc(100%_-_20px),transparent)] [scrollbar-width:thin]" tabIndex={0} aria-label="Changes list, scrollable">
+      <h3 className="mt-2 text-xs font-semibold tabular-nums text-fg">In {year}</h3>
+      <div>
         {empty ? (
-          <p className="px-2 py-1 text-[0.8rem] text-muted">Nothing changed in {year} in the genome data.</p>
-        ) : (
+          <p className="px-2 py-1 text-[0.8125rem] text-muted">
+            {year > GENOME_MAX_YEAR
+              ? `The genome data ends in ${GENOME_MAX_YEAR}; nothing later is sampled.`
+              : `Nothing changed in ${year} in the genome data.`}
+          </p>
+        ) : null}
+        {!empty ? (
           <ul className="space-y-0.5">
             {now.map((r) => (
               <li key={r.key}>
                 <button type="button" className={ROW} aria-label={`${r.text}, open country`} onClick={() => onSelectCountry(r.iso3)}>
                   <span className="text-fg tabular-nums">{r.text}</span>
-                  <span className="mt-0.5 block text-[0.7rem] text-muted">genome data · collection year</span>
+                  <span className="mt-0.5 block text-xs text-muted">genome data · collection year</span>
                 </button>
               </li>
             ))}
             {alerts.map((a) => {
-              const text = `${countryName(a.country_iso3)}: ${a.headline}`;
+              const text = a.headline;
               return (
                 <li key={a.id}>
                   <button type="button" className={ROW} aria-label={`${text}, open country`} onClick={() => onSelectCountry(a.country_iso3)}>
                     <span className="text-fg">{text}</span>
-                    <span className="mt-0.5 flex flex-wrap gap-1.5 text-[0.7rem]">
+                    <span className="mt-0.5 flex flex-wrap gap-1.5 text-xs">
                       <span className="rounded-[5px] bg-signal-soft px-1.5 text-signal">
-                        <span aria-hidden>⚑ </span>alert
+                        <span aria-hidden>⚑ </span>alert · genome collection year
                       </span>
                       {alertFeed.placeholder ? (
                         <span className="rounded-[5px] border border-line-strong px-1.5 uppercase tracking-[0.12em] text-muted">PLACEHOLDER</span>
@@ -98,12 +116,36 @@ export function WhatMoved(props: {
               );
             })}
           </ul>
-        )}
+        ) : null}
+        {anyPaper || paperCountryRows.length > 0 ? (
+          <ul className="space-y-0.5">
+            {anyPaper ? (
+              <li className="px-2 py-1.5 text-[0.8125rem] leading-snug">
+                <span className="text-fg tabular-nums">
+                  {paperN} {paperN === 1 ? "paper that mentions" : "papers that mention"} K540E {paperN === 1 ? "was" : "were"} published in {year}; the Graph has read {paperRead} of them
+                </span>
+                <span className="mt-0.5 block text-xs text-muted">papers · publication year</span>
+              </li>
+            ) : null}
+            {paperCountryRows.map((iso) => {
+              const text = `${countryName(iso)}: first K540E paper in this list`;
+              return (
+                <li key={`fp-${iso}`}>
+                  <button type="button" className={ROW} aria-label={`${text}, open country`} onClick={() => onSelectCountry(iso)}>
+                    <span className="text-fg">{text}</span>
+                    <span className="mt-0.5 block text-xs text-muted">papers · publication year</span>
+                  </button>
+                </li>
+              );
+            })}
+            {paperMore > 0 ? <li className="px-2 py-1 text-xs text-muted">+{paperMore} more countries</li> : null}
+          </ul>
+        ) : null}
       </div>
 
       {before.length > 0 ? (
         <>
-          <h3 className="mt-2 text-[0.75rem] font-semibold tabular-nums text-muted">Before {year}</h3>
+          <h3 className="mt-2 text-xs font-semibold tabular-nums text-muted">Before {year}</h3>
           <ul className="space-y-0.5">
             {before.map((r) => (
               <li key={r.key}>
@@ -120,8 +162,9 @@ export function WhatMoved(props: {
           </ul>
         </>
       ) : null}
+      </div>
 
-      <p className="mt-2 border-t border-line pt-2 text-[0.7rem] leading-snug text-muted">
+      <p className="mt-2 shrink-0 border-t border-line pt-2 text-xs leading-snug text-muted">
         Changes are steps in the data, not movement on the ground: a first detection is the first year a sampled genome carried K540E.
       </p>
     </section>

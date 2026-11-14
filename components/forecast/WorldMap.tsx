@@ -12,10 +12,26 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import { WORLD, COUNTRY_BY_ISO3, type GeoCountry } from "@/lib/forecast/geo";
-import { GENOME, allGenomeSnapshots, genomeSnapshot, graphCountsByCountry } from "@/lib/forecast/data";
-import type { GenomeSnapshot } from "@/lib/forecast/types";
 import {
+  GENOME,
+  alertsFor,
+  allGenomeSnapshots,
+  genomeChangesInYear,
+  genomeSnapshot,
+  graphCountsByCountry,
+  papersCountsByCountry,
+} from "@/lib/forecast/data";
+import type { AlertFeed, AlertRecord, GenomeSnapshot } from "@/lib/forecast/types";
+import {
+  AMBER,
   DETECTED_DOT,
+  alertCountText,
+  mapLabel,
+  PAPER_READ_FILL,
+  PAPER_SOURCE_LINE,
+  paperLabelSuffix,
+  paperRampColor,
+  type MapLayer,
   HATCH_BG,
   HATCH_LINE,
   HATCH_PATTERN_ID,
@@ -38,6 +54,7 @@ const INTERACTIVE_ISO3 = (() => {
   const s = new Set(GENOME_ISO3);
   const g = graphCountsByCountry();
   for (const [iso3, c] of Object.entries(g)) if (c && (c.sp > 0 || c.codon540 > 0)) s.add(iso3);
+  for (const iso3 of Object.keys(papersCountsByCountry())) s.add(iso3);
   return s;
 })();
 
@@ -71,19 +88,32 @@ function worldView(size: Size): View {
 }
 
 /** Fit a country's bbox into the part of the map not covered by the panel. */
-function targetView(c: GeoCountry, size: Size, panelPx: number): View {
+function targetView(
+  c: GeoCountry,
+  size: Size,
+  panelPx: number,
+  leftPx = 0,
+  topPx = 0,
+  bottomPx = 0,
+): View {
   const [x0, y0, x1, y1] = c.bbox;
-  const usable = Math.max(0.35, (size.cw - panelPx) / size.cw);
+  if (size.cw - panelPx - leftPx < 320) leftPx = 0;
+  if (size.ch - topPx - bottomPx < 220) topPx = bottomPx = 0;
+  const usableV = (size.ch - topPx - bottomPx) / size.ch;
+  const usable = Math.max(0.35, (size.cw - panelPx - leftPx) / size.cw);
   const pad = 2.4;
   const bw = Math.max(1, x1 - x0) * pad;
   const bh = Math.max(1, y1 - y0) * pad;
-  let w = Math.max(bw / usable, (bh * size.cw) / size.ch, MIN_FLY_WIDTH);
+  let w = Math.max(bw / usable, (bh * size.cw) / (size.ch * usableV), MIN_FLY_WIDTH);
   w = Math.min(w, worldWidth(size));
   const bcx = (x0 + x1) / 2;
   const bcy = (y0 + y1) / 2;
-  const visibleCentrePx = (size.cw - panelPx) / 2;
+  const visibleCentrePx = leftPx + (size.cw - panelPx - leftPx) / 2;
   const left = bcx - visibleCentrePx * (w / size.cw);
-  return clampView({ cx: left + w / 2, cy: bcy, w }, size, true);
+  const h = (w * size.ch) / size.cw;
+  const visibleMiddlePx = topPx + (size.ch - topPx - bottomPx) / 2;
+  const top = bcy - visibleMiddlePx * (h / size.ch);
+  return clampView({ cx: left + w / 2, cy: top + h / 2, w }, size, true);
 }
 
 const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
@@ -91,27 +121,28 @@ const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 
 // ---------------------------------------------------------------------------
 
 const CountryPaths = memo(function CountryPaths({
-  snapshots,
+  fills,
+  states,
   selected,
 }: {
-  snapshots: Record<string, GenomeSnapshot>;
+  fills: Record<string, string>;
+  states: Record<string, string>;
   selected: string | null;
 }) {
   return (
     <g>
       {WORLD.countries.map((c) => {
-        const s = snapshots[c.iso3];
         const focusable = INTERACTIVE_ISO3.has(c.iso3);
         return (
           <path
             key={c.iso3}
             d={c.d}
             data-iso3={c.iso3}
-            fill={fillFor(s)}
+            fill={fills[c.iso3] ?? LAND_NOT_SAMPLED}
             className={`fc-country is-interactive${selected === c.iso3 ? " is-selected" : ""}`}
             tabIndex={focusable ? 0 : undefined}
             role={focusable ? "button" : undefined}
-            aria-label={focusable ? `${c.name}: ${STATE_LABEL[stateOf(s)]}` : undefined}
+            aria-label={focusable ? `${c.name}: ${states[c.iso3]}` : undefined}
             aria-pressed={focusable ? selected === c.iso3 : undefined}
           />
         );
@@ -125,9 +156,21 @@ export function WorldMap({
   selected,
   flyKey,
   panelPx,
+  leftPx,
+  alertFeed,
+  layer = "genome",
+  topPx = 0,
+  bottomPx = 0,
   onSelect,
 }: {
+  /** Screen px at the top (time control) and bottom (legend strip) that the fly-to keeps clear. */
+  topPx?: number;
+  bottomPx?: number;
   asOfYear: number;
+  layer?: MapLayer;
+  /** Width in px of the left column of cards (the map centres countries right of it). */
+  leftPx: number;
+  alertFeed: AlertFeed;
   selected: string | null;
   /** Bump to re-fly to the same country (e.g. a repeated search). */
   flyKey: number;
@@ -153,6 +196,64 @@ export function WorldMap({
   const suppressClickRef = useRef(false);
 
   const snapshots = useMemo(() => allGenomeSnapshots(asOfYear), [asOfYear]);
+  const isPapers = layer === "papers";
+  const paperCounts = useMemo(() => papersCountsByCountry(asOfYear), [asOfYear]);
+  const paperMax = useMemo(
+    () => Object.values(paperCounts).reduce((m, r) => Math.max(m, r.total), 0),
+    [paperCounts],
+  );
+  // One fill and one state phrase per country for the active layer only.
+  const { fills, states } = useMemo(() => {
+    const fills: Record<string, string> = {};
+    const states: Record<string, string> = {};
+    for (const c of WORLD.countries) {
+      if (isPapers) {
+        const r = paperCounts[c.iso3];
+        fills[c.iso3] = r && r.total > 0 ? paperRampColor(r.total, paperMax) : LAND_NOT_SAMPLED;
+        states[c.iso3] = r && r.total > 0
+          ? `${r.total} K540E papers through ${asOfYear}, the Graph has read ${r.readByGraph}`
+          : `no K540E paper in the list through ${asOfYear}`;
+      } else {
+        const sn = snapshots[c.iso3];
+        fills[c.iso3] = fillFor(sn);
+        states[c.iso3] = STATE_LABEL[stateOf(sn)];
+      }
+    }
+    return { fills, states };
+  }, [isPapers, paperCounts, paperMax, snapshots, asOfYear]);
+  const changed = useMemo(
+    () => new Set(genomeChangesInYear(asOfYear).map((c) => c.iso3)),
+    [asOfYear],
+  );
+  const alertsByIso3 = useMemo(() => {
+    const out: Record<string, AlertRecord[]> = {};
+    for (const iso3 of new Set(alertFeed.alerts.map((a) => a.country_iso3))) {
+      const list = alertsFor(alertFeed, iso3, asOfYear);
+      if (list.length) out[iso3] = list;
+    }
+    return out;
+  }, [alertFeed, asOfYear]);
+
+  // Screen rectangles (relative to the map) that labels must not fall under:
+  // the left column, the time control, the zoom buttons and the panel.
+  const [avoid, setAvoid] = useState<{ l: number; t: number; r: number; b: number }[]>([]);
+  useEffect(() => {
+    const measure = () => {
+      const wrap = wrapRef.current;
+      const stage = wrap?.parentElement;
+      if (!wrap || !stage) return;
+      const w = wrap.getBoundingClientRect();
+      setAvoid(
+        [...stage.querySelectorAll("[data-fc-avoid]")].map((el) => {
+          const r = el.getBoundingClientRect();
+          return { l: r.left - w.left, t: r.top - w.top, r: r.right - w.left, b: r.bottom - w.top };
+        }),
+      );
+    };
+    measure();
+    const t = setTimeout(measure, 450);
+    return () => clearTimeout(t);
+  }, [size, panelPx, selected]);
 
   // Measure the container.
   useLayoutEffect(() => {
@@ -207,13 +308,13 @@ export function WorldMap({
     if (!positionedRef.current || !viewRef.current) {
       positionedRef.current = true;
       lastFlyRef.current = `${selected}|${flyKey}`;
-      setView(c ? targetView(c, size, panelPx) : worldView(size));
+      setView(c ? targetView(c, size, panelPx, leftPx, topPx, bottomPx) : worldView(size));
       return;
     }
     const key = `${selected}|${flyKey}`;
     if (key === lastFlyRef.current) return;
     lastFlyRef.current = key;
-    if (c) flyTo(targetView(c, size, panelPx));
+    if (c) flyTo(targetView(c, size, panelPx, leftPx, topPx, bottomPx));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected, flyKey, size !== null]);
 
@@ -340,6 +441,31 @@ export function WorldMap({
 
   // Markers (constant on-screen size) for sampled states and tiny countries.
   const markers = WORLD.countries.map((c) => {
+    if (isPapers) {
+      const r = paperCounts[c.iso3];
+      const [x, y] = c.center;
+      if (!r || r.total <= 0) {
+        return c.tiny ? (
+          <circle key={c.iso3} data-iso3={c.iso3} className="fc-marker is-interactive" cx={x} cy={y} r={2.2 * unit} fill={LAND_NOT_SAMPLED} stroke="#1d3f58" strokeWidth={1} />
+        ) : null;
+      }
+      const read = r.readByGraph > 0;
+      const half = (read ? 6 : 4.5) * unit;
+      return (
+        <rect
+          key={c.iso3}
+          data-iso3={c.iso3}
+          className="fc-marker is-interactive"
+          x={x - half}
+          y={y - half}
+          width={half * 2}
+          height={half * 2}
+          fill={read ? PAPER_READ_FILL : "#050d17"}
+          stroke={read ? "#050d17" : "#f5f4ef"}
+          strokeWidth={read ? 1.25 : 1.6}
+        />
+      );
+    }
     const s = snapshots[c.iso3];
     const st = stateOf(s);
     const [x, y] = c.center;
@@ -391,24 +517,100 @@ export function WorldMap({
     return null;
   });
 
-  const labels = WORLD.countries
-    .filter((c) => c.iso3 === selected || (zoom > 2.5 && GENOME_ISO3.has(c.iso3)))
-    .map((c) => (
-      <text
-        key={c.iso3}
-        className="fc-label-text"
-        x={c.center[0]}
-        y={c.center[1] - 10 * unit}
-        textAnchor="middle"
-        fontSize={(c.iso3 === selected ? 14 : 12) * unit}
-        strokeWidth={3.5 * unit}
+  // Amber rings: "changed this year" around the state marker (first genomes
+  // sampled, or first detection in our data). Keyed by year so the pulse
+  // replays on each step and then stays.
+  const changedRings = (isPapers ? [] : [...changed]).map((iso3) => {
+    const c = COUNTRY_BY_ISO3[iso3];
+    if (!c) return null;
+    return (
+      <g key={`${iso3}-${asOfYear}`} transform={`translate(${c.center[0]} ${c.center[1]}) scale(${unit})`} pointerEvents="none">
+        <circle className="fc-pulse" r={9.5} fill="none" stroke={AMBER} strokeWidth={1.9} />
+      </g>
+    );
+  });
+
+  // Alert flags: a pennant on a pole, offset up-right of the state marker.
+  const placeholderFeed = alertFeed.placeholder;
+  const flags = (isPapers ? [] : Object.entries(alertsByIso3)).map(([iso3, list]) => {
+    const c = COUNTRY_BY_ISO3[iso3];
+    if (!c) return null;
+    const n = list.length;
+    const isNew = list.some((a) => a.year === asOfYear);
+    const name = c.name;
+    return (
+      <g
+        key={iso3}
+        data-iso3={iso3}
+        className="fc-flag"
+        role="button"
+        tabIndex={0}
+        aria-label={`${name}: ${n} ${n === 1 ? "alert" : "alerts"} as of ${asOfYear}. Open country view`}
+        transform={`translate(${c.center[0]} ${c.center[1]}) scale(${unit}) translate(8 -3)`}
       >
-        {c.name}
-      </text>
-    ));
+        <rect x={-5} y={-24} width={n > 1 ? 30 : 22} height={27} fill="transparent" />
+        {isNew ? (
+          <circle key={`new-${asOfYear}`} className="fc-pulse" cx={5} cy={-12} r={12.5} fill="none" stroke={AMBER} strokeWidth={1.7} pointerEvents="none" />
+        ) : null}
+        <line x1={0} y1={1} x2={0} y2={-19} stroke="#050d17" strokeWidth={3.5} strokeLinecap="round" />
+        <line x1={0} y1={1} x2={0} y2={-19} stroke={AMBER} strokeWidth={1.6} strokeLinecap="round" />
+        <path
+          className="fc-flag-focus"
+          d="M0.8 -19 L13 -15 L0.8 -11 Z"
+          fill={placeholderFeed ? "rgba(242,189,118,0.3)" : AMBER}
+          stroke={placeholderFeed ? AMBER : "#050d17"}
+          strokeWidth={1.2}
+          strokeDasharray={placeholderFeed ? "2 1.6" : undefined}
+          strokeLinejoin="round"
+        />
+        {n > 1 ? (
+          <text className="fc-label-text" x={15} y={-10} fontSize={12} strokeWidth={3} style={{ fill: AMBER }}>
+            {n}
+          </text>
+        ) : null}
+      </g>
+    );
+  });
+
+  // Labels below the marker, at least 13px on screen, never under an overlay.
+  const labels = view && size
+    ? WORLD.countries
+        .filter(
+          (c) =>
+            c.iso3 === selected ||
+            (zoom > 2.5 && (isPapers ? (paperCounts[c.iso3]?.total ?? 0) > 0 : GENOME_ISO3.has(c.iso3))),
+        )
+        .map((c) => {
+          const pr = paperCounts[c.iso3];
+          const text =
+            isPapers && pr && pr.total > 0
+              ? `${mapLabel(c.iso3, c.name)} ${paperLabelSuffix(pr.readByGraph, pr.total)}`
+              : mapLabel(c.iso3, c.name);
+          const fs = c.iso3 === selected ? 15 : 13;
+          const p = projToPx(c.center[0], c.center[1]);
+          const half = (text.length * fs * 0.58) / 2;
+          const box = { l: p.x - half, r: p.x + half, t: p.y + 8, b: p.y + 12 + fs };
+          if (box.l < 0 || box.r > size.cw - panelPx || box.t < 0 || box.b > size.ch) return null;
+          if (avoid.some((a) => box.l < a.r && box.r > a.l && box.t < a.b && box.b > a.t)) return null;
+          return (
+            <text
+              key={c.iso3}
+              className="fc-label-text"
+              x={c.center[0]}
+              y={c.center[1] + (10 + fs) * unit}
+              textAnchor="middle"
+              fontSize={fs * unit}
+              strokeWidth={3.5 * unit}
+            >
+              {text}
+            </text>
+          );
+        })
+    : null;
 
   const hoverSnap = hover ? genomeSnapshot(hover.iso3, asOfYear) : null;
   const hoverGeo = hover ? COUNTRY_BY_ISO3[hover.iso3] : undefined;
+  const hoverAlerts = hover ? (alertsByIso3[hover.iso3] ?? []) : [];
 
   return (
     <div ref={wrapRef} className="absolute inset-0">
@@ -441,7 +643,7 @@ export function WorldMap({
             <line x1="0" y1="0" x2="0" y2={5 * unit} stroke={HATCH_LINE} strokeWidth={1.4 * unit} />
           </pattern>
         </defs>
-        <CountryPaths snapshots={snapshots} selected={selected} />
+        <CountryPaths fills={fills} states={states} selected={selected} />
         {sel ? (
           <g>
             <path d={sel.d} className="fc-sel-halo" />
@@ -449,10 +651,31 @@ export function WorldMap({
           </g>
         ) : null}
         <g>{markers}</g>
+        <g aria-hidden>{changedRings}</g>
         <g aria-hidden>{labels}</g>
+        <g>{flags}</g>
       </svg>
 
-      {hover && hoverGeo && hoverSnap ? (
+      {isPapers && hover && hoverGeo ? (
+        <div
+          className="fc-card fc-tooltip"
+          style={{
+            left: Math.min(hover.x + 14, (size?.cw ?? 1000) - 300 - panelPx),
+            top: Math.max(8, hover.y + 14),
+          }}
+          role="status"
+        >
+          <div className="font-semibold text-[13px]">{hoverGeo.name}</div>
+          <div className="tabular-nums">
+            {paperCounts[hover.iso3]?.total ?? 0} K540E papers published through {asOfYear}
+          </div>
+          {(paperCounts[hover.iso3]?.total ?? 0) > 0 ? (
+            <div className="tabular-nums">The Graph has read {paperCounts[hover.iso3]?.readByGraph ?? 0} of them</div>
+          ) : null}
+          <div className="mt-1 text-[12px] text-muted">{PAPER_SOURCE_LINE}</div>
+        </div>
+      ) : null}
+      {!isPapers && hover && hoverGeo && hoverSnap ? (
         <div
           className="fc-card fc-tooltip"
           style={{
@@ -472,11 +695,21 @@ export function WorldMap({
           {hoverSnap.firstDetectionYear !== null ? (
             <div>First detection in our data: {hoverSnap.firstDetectionYear}</div>
           ) : null}
-          <div className="mt-1 text-[11px] text-muted">Genome data · MalariaGEN Pf8 · by collection year</div>
+          {hoverAlerts.length ? (
+            <div className="mt-1 border-t border-line pt-1" style={{ color: AMBER }}>
+              <div>
+                {alertCountText(hoverAlerts.length, asOfYear)}
+                {placeholderFeed ? " (placeholder, not a real alert)" : ""}
+              </div>
+              <div className="text-fg">{hoverAlerts[hoverAlerts.length - 1].headline}</div>
+            </div>
+          ) : null}
+          <div className="mt-1 text-[12px] text-muted">Genome data · MalariaGEN Pf8 · by collection year</div>
         </div>
       ) : null}
 
       <div
+        data-fc-avoid
         className="absolute bottom-4 z-20 flex flex-col gap-1.5"
         style={{ right: panelPx + 16, transition: "right 300ms ease" }}
       >
@@ -486,7 +719,7 @@ export function WorldMap({
         <button type="button" className="fc-btn" aria-label="Zoom out" onClick={() => zoomBy(1 / 1.8)}>
           −
         </button>
-        <button type="button" className="fc-btn text-[11px] uppercase tracking-[0.1em]" aria-label="Reset to world view" onClick={resetWorld}>
+        <button type="button" className="fc-btn text-[12px] uppercase tracking-[0.1em]" aria-label="Reset to world view" onClick={resetWorld}>
           World
         </button>
       </div>

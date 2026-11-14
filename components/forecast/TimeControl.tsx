@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { GENOME_MAX_YEAR } from "@/lib/forecast/data";
 
 const BTN =
-  "inline-flex h-9 w-9 items-center justify-center rounded-[5px] border border-line-strong bg-surface-2 text-fg hover:border-drug focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-drug disabled:cursor-not-allowed disabled:opacity-40";
+  "inline-flex h-8 w-8 items-center justify-center rounded-[5px] border border-line-strong bg-surface-2 text-fg hover:border-drug focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-drug disabled:cursor-not-allowed disabled:opacity-40";
 
 export function TimeControl(props: {
   year: number;
@@ -57,10 +58,10 @@ export function TimeControl(props: {
   const ticks = (markedYears ?? []).filter((y) => y >= minYear && y <= maxYear);
 
   return (
-    <div className={`fc-card w-full max-w-[520px] px-4 py-3 ${className ?? ""}`}>
+    <div className={`fc-card w-full max-w-[520px] px-4 py-2 ${className ?? ""}`}>
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-baseline gap-2">
-          <span className="text-[0.68rem] uppercase tracking-[0.18em] text-muted">As of</span>
+          <span className="text-xs uppercase tracking-[0.18em] text-muted">As of</span>
           <span className="text-4xl font-semibold leading-none tabular-nums text-fg">{year}</span>
         </div>
         <div className="flex items-center gap-2">
@@ -76,10 +77,7 @@ export function TimeControl(props: {
         </div>
       </div>
 
-      <div className="mt-2">
-        <label htmlFor="fc-asof-year" className="text-[0.68rem] uppercase tracking-[0.18em] text-muted">
-          As-of year
-        </label>
+      <div className="mt-1">
         <div className="relative">
           <input
             id="fc-asof-year"
@@ -90,7 +88,7 @@ export function TimeControl(props: {
             value={year}
             aria-valuetext={`As of ${year}`}
             onChange={(e) => manual(Number(e.target.value))}
-            className="block h-6 w-full cursor-pointer accent-drug focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-drug"
+            className="block h-5 w-full cursor-pointer accent-drug focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-drug"
           />
           <div aria-hidden className="pointer-events-none relative mx-[8px] h-2">
             {ticks.map((y) => (
@@ -102,14 +100,17 @@ export function TimeControl(props: {
             ))}
           </div>
         </div>
-        <div className="flex justify-between text-[0.7rem] tabular-nums text-muted">
+        <div className="flex justify-between text-xs tabular-nums text-muted">
+          <label htmlFor="fc-asof-year" className="sr-only">           As-of year         </label>
           <span>{minYear}</span>
           <span>{maxYear}</span>
         </div>
       </div>
 
-      <p className="mt-1 text-[0.7rem] leading-snug text-muted">
-        Genomes: collected through {year} · Papers, Graph findings and alerts: published through {year}
+      <p className="mt-0.5 text-xs leading-snug text-muted">
+        {year <= GENOME_MAX_YEAR
+          ? `Genomes: collected through ${year} · Papers, Graph findings: published through ${year}`
+          : `Genomes: collected through ${GENOME_MAX_YEAR}, where this dataset ends · Papers, Graph findings: published through ${year}`}
       </p>
     </div>
   );

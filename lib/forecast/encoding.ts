@@ -106,3 +106,78 @@ export function fillFor(s: GenomeSnapshot | undefined): string {
 export function stateOf(s: GenomeSnapshot | undefined): GenomeState {
   return s ? s.state : "not_sampled";
 }
+
+// --- Alerts and "changed this year" ------------------------------------------
+/** Amber is reserved for alerts and "new"; never used for prevalence. */
+export const AMBER = "#f2bd76";
+
+export const ALERT_LEGEND_TEXT = "Alert from the Alert tab (computed on genome counts, by collection year)";
+export const newInYearText = (year: number) => `New in ${year}`;
+export const changedInYearText = (year: number) =>
+  `Changed in ${year}: first genomes sampled or first detection in our data`;
+export const alertCountText = (n: number, year: number) =>
+  `${n} ${n === 1 ? "alert" : "alerts"} from the Alert tab as of ${year}`;
+
+// --- Short map labels ---------------------------------------------------------
+const SHORT_LABEL: Record<string, string> = {
+  COD: "DR Congo",
+  COG: "Congo",
+  CAF: "Central African Rep.",
+  ATF: "Fr. Southern Lands",
+  BIH: "Bosnia and Herz.",
+  CPV: "Cabo Verde",
+  FLK: "Falkland Is.",
+  FSM: "Micronesia",
+  HMD: "Heard and McDonald Is.",
+  IOT: "Br. Indian Ocean Terr.",
+  KNA: "St Kitts and Nevis",
+  MNP: "N. Mariana Is.",
+  SGS: "S. Georgia",
+  SPM: "St Pierre and Miquelon",
+  STP: "São Tomé and Príncipe",
+  TCA: "Turks and Caicos",
+  VCT: "St Vincent and Gren.",
+  VGB: "Br. Virgin Is.",
+  VIR: "US Virgin Is.",
+  WLF: "Wallis and Futuna",
+};
+
+/** Map label: a short display name for long names (over 20 characters). */
+export function mapLabel(iso3: string, name: string): string {
+  return SHORT_LABEL[iso3] ?? name;
+}
+
+// --- "Papers and the Graph" layer --------------------------------------------
+/** Layer shown on the map. Genome is the default. */
+export type MapLayer = "genome" | "papers";
+
+/**
+ * Paper-count ramp: a cool slate-to-pale single hue from the muted text family
+ * (#b0bdcb). Deliberately not the mint genome ramp and not amber. Continuous,
+ * linear from 1 paper to the current maximum; no bins.
+ */
+export const PAPER_RAMP_LOW = "#2c3d4f";
+// High end stops at mid-light so the white "read" square still reads as filled on it.
+export const PAPER_RAMP_HIGH = "#a3b3c3";
+const P_LOW_LAB = rgbToOklab(hexToRgb(PAPER_RAMP_LOW));
+const P_HIGH_LAB = rgbToOklab(hexToRgb(PAPER_RAMP_HIGH));
+
+export function paperRampColor(count: number, max: number): string {
+  const t = max > 1 ? Math.min(1, Math.max(0, (count - 1) / (max - 1))) : 1;
+  return oklabToHex([
+    P_LOW_LAB[0] + (P_HIGH_LAB[0] - P_LOW_LAB[0]) * t,
+    P_LOW_LAB[1] + (P_HIGH_LAB[1] - P_LOW_LAB[1]) * t,
+    P_LOW_LAB[2] + (P_HIGH_LAB[2] - P_LOW_LAB[2]) * t,
+  ]);
+}
+
+export function paperRampGradientCss(): string {
+  const stops = Array.from({ length: 11 }, (_, i) => `${paperRampColor(1 + i, 11)} ${i * 10}%`);
+  return `linear-gradient(to right, ${stops.join(", ")})`;
+}
+
+/** Square marker: filled when the Graph has read at least one of the country's papers. */
+export const PAPER_READ_FILL = "#f5f4ef";
+export const PAPER_SOURCE_LINE =
+  "Papers: PubMed list · countries machine-read from abstracts · by publication date";
+export const paperLabelSuffix = (read: number, total: number) => `${read}/${total} read`;

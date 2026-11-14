@@ -180,7 +180,7 @@ export default function LearnPage() {
 
 function Dot() {
   return (
-    <span aria-hidden className="text-muted">
+    <span aria-hidden className="hidden text-muted sm:inline">
       ·
     </span>
   );

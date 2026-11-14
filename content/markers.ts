@@ -20,6 +20,13 @@ export type LadderRung = {
   effect: string | null;
   /** The rung the page is about. Rendered with a text tag, not colour alone. */
   highlight?: boolean;
+  /** Amino-acid change with a charge swap, drawn as two schematic residue
+   *  glyphs under the rung. Only set where the charge actually changes. */
+  residueChange?: {
+    from: { letter: string; charge: "+" | "\u2212" };
+    to: { letter: string; charge: "+" | "\u2212" };
+    caption: string;
+  };
 };
 
 export type LadderDiagram = {
@@ -94,6 +101,11 @@ const PFDHPS_LADDER: LadderDiagram = {
       alterations: [{ gene: "pfdhps", codon: "K540E", isNew: true }],
       effect: "with A437G forms the \u201cdouble mutant\u201d",
       highlight: true,
+      residueChange: {
+        from: { letter: "K", charge: "+" },
+        to: { letter: "E", charge: "\u2212" },
+        caption: "lysine (+) \u2192 glutamate (\u2212) at position 540",
+      },
     },
     {
       name: "A581G",
@@ -105,7 +117,7 @@ const PFDHPS_LADDER: LadderDiagram = {
   // reported "alongside A437G as a double mutant".
   bracket: { from: 0, to: 1, lines: ["Double mutant", "A437G + K540E", "how K540E is", "usually reported"] },
   caption:
-    "These changes accumulate in individual parasites. A region\u2019s position on this ladder can only be read from studies that genotyped the combination directly \u2014 never by adding up separate single-mutation results.",
+    "These changes accumulate in individual parasites. A region\u2019s position on this ladder can only be read from studies that genotyped the combination directly \u2014 never by adding up separate single-mutation results. Among these three, only K540E swaps the residue\u2019s charge.",
 };
 
 /** Signed off for display. */

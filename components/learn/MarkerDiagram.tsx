@@ -27,11 +27,14 @@ function Ladder({ d }: { d: LadderDiagram }) {
   return (
     <figure>
       <div className="overflow-x-auto">
-        <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby="ladder-t ladder-d" className="w-full min-w-[640px]">
+        <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby="ladder-t ladder-d" className="w-full min-w-[900px]">
           <title id="ladder-t">{d.title}</title>
           <desc id="ladder-d">
             {d.rungs
-              .map((r) => `${r.name}: ${r.alterations.map((a) => `${a.gene} ${a.codon}`).join(", ")}`)
+              .map(
+                (r) =>
+                  `${r.name}: ${r.alterations.map((a) => `${a.gene} ${a.codon}`).join(", ")}${r.residueChange ? ` (${r.residueChange.caption})` : ""}`,
+              )
               .join(". ")}
             . Earlier rungs sit lower.
             {d.bracket ? ` ${d.bracket.lines.join(" ")}.` : ""}
@@ -121,6 +124,42 @@ function Ladder({ d }: { d: LadderDiagram }) {
                     </g>
                   );
                 })}
+                {/* amino-acid change: schematic residue glyphs only, no structure */}
+                {rung.residueChange ? (
+                  <g fontFamily={FONT}>
+                    {(() => {
+                      const rc = rung.residueChange;
+                      const gy = y + 62;
+                      const gx = barX + 30;
+                      return (
+                        <>
+                          {/* from: circle */}
+                          <circle cx={gx} cy={gy} r="15" fill="var(--bg)" stroke="var(--fg)" strokeWidth="2" />
+                          <text x={gx} y={gy + 6} textAnchor="middle" fontSize="17" fontWeight="700" fill="var(--fg)">
+                            {rc.from.letter}
+                          </text>
+                          <text x={gx + 19} y={gy - 6} fontSize="18" fontWeight="700" fill="var(--fg)">
+                            {rc.from.charge}
+                          </text>
+                          {/* arrow */}
+                          <line x1={gx + 40} y1={gy} x2={gx + 72} y2={gy} stroke="var(--fg)" strokeWidth="2" />
+                          <path d={`M${gx + 80} ${gy} l-10 -6 v12 Z`} fill="var(--fg)" />
+                          {/* to: square, so the two glyphs differ by shape as well as letter and sign */}
+                          <rect x={gx + 92} y={gy - 15} width="30" height="30" rx="4" fill="var(--bg)" stroke="var(--fg)" strokeWidth="2" strokeDasharray="5 3" />
+                          <text x={gx + 107} y={gy + 6} textAnchor="middle" fontSize="17" fontWeight="700" fill="var(--fg)">
+                            {rc.to.letter}
+                          </text>
+                          <text x={gx + 127} y={gy - 6} fontSize="18" fontWeight="700" fill="var(--fg)">
+                            {rc.to.charge}
+                          </text>
+                          <text x={gx + 156} y={gy + 6} fontSize="17" fill="var(--muted)">
+                            {rc.caption}
+                          </text>
+                        </>
+                      );
+                    })()}
+                  </g>
+                ) : null}
                 {/* effect on the drug */}
                 {rung.effect ? (
                   // Sits inside the bar, after the chips.

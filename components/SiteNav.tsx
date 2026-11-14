@@ -41,7 +41,9 @@ export function SiteNav() {
           <span className="ro-nav-symbol" aria-hidden>
             ⌁
           </span>
-          Resistance <i>Observatory</i>
+          <span className="ro-nav-word">
+            Resistance <i>Observatory</i>
+          </span>
         </a>
         <div className="ro-nav-links">
           {NAV_ITEMS.map((item) => {

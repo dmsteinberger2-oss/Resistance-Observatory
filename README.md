@@ -56,7 +56,7 @@ Taken from the production build of this repo.
 | `/`         | Redirects to `/story.html`, the animated intro     | Solayman |
 | `/overview` | Scroll-driven explainer: problem, evidence, gap    | Solayman |
 | `/learn`    | Marker, drug, why it matters, one diagram          | Solayman |
-| `/forecast` | Map of where the marker has been observed          | Benjamin |
+| `/forecast` | Map (the route keeps its old name): where the marker has been observed | Benjamin |
 | `/alert`    | Save a watch; replayed evidence fires alerts       | David    |
 | `/data`     | Long-form guide, findings timeline, glossary       | Solayman |
 
@@ -82,7 +82,7 @@ const {
 
 The URL is the source of truth: `?marker=<id>&range=<from>-<to>&finding=<id>`.
 `hrefWithSelection` also passes through `&area=<ISO3>` (for example
-`area=MWI`) when the current URL has one, so links to Forecast and Alert carry
+`area=MWI`) when the current URL has one, so links to Map and Alert carry
 both marker and area. Set or drop it with a third argument:
 `hrefWithSelection("/forecast", {}, { area: "MWI" })`. The current value is
 exposed as `area` from `useSelection()`.
@@ -216,6 +216,12 @@ Coverage limitations, stated on screen as well:
   on Overview, Learn and Data comes from it. Work deriving from the graph inherits
   CC BY-NC.
 
+**Two dates for one release.** The Dataverse record for this dataset gives a
+distribution date of July 1 2026 (deposited June 30 2026); that is the date
+Overview, Learn, Data and this README use. The data files in version 2.1 were
+generated on 8 July 2026 (`MANIFEST.json`, `generated_at`), which is the date
+the Alert tab shows. Both refer to the same release.
+
 **Extraction errors.** System's own documentation says roughly 20% of the
 associations its API serves are known-bad extractions. Every finding keeps its
 `system_id`, `pubmed_id` and `doi`, and links to the paper so a reader can
@@ -297,7 +303,7 @@ to fill in.
 - **Resend** — email delivery service for alert emails. A service, not a data
   source; listed because the shipped app uses it.
 
-### Forecast sources (Benjamin)
+### Map sources (Benjamin)
 
 - Map data source — name, version, licence and link _to be added by
   Benjamin_. Any location on the map is attributed to that source, never to

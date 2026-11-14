@@ -226,7 +226,7 @@ export default function DataPage() {
             </p>
             <p className="mt-4">
               The graph has no geography field and no per-finding publication date. Publication dates are
-              resolved through OpenAlex from each finding&rsquo;s PubMed ID. Locations on the Forecast map come from a separate source and are attributed to it, never to the
+              resolved through OpenAlex from each finding&rsquo;s PubMed ID. Locations on the Map tab come from a separate source and are attributed to it, never to the
               graph.
             </p>
             <p className="mt-4">

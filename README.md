@@ -248,6 +248,34 @@ What that check does and does not show for Overview and Data:
   (`scripts/graph-stats.ts`). Used for the "most recent" figure on Overview and
   the Data-tab timeline.
 
+### Structural figure on Learn
+
+A separate published source from the System Public Graph, loaded live in the
+visitor's browser. Nothing about these structures comes from the graph.
+
+- **RCSB Protein Data Bank** (live external source) — two crystal structures
+  of *P. falciparum* HPPK-DHPS from the same publication,
+  doi:10.1111/febs.15196, fetched at view time with
+  `$3Dmol.download("pdb:<id>")`:
+  - [6JWX](https://www.rcsb.org/structure/6JWX) — wild type.
+  - [6KCL](https://www.rcsb.org/structure/6KCL) — A437G/K540E double mutant.
+- **3Dmol.js** 2.4.2 — the viewer library, loaded from the cdnjs CDN by a
+  `<script>` tag (not an npm dependency).
+
+What the viewer does and does not say (`components/learn/StructureViewer.tsx`):
+
+- Residue numbering was checked against the deposited files before anything
+  was labelled. Both entries use the canonical numbering (UniProt Q25704,
+  1-706). Position 540 is LYS in 6JWX and GLU in 6KCL, in both chains.
+- **Position 437 has no coordinates in either structure** (it is listed among
+  the missing residues, 436-444), so it cannot be highlighted or compared. The
+  viewer says so on screen, and only 540 is highlighted.
+- Residue names, numbers and the charge note in the compare panel are read
+  from what 3Dmol reports for the loaded structures, not hard-coded.
+- It makes no claim about binding geometry or mechanism.
+- If the CDN or RCSB is unreachable, each panel shows a short message with a
+  link to the RCSB page.
+
 ### Alert sources (David)
 
 Taken from David's spec for the Alert tab. Items marked _to be added_ are his

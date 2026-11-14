@@ -2,10 +2,11 @@
  * EVERY user-facing number in the app lives here. Nowhere else.
  *
  * Every figure is read from data/graph-stats.json, the pinned output of
- * scripts/graph-stats.ts, which queries the System Public Graph API
- * (https://public-api.system.com/v1, header x-api-key). Nothing is typed in by
- * hand and nothing comes from any other source. Each constant carries the
- * exact API query it derives from. To refresh: re-run the script, commit the
+ * scripts/graph-stats.ts. Counts come from the System Public Graph API
+ * (https://public-api.system.com/v1, header x-api-key) and are GRAPH_*.
+ * Publication dates come from OpenAlex, matched on pubmed_id, and are
+ * OPENALEX_*. Nothing is typed in by hand. Each constant carries the exact
+ * query it derives from, and its label says which question it answers. To refresh: re-run the script, commit the
  * JSON.
  *
  * "Finding" = one association in the graph (two variables linked by a
@@ -30,17 +31,6 @@ export type Stat = {
 const SOURCE = `System Public Graph v${graph.source.version}`;
 const SEARCHES = graph.searches.map((s) => s.term).join(", ");
 
-type DatedAssociation = {
-  relationship: { num_findings: number; last_published_date: string } | null;
-};
-
-/** A finding is dated only when its relationship holds exactly one finding, so
- *  the relationship's last_published_date is unambiguously that finding's. */
-export function graphPublishedDate(a: DatedAssociation): string | null {
-  const r = a.relationship;
-  return r && r.num_findings === 1 && r.last_published_date ? r.last_published_date.slice(0, 10) : null;
-}
-
 /** "2015-06-15" -> "June 15, 2015", without timezone drift. */
 export function formatGraphDate(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);
@@ -48,8 +38,19 @@ export function formatGraphDate(iso: string): string {
   return `${month} ${d}, ${y}`;
 }
 
-const markerDates = (graph.marker.associations as DatedAssociation[])
-  .map(graphPublishedDate)
+/** Publication dates for the marker's papers, resolved through OpenAlex on
+ *  pubmed_id by scripts/graph-stats.ts. The graph itself has no per-finding date. */
+const DATES_BY_PMID = new Map(
+  graph.marker.publication_dates.map((d) => [String(d.pubmed_id), d.publication_date as string | null]),
+);
+
+/** ISO date (YYYY-MM-DD) for a PubMed ID, or null when OpenAlex did not resolve it. */
+export function publishedDate(pubmedId: string | number | null | undefined): string | null {
+  return pubmedId == null ? null : (DATES_BY_PMID.get(String(pubmedId)) ?? null);
+}
+
+const markerDates = (graph.marker.associations as { pubmed_id?: number | null }[])
+  .map((a) => publishedDate(a.pubmed_id))
   .filter((d): d is string => d !== null)
   .sort();
 
@@ -63,7 +64,7 @@ const markerDates = (graph.marker.associations as DatedAssociation[])
 //   sulfadoxine-pyrimethamine; keep hits whose name matches /540\s*E|540\s*K\/E|Glu-540/i
 export const GRAPH_MARKER_VARIABLES = {
   value: graph.marker.variables.length,
-  label: "Graph variables whose name mentions codon 540 of pfdhps",
+  label: "Graph variables that name codon 540 of pfdhps directly",
   source: SOURCE,
   query: `GET /variables?search=name:<term>&limit=50&offset=<n>&include_total=true (terms: ${SEARCHES}), name-filtered`,
 } satisfies Stat;
@@ -73,7 +74,7 @@ export const GRAPH_MARKER_VARIABLES = {
 //   de-duplicated by association system_id
 export const GRAPH_MARKER_FINDINGS = {
   value: graph.marker.associations.length,
-  label: "Findings in the graph for codon 540 of pfdhps (sulfadoxine)",
+  label: "Findings that name codon 540 of pfdhps directly",
   source: SOURCE,
   query: "GET /variables/{id}/associations?limit=50&offset=<n>&include_total=true, per marker variable",
 } satisfies Stat;
@@ -82,28 +83,27 @@ export const GRAPH_MARKER_FINDINGS = {
 // GET /studies/{study_id}
 export const GRAPH_MARKER_STUDIES = {
   value: graph.marker.studies.length,
-  label: "Studies those findings come from",
+  label: "Studies that name codon 540 of pfdhps directly",
   source: SOURCE,
   query: "distinct study_id over the marker associations; GET /studies/{study_id}",
 } satisfies Stat;
 
-// For each marker association with both variables grounded to a concept:
-// GET /relationships/{concept_1}%7C{concept_2}  -> num_findings, last_published_date
-// A finding counts as dated only when that relationship has num_findings = 1.
-export const GRAPH_MARKER_DATED_FINDINGS = {
+// OpenAlex, not the graph:
+// GET https://api.openalex.org/works?filter=pmid:<id>|<id>|...&select=id,doi,ids,publication_date&per-page=50
+//   over the pubmed_id of every marker association
+export const OPENALEX_MARKER_DATED_FINDINGS = {
   value: markerDates.length,
-  label: "Of those findings, how many the graph gives a publication date for",
-  source: SOURCE,
-  query: "GET /relationships/{concept_1}%7C{concept_2} per marker association; num_findings = 1",
+  label: "Findings that name codon 540 directly and have a resolved publication date",
+  source: "OpenAlex",
+  query: "GET https://api.openalex.org/works?filter=pmid:<ids>&select=id,doi,ids,publication_date&per-page=50",
 } satisfies Stat;
 
-// Latest last_published_date over the same relationships
-// (GET /relationships/{concept_1}%7C{concept_2}).
-export const GRAPH_MARKER_LAST_PUBLISHED = {
-  value: markerDates.length ? formatGraphDate(markerDates[markerDates.length - 1]) : "No date in the graph",
-  label: "Most recent publication date the graph records for these findings",
-  source: SOURCE,
-  query: "max last_published_date over GET /relationships/{concept_1}%7C{concept_2} per marker association",
+// Latest publication_date over the same OpenAlex response.
+export const OPENALEX_MARKER_LAST_PUBLISHED = {
+  value: markerDates.length ? formatGraphDate(markerDates[markerDates.length - 1]) : "Date unknown",
+  label: "Most recent publication among the findings that name codon 540 directly",
+  source: "OpenAlex",
+  query: "max publication_date over GET https://api.openalex.org/works?filter=pmid:<ids>&select=id,doi,ids,publication_date&per-page=50",
 } satisfies Stat;
 
 /* ------------------------------------------------- Context: pfdhps overall --- */
@@ -115,7 +115,7 @@ export const GRAPH_MARKER_LAST_PUBLISHED = {
 //   per variable, de-duplicated by association system_id
 export const GRAPH_PFDHPS_FINDINGS = {
   value: graph.pfdhps_context.associations.length,
-  label: "Findings in the graph for pfdhps overall, any alteration",
+  label: "Findings that cover pfdhps overall, any alteration",
   source: SOURCE,
   query: "GET /variables/{id}/associations?limit=50&offset=<n>&include_total=true, per pfdhps variable",
 } satisfies Stat;
@@ -123,7 +123,7 @@ export const GRAPH_PFDHPS_FINDINGS = {
 // Distinct study_id over those associations.
 export const GRAPH_PFDHPS_STUDIES = {
   value: graph.pfdhps_context.study_ids.length,
-  label: "Studies behind the pfdhps findings",
+  label: "Studies that cover pfdhps overall, any alteration",
   source: SOURCE,
   query: "distinct study_id over the pfdhps associations",
 } satisfies Stat;
@@ -162,8 +162,8 @@ export const ALL_STATS = {
   GRAPH_MARKER_VARIABLES,
   GRAPH_MARKER_FINDINGS,
   GRAPH_MARKER_STUDIES,
-  GRAPH_MARKER_DATED_FINDINGS,
-  GRAPH_MARKER_LAST_PUBLISHED,
+  OPENALEX_MARKER_DATED_FINDINGS,
+  OPENALEX_MARKER_LAST_PUBLISHED,
   GRAPH_PFDHPS_FINDINGS,
   GRAPH_PFDHPS_STUDIES,
   GRAPH_VERSION,

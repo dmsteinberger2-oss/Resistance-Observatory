@@ -3,20 +3,21 @@ import { formatGraphDate } from "@/lib/stats";
 import type { MarkerFinding } from "@/lib/findings";
 
 /**
- * Publication-date timeline of the demo marker's findings. Dated findings run
- * oldest to newest. Findings the graph gives no date for are listed after,
- * under their own heading — position, shape and label, never colour alone.
+ * Publication-date timeline of the demo marker's findings, oldest to newest.
+ * Dates come from OpenAlex, matched on PubMed ID. A finding whose date did not
+ * resolve sits outside the timeline under "Date unknown" — position, shape and
+ * label, never colour alone.
  */
 export function FindingsTimeline({ findings }: { findings: MarkerFinding[] }) {
   const dated = findings.filter((f) => f.published);
   const undated = findings.filter((f) => !f.published);
   return (
     <div className="my-10 space-y-12">
-      <Group title="Dated in the graph" note="Oldest first." findings={dated} />
+      <Group title="Timeline" note="Oldest first. Findings from the same paper share its date." findings={dated} />
       {undated.length ? (
         <Group
-          title="No publication date in the graph"
-          note="The graph dates a finding only through a concept-level relationship, and these have none. They are listed by PubMed ID, which is not a date. Follow the link for the paper's own publication date."
+          title="Date unknown"
+          note="OpenAlex returned no publication date for these. They sit outside the timeline. Follow the link for the paper's own date."
           findings={undated}
         />
       ) : null}
@@ -39,7 +40,7 @@ function Group({ title, note, findings }: { title: string; note: string; finding
               className={`absolute -left-[7px] top-1.5 h-3 w-3 border-2 border-fg ${f.published ? "rounded-full bg-fg" : "rotate-45 bg-bg"}`}
             />
             <p className="font-mono text-sm font-semibold tabular-nums">
-              {f.published ? <time dateTime={f.published}>{formatGraphDate(f.published)}</time> : "Undated in the graph"}
+              {f.published ? <time dateTime={f.published}>{formatGraphDate(f.published)}</time> : "Date unknown"}
             </p>
             <p className="mt-1 text-base leading-snug">
               <span className="font-semibold">{f.variable1}</span>

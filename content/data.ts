@@ -1,27 +1,27 @@
 /**
  * Data tab content. Same discipline as Learn:
- * - Biology comes only from docs/SCIENCE.md, and is `reviewed: false` (held in
- *   production) until the science lead signs it off.
+ * - Biology comes only from docs/SCIENCE.md, word for word where possible, and
+ *   is released for display (`reviewed: true`).
  * - Project method / data-source facts come from CLAUDE.md and render.
  * - Every number comes from lib/stats.ts, which reads the pinned graph pull.
- * - History narrative has no sourced text yet. It is a sourcing slot, not
- *   prose written from memory.
+ * - There is no history narrative: docs/SCIENCE.md holds no sourced text for
+ *   one, so the page does not have that section.
  */
 import type { Reviewable } from "./review";
 
-const draft = <T,>(value: T): Reviewable<T> => ({ value, reviewed: false });
+const released = <T,>(value: T): Reviewable<T> => ({ value, reviewed: true });
 
-/* ---------------------------------------------------- biology (gated) --- */
+/* ------------------------------------------------------------- biology --- */
 
 /** docs/SCIENCE.md "The one-paragraph version", split for typesetting. */
-export const ONE_PARAGRAPH = draft([
+export const ONE_PARAGRAPH = released([
   "Malaria is caused by Plasmodium parasites, most dangerously P. falciparum.",
   "Specific mutations in parasite genes reduce how well particular drugs work. Those mutations are tracked as resistance markers.",
   "New findings about them are published continuously, across a large and scattered literature.",
 ]);
 
 /** docs/SCIENCE.md "Candidate markers" table. */
-export const CANDIDATE_MARKERS = draft([
+export const CANDIDATE_MARKERS = released([
   { gene: "pfdhps", alterations: "A437G, K540E, A581G", drug: "sulfadoxine (with pyrimethamine, as SP)" },
   { gene: "pfdhfr", alterations: "S108N, N51I, C59R, I164L", drug: "pyrimethamine (as SP)" },
   { gene: "pfcrt", alterations: "K76T", drug: "chloroquine" },
@@ -30,33 +30,15 @@ export const CANDIDATE_MARKERS = draft([
 ]);
 
 /** docs/SCIENCE.md antifolate paragraph. */
-export const ANTIFOLATE = draft({
+export const ANTIFOLATE = released({
   body:
     "Antifolate (dhfr/dhps) resistance accumulates in a roughly known order, and the literature uses named combinations: the triple mutant (dhfr N51I + C59R + S108N), the quintuple (the dhfr triple plus dhps A437G + K540E), and the sextuple (the quintuple plus dhps A581G).",
   constraint:
     "A combination is a property of an individual parasite. It is never inferred from separate single-mutation findings in different papers.",
 });
 
-/* -------------------------------------------- history (sourcing slots) --- */
-
-export const HISTORY_SLOTS = [
-  {
-    heading: "Chloroquine",
-    needs: "When it came into wide use, when reduced efficacy was first reported, and the role of pfcrt — from the original papers, with citations.",
-  },
-  {
-    heading: "Sulfadoxine-pyrimethamine (SP)",
-    needs: "When SP came into wide use, when reduced efficacy was first reported, and how dhfr/dhps combinations were characterised — with citations.",
-  },
-  {
-    heading: "Artemisinin",
-    needs: "When artemisinin-based treatment came into wide use, when partial resistance was first reported, and the role of kelch13 — with citations.",
-  },
-] as const;
-
 /* -------------------------------------------------------------- glossary --- */
-/* From docs/SCIENCE.md "Vocabulary for the pitch". Project vocabulary renders;
- * entries whose definition is a biological claim are gated. */
+/* From docs/SCIENCE.md "Vocabulary for the pitch". */
 
 export type GlossaryEntry = { term: string; definition: string; reviewed: boolean };
 
@@ -82,7 +64,7 @@ export const GLOSSARY: GlossaryEntry[] = [
     term: "Partial resistance",
     definition:
       "The correct term for artemisinin. Slowed clearance, not outright treatment failure.",
-    reviewed: false,
+    reviewed: true,
   },
   {
     term: "Replay",

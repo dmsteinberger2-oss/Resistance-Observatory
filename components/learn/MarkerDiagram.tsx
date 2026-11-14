@@ -14,7 +14,7 @@ const FONT = "var(--font-sans)";
 const CHAR_W = 13.4; // approx px per char at fontSize 21 (bold)
 
 function Ladder({ d }: { d: LadderDiagram }) {
-  const W = 1240;
+  const W = 1290;
   const rungGap = 130;
   const top = 70;
   const n = d.rungs.length;
@@ -34,6 +34,7 @@ function Ladder({ d }: { d: LadderDiagram }) {
               .map((r) => `${r.name}: ${r.alterations.map((a) => `${a.gene} ${a.codon}`).join(", ")}`)
               .join(". ")}
             . Earlier rungs sit lower.
+            {d.bracket ? ` ${d.bracket.lines.join(" ")}.` : ""}
           </desc>
 
           {/* rails */}
@@ -76,8 +77,8 @@ function Ladder({ d }: { d: LadderDiagram }) {
                   strokeWidth={rung.highlight ? 5 : 2}
                 />
                 {rung.highlight ? (
-                  <text x={barX + barW + 30} y={y + 7} fontSize="18" fontWeight="700" fontFamily={FONT} fill="var(--fg)">
-                    ◀ this marker
+                  <text x="72" y={y + 46} fontSize="17" fontWeight="700" fontFamily={FONT} fill="var(--fg)">
+                    ▶ this marker
                   </text>
                 ) : null}
                 {/* step number + name */}
@@ -139,6 +140,40 @@ function Ladder({ d }: { d: LadderDiagram }) {
               </g>
             );
           })}
+
+          {/* named combination spanning rungs: bracket + text label */}
+          {d.bracket
+            ? (() => {
+                const yOf = (idx: number) => top + 60 + (n - 1 - idx) * rungGap;
+                const yTop = yOf(d.bracket.to) - 36;
+                const yBot = yOf(d.bracket.from) + 36;
+                const bx = barX + barW + 26;
+                const mid = (yTop + yBot) / 2;
+                return (
+                  <g>
+                    <path
+                      d={`M${bx} ${yTop} h14 V${yBot} h-14`}
+                      fill="none"
+                      stroke="var(--fg)"
+                      strokeWidth="3"
+                    />
+                    {d.bracket.lines.map((line, i) => (
+                      <text
+                        key={line}
+                        x={bx + 28}
+                        y={mid - (d.bracket!.lines.length - 1) * 11 + i * 22 + 6}
+                        fontSize={i === 0 ? 19 : 16}
+                        fontWeight={i === 0 ? 700 : 400}
+                        fontFamily={FONT}
+                        fill={i === 0 ? "var(--fg)" : "var(--muted)"}
+                      >
+                        {line}
+                      </text>
+                    ))}
+                  </g>
+                );
+              })()
+            : null}
 
           {/* legend */}
           <g transform={`translate(${barX} 26)`} fontFamily={FONT} fontSize="16" fill="var(--muted)">

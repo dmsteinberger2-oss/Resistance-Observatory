@@ -55,6 +55,15 @@ const MARKER_NAME_PATTERN = /540\s*E|540\s*K\/E|Glu-540/i;
 const isPfdhpsName = (name: string) =>
   /pfdhps/i.test(name) ||
   (/dhps|dihydropteroate/i.test(name) && /falciparum|437|540|581/i.test(name) && !/carinii|pneumocystis/i.test(name));
+/**
+ * The graph has no per-finding publication date, so the marker findings' dates
+ * are resolved through OpenAlex from each finding's pubmed_id (batched, one
+ * request per 50 ids). Set OPENALEX_MAILTO in .env.local to join OpenAlex's
+ * polite pool; the address is sent to OpenAlex only and is never written to
+ * the output file.
+ */
+const OPENALEX = "https://api.openalex.org";
+const OPENALEX_MAILTO = process.env.OPENALEX_MAILTO;
 const OUT = resolve(import.meta.dirname, "..", "data", "graph-stats.json");
 
 type Json = Record<string, unknown>;
@@ -277,6 +286,27 @@ async function main() {
     }
   }
   const contextStudyIds = [...new Set([...contextAssoc.values()].map((a) => a.study_id).filter(Boolean).map(String))];
+  /* 8 — publication dates for the marker findings, from OpenAlex. */
+  const markerPmids = [...new Set(markerAssoc.map((a) => a.pubmed_id).filter(Boolean).map(String))];
+  const publicationDates: Json[] = [];
+  for (let i = 0; i < markerPmids.length; i += 50) {
+    const batch = markerPmids.slice(i, i + 50);
+    const qs = `filter=pmid:${batch.join("|")}&select=id,doi,ids,publication_date&per-page=50`;
+    const res = await fetch(`${OPENALEX}/works?${qs}${OPENALEX_MAILTO ? `&mailto=${encodeURIComponent(OPENALEX_MAILTO)}` : ""}`);
+    if (!res.ok) throw new Error(`OpenAlex ${res.status} ${(await res.text()).slice(0, 200)}`);
+    const works = ((await res.json()) as { results: Json[] }).results;
+    for (const pmid of batch) {
+      const w = works.find((x) => String((x.ids as Json | undefined)?.pmid ?? "").endsWith(`/${pmid}`));
+      publicationDates.push({
+        pubmed_id: Number(pmid),
+        publication_date: (w?.publication_date as string | undefined) ?? null,
+        openalex_id: (w?.id as string | undefined) ?? null,
+        openalex_doi: (w?.doi as string | undefined) ?? null,
+      });
+    }
+  }
+  console.log(`openalex: ${publicationDates.filter((d) => d.publication_date).length}/${markerPmids.length} marker PubMed IDs dated`);
+
   console.log(`pfdhps context: ${contextVars.length} variables, ${contextAssoc.size} associations, ${contextStudyIds.length} studies`);
   console.log(`marker: ${markerVars.length} variables, ${markerAssoc.length} associations, ${markerStudies.length} studies`);
 
@@ -322,6 +352,13 @@ async function main() {
       variables: markerVars,
       associations: markerAssoc,
       studies: markerStudies,
+      publication_dates_source: {
+        name: "OpenAlex",
+        license: "CC0",
+        query: `GET ${OPENALEX}/works?filter=pmid:<id>|<id>|...&select=id,doi,ids,publication_date&per-page=50`,
+        note: "One date per paper, matched on pubmed_id. A null publication_date means OpenAlex returned no work for that PubMed ID.",
+      },
+      publication_dates: publicationDates,
       grounded_variable_id: groundedMarker?.system_id ?? null,
       concept: markerConcept,
       concept_relationships_query: groundedMarker?.concept_id

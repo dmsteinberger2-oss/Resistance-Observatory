@@ -4,15 +4,14 @@ import {
   GRAPH_DOI,
   GRAPH_KNOWN_BAD_SHARE,
   GRAPH_LICENSE,
-  GRAPH_MARKER_DATED_FINDINGS,
   GRAPH_MARKER_FINDINGS,
-  GRAPH_MARKER_LAST_PUBLISHED,
   GRAPH_MARKER_STUDIES,
   GRAPH_MARKER_VARIABLES,
   GRAPH_PFDHPS_FINDINGS,
   GRAPH_PFDHPS_STUDIES,
   GRAPH_SNAPSHOT_DATE,
   GRAPH_VERSION,
+  OPENALEX_MARKER_LAST_PUBLISHED,
 } from "@/lib/stats";
 
 /**
@@ -49,6 +48,11 @@ export function Scale() {
             />
           </Reveal>
         </div>
+        <Reveal className="mt-6">
+          <p className="font-mono text-sm uppercase tracking-[0.14em] text-muted">
+            in the graph that name codon 540 of pfdhps directly
+          </p>
+        </Reveal>
         <Reveal className="mt-10">
           <p className="max-w-3xl font-display text-2xl leading-snug sm:text-3xl text-pretty">
             That is the entire published evidence base for this marker in the graph.
@@ -64,7 +68,7 @@ export function Scale() {
         {/* Context: pfdhps overall */}
         <Reveal className="mt-20">
           <h3 className="font-mono text-xs uppercase tracking-[0.18em] text-muted">
-            For context · pfdhps overall, any alteration
+            For context · a wider question
           </h3>
         </Reveal>
         <div className="mt-6 grid gap-x-12 gap-y-10 md:grid-cols-3">
@@ -75,10 +79,10 @@ export function Scale() {
             <StatFigure stat={GRAPH_PFDHPS_STUDIES} size="md" showSource={false} />
           </Reveal>
           <Reveal delay={200}>
-            <StatFigure stat={GRAPH_MARKER_LAST_PUBLISHED} size="md" showSource={false} />
+            <StatFigure stat={OPENALEX_MARKER_LAST_PUBLISHED} size="md" showSource={false} />
             <p className="mt-2 max-w-xs text-sm text-muted">
-              For the codon-540 findings. The graph gives a publication date for only{" "}
-              {GRAPH_MARKER_DATED_FINDINGS.value} of the {GRAPH_MARKER_FINDINGS.value}.
+              The graph has no per-finding date; this one is resolved through OpenAlex from the
+              finding&rsquo;s PubMed ID.
             </p>
           </Reveal>
         </div>
@@ -96,7 +100,11 @@ export function Scale() {
             doi:{GRAPH_DOI}. A finding is one association in the graph: two variables linked by a statistic. By
             System&rsquo;s own documentation roughly {GRAPH_KNOWN_BAD_SHARE.value}
             {GRAPH_KNOWN_BAD_SHARE.unit} of API associations are known-bad extractions; the findings counted
-            here are not yet cross-verified.
+            here are not yet cross-verified. Publication dates: OpenAlex.
+          </p>
+          <p className="mt-4 max-w-3xl text-sm text-muted text-pretty">
+            Each count answers the question written beside it. Other tabs ask the graph different questions
+            about this marker, so they show different counts. That is expected, not a discrepancy.
           </p>
         </Reveal>
       </div>

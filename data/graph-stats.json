@@ -8,7 +8,7 @@
     "api_base": "https://public-api.system.com/v1",
     "documented_known_bad_extraction_share_percent": 20
   },
-  "generated_at": "2026-11-14T15:55:15.506Z",
+  "generated_at": "2026-11-14T16:09:15.693Z",
   "generated_by": "scripts/graph-stats.ts",
   "requests_made": 300,
   "searches": [
@@ -2754,6 +2754,44 @@
         "population": "109 children treated with SP for acute uncomplicated malaria in Ibadan, Nigeria."
       }
     ],
+    "publication_dates_source": {
+      "name": "OpenAlex",
+      "license": "CC0",
+      "query": "GET https://api.openalex.org/works?filter=pmid:<id>|<id>|...&select=id,doi,ids,publication_date&per-page=50",
+      "note": "One date per paper, matched on pubmed_id. A null publication_date means OpenAlex returned no work for that PubMed ID."
+    },
+    "publication_dates": [
+      {
+        "pubmed_id": 25564249,
+        "publication_date": "2015-01-06",
+        "openalex_id": "https://openalex.org/W2107150651",
+        "openalex_doi": "https://doi.org/10.1093/infdis/jiu836"
+      },
+      {
+        "pubmed_id": 36680454,
+        "publication_date": "2023-01-21",
+        "openalex_id": "https://openalex.org/W4317653950",
+        "openalex_doi": "https://doi.org/10.1093/jac/dkad011"
+      },
+      {
+        "pubmed_id": 29854394,
+        "publication_date": "2018-05-02",
+        "openalex_id": "https://openalex.org/W2801575778",
+        "openalex_doi": "https://doi.org/10.1155/2018/7071383"
+      },
+      {
+        "pubmed_id": 25583123,
+        "publication_date": "2015-01-13",
+        "openalex_id": "https://openalex.org/W2041672057",
+        "openalex_doi": "https://doi.org/10.1111/tmi.12458"
+      },
+      {
+        "pubmed_id": 16023986,
+        "publication_date": "2005-07-18",
+        "openalex_id": "https://openalex.org/W1970665084",
+        "openalex_doi": "https://doi.org/10.1016/j.actatropica.2005.06.015"
+      }
+    ],
     "grounded_variable_id": "w1ktrLk4Wc",
     "concept": {
       "system_id": "QftpZC6uM4",
@@ -2824,22 +2862,6 @@
         }
       },
       {
-        "relationship_id": "QftpZC6uM4|QsNVnZ1yTR",
-        "num_findings": 1,
-        "num_studies": 1,
-        "last_published_date": "2000-08-01T00:00:00",
-        "source_concept": {
-          "system_id": "QftpZC6uM4",
-          "wikidata_label": "Dihydropteroate synthase",
-          "wikidata_id": "Q5276443"
-        },
-        "target_concept": {
-          "system_id": "QsNVnZ1yTR",
-          "wikidata_label": "sulfonamide",
-          "wikidata_id": "Q3208529"
-        }
-      },
-      {
         "relationship_id": "QftpZC6uM4|dJepC0Zpgx",
         "num_findings": 1,
         "num_studies": 1,
@@ -2853,6 +2875,22 @@
           "system_id": "dJepC0Zpgx",
           "wikidata_label": "hospital mortality",
           "wikidata_id": "Q65335221"
+        }
+      },
+      {
+        "relationship_id": "QftpZC6uM4|QsNVnZ1yTR",
+        "num_findings": 1,
+        "num_studies": 1,
+        "last_published_date": "2000-08-01T00:00:00",
+        "source_concept": {
+          "system_id": "QftpZC6uM4",
+          "wikidata_label": "Dihydropteroate synthase",
+          "wikidata_id": "Q5276443"
+        },
+        "target_concept": {
+          "system_id": "QsNVnZ1yTR",
+          "wikidata_label": "sulfonamide",
+          "wikidata_id": "Q3208529"
         }
       }
     ]

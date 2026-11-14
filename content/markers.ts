@@ -2,12 +2,10 @@
  * Marker content for the Learn tab. Swapping the demo marker is ONE edit:
  * change DEMO_MARKER_ID below.
  *
- * The demo marker, pfdhps-K540E, is transcribed from docs/MARKER-CONTENT.md
- * and is `reviewed: true`. Every other marker comes from docs/SCIENCE.md
- * ("Candidate markers" table and the antifolate paragraph), goes no further
- * than that file, and stays `reviewed: false` — see content/review.ts for what
- * that does on screen. Their unwritten fields are `null` on purpose. Do not
- * fill them from memory.
+ * The demo marker, pfdhps-K540E, is transcribed from docs/MARKER-CONTENT.md.
+ * It is the only marker with written content, so it is the only one here. To
+ * add another, write its content in a doc first, then add an entry; do not
+ * fill fields from memory.
  */
 import type { Reviewable } from "./review";
 
@@ -29,6 +27,8 @@ export type LadderDiagram = {
   title: string;
   /** Lowest rung first (earlier rungs sit lower). */
   rungs: LadderRung[];
+  /** Named combination spanning rungs (0-based, inclusive), drawn as a bracket. */
+  bracket?: { from: number; to: number; lines: string[] };
   caption: string;
 };
 
@@ -62,11 +62,13 @@ export type Marker = {
   /** Sourced classification chip. null = omit the chip entirely (LEARN.md). */
   classification: { label: string; source: string } | null;
   identity: Reviewable<true>;
-  /** The one bolded sentence. null = science lead has not written it. */
-  oneSentence: Reviewable<string> | null;
+  /** The one bolded sentence. */
+  oneSentence: Reviewable<string>;
   /** Three headed paragraphs. */
-  mechanism: Reviewable<[MechanismPara, MechanismPara, MechanismPara]> | null;
-  diagram: Reviewable<Diagram> | null;
+  mechanism: Reviewable<[MechanismPara, MechanismPara, MechanismPara]>;
+  /** The point to carry into the other tabs, shown above the mechanism. */
+  keyPoint?: { heading: string; body: string };
+  diagram: Reviewable<Diagram>;
   /** "What this doesn't tell you" bullets. Omitted = the page's default three. */
   limits?: [string, string, string];
 };
@@ -76,59 +78,6 @@ export type MechanismPara = { heading: string; body: string };
 /** The marker Learn shows when the URL carries none. ONE EDIT to swap.
  *  Confirmed as the demo marker. */
 export const DEMO_MARKER_ID = "pfdhps-K540E";
-
-/** LEARN.md template. Science lead reviews the result before it ships. */
-function templateSentence(gene: string, alteration: string, drug: string): string {
-  return `Parasites carrying ${alteration} in ${gene} are associated with reduced efficacy of ${drug}.`;
-}
-
-/* The accumulation ladder, from docs/SCIENCE.md: triple (dhfr N51I + C59R +
- * S108N), quintuple (+ dhps A437G + K540E), sextuple (+ dhps A581G). */
-const ANTIFOLATE_LADDER: LadderDiagram = {
-  kind: "ladder",
-  title: "Antifolate alterations accumulate, one parasite at a time",
-  rungs: [
-    {
-      name: "Triple mutant",
-      alterations: [
-        { gene: "dhfr", codon: "N51I", isNew: true },
-        { gene: "dhfr", codon: "C59R", isNew: true },
-        { gene: "dhfr", codon: "S108N", isNew: true },
-      ],
-      effect: null,
-    },
-    {
-      name: "Quintuple mutant",
-      alterations: [
-        { gene: "dhfr", codon: "triple", isNew: false },
-        { gene: "dhps", codon: "A437G", isNew: true },
-        { gene: "dhps", codon: "K540E", isNew: true },
-      ],
-      effect: null,
-    },
-    {
-      name: "Sextuple mutant",
-      alterations: [
-        { gene: "dhfr + dhps", codon: "quintuple", isNew: false },
-        { gene: "dhps", codon: "A581G", isNew: true },
-      ],
-      effect: null,
-    },
-  ],
-  caption:
-    "A teaching visual. Each combination is a property of an individual parasite, not of a region — it is never inferred from separate single-mutation findings in different papers.",
-};
-
-function beforeAfter(gene: string, alteration: string, drug: string): BeforeAfterDiagram {
-  return {
-    kind: "before-after",
-    title: `${drug}: without and with ${alteration}`,
-    element: `${gene} protein`,
-    before: { heading: "Drug acting normally", note: `${gene} without ${alteration}` },
-    after: { heading: `Drug blunted`, note: `${gene} carrying ${alteration}` },
-    caption: "A teaching visual, not a structural model. Mechanism text pending science-lead review.",
-  };
-}
 
 /* pfdhps ladder for the demo marker — docs/MARKER-CONTENT.md, verbatim. */
 const PFDHPS_LADDER: LadderDiagram = {
@@ -152,11 +101,13 @@ const PFDHPS_LADDER: LadderDiagram = {
       effect: "further reduction in sulfadoxine efficacy",
     },
   ],
+  // docs/MARKER-CONTENT.md: K540E "rarely appears alone" and is usually
+  // reported "alongside A437G as a double mutant".
+  bracket: { from: 0, to: 1, lines: ["Double mutant", "A437G + K540E", "how K540E is", "usually reported"] },
   caption:
     "These changes accumulate in individual parasites. A region\u2019s position on this ladder can only be read from studies that genotyped the combination directly \u2014 never by adding up separate single-mutation results.",
 };
 
-const p = <T,>(value: T): Reviewable<T> => ({ value, reviewed: false });
 /** Signed off for display. */
 const ok = <T,>(value: T): Reviewable<T> => ({ value, reviewed: true });
 
@@ -189,65 +140,16 @@ export const MARKERS: Record<string, Marker> = {
         body: "K540E swaps a lysine for a glutamate \u2014 a positively charged residue for a negatively charged one \u2014 in the region of the enzyme that shapes that binding pocket. The charge reversal weakens the enzyme\u2019s grip on sulfadoxine more than its grip on pABA. The natural substrate still gets through; the drug competes less well. In practice K540E rarely appears alone, and the literature usually reports it alongside A437G as a double mutant, with resistance increasing as further changes accumulate.",
       },
     ]),
+    keyPoint: {
+      heading: "K540E rarely appears alone",
+      body: "The literature usually reports it alongside A437G as a double mutant, with resistance increasing as further changes accumulate. So a finding about K540E is usually a finding about a combination that contains it. When another tab talks about a haplotype containing K540E, it is talking about this marker.",
+    },
     diagram: ok(PFDHPS_LADDER),
     limits: [
       "Carrying this marker is not the same as a patient\u2019s treatment failing. Outcome depends on the drug, the rest of the parasite\u2019s genetic background, and the clinical setting.",
       "A marker not appearing in the evidence here does not mean it is absent in the world. It may mean nobody has published on it, or that the extraction missed it.",
       "Nothing here is clinical guidance. It describes published research, not treatment decisions.",
     ],
-  },
-  "pfdhfr-S108N": {
-    id: "pfdhfr-S108N",
-    organism: "Plasmodium falciparum",
-    gene: "pfdhfr",
-    alteration: "S108N",
-    drug: "pyrimethamine (as SP)",
-    classification: null,
-    identity: p(true),
-    oneSentence: p(templateSentence("pfdhfr", "S108N", "pyrimethamine (as SP)")),
-    mechanism: null,
-    diagram: p(ANTIFOLATE_LADDER),
-  },
-  "pfcrt-K76T": {
-    id: "pfcrt-K76T",
-    organism: "Plasmodium falciparum",
-    gene: "pfcrt",
-    alteration: "K76T",
-    drug: "chloroquine",
-    classification: null,
-    identity: p(true),
-    oneSentence: p(templateSentence("pfcrt", "K76T", "chloroquine")),
-    mechanism: null,
-    diagram: p(beforeAfter("pfcrt", "K76T", "chloroquine")),
-  },
-  "kelch13-C580Y": {
-    id: "kelch13-C580Y",
-    organism: "Plasmodium falciparum",
-    gene: "kelch13 (K13)",
-    alteration: "C580Y",
-    drug: "artemisinin (partial resistance)",
-    classification: null,
-    identity: p(true),
-    // "Partial resistance" is the correct term for artemisinin (CLAUDE.md).
-    oneSentence: p(
-      "Parasites carrying C580Y in kelch13 (K13) are associated with artemisinin partial resistance.",
-    ),
-    mechanism: null,
-    diagram: p(beforeAfter("kelch13", "C580Y", "artemisinin")),
-  },
-  "pfmdr1-N86Y": {
-    id: "pfmdr1-N86Y",
-    organism: "Plasmodium falciparum",
-    gene: "pfmdr1",
-    alteration: "N86Y",
-    drug: "partner drugs (direction varies)",
-    classification: null,
-    identity: p(true),
-    // Direction varies by partner drug (docs/SCIENCE.md), so the LEARN.md
-    // template does not fit. Science lead must write this one.
-    oneSentence: null,
-    mechanism: null,
-    diagram: null,
   },
 };
 

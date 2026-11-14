@@ -4,7 +4,7 @@
  * pubmed_id and doi so a reader can always click through to the paper.
  */
 import graph from "@/data/graph-stats.json";
-import { graphPublishedDate } from "@/lib/stats";
+import { publishedDate } from "@/lib/stats";
 
 export type MarkerFinding = {
   systemId: string;
@@ -15,7 +15,7 @@ export type MarkerFinding = {
   variable2: string;
   statisticType: string;
   population: string | null;
-  /** ISO date (YYYY-MM-DD) when the graph records one for this finding. */
+  /** ISO publication date (YYYY-MM-DD) of the paper, from OpenAlex; null = unknown. */
   published: string | null;
 };
 
@@ -26,12 +26,11 @@ type RawAssociation = {
   variable_1_name: string;
   variable_2_name: string;
   statistic_type: string;
-  relationship: { num_findings: number; last_published_date: string } | null;
 };
 
 const studies = new Map(graph.marker.studies.map((s) => [s.study_id, s]));
 
-/** Dated findings first, oldest to newest; then undated ones by PubMed ID. */
+/** Dated findings first, oldest to newest; then any with no resolved date. */
 export const MARKER_FINDINGS: MarkerFinding[] = (graph.marker.associations as RawAssociation[])
   .map((a) => {
     const study = studies.get(a.study_id);
@@ -45,7 +44,7 @@ export const MARKER_FINDINGS: MarkerFinding[] = (graph.marker.associations as Ra
       variable2: a.variable_2_name,
       statisticType: a.statistic_type.replaceAll("_", " "),
       population: study?.population ?? null,
-      published: graphPublishedDate(a),
+      published: publishedDate(pmid),
     };
   })
   .sort((a, b) => {

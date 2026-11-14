@@ -196,7 +196,7 @@ function FindingList({
             {" "}
             {"\u2014"} {anyVetted || api.length > 0 ? `${main.length} in System's vetted release: ` : ""}
             {t}
-            {api.length > 0 && !apiOnly ? ` \u00b7 ${api.length} API-only records not shown` : ""}
+            {api.length > 0 && !apiOnly ? ` \u00b7 ${api.length} more served by the API only (not in the vetted release), listed below` : ""}
           </span>
         )}
       </h4>
@@ -356,13 +356,13 @@ export function CountryPanel(props: {
   const alerts = alertsFor(alertFeed, iso3, asOfYear);
   const latest = g.latest;
   const share =
-    latest && latest.tested > 0 && latest.withE > 0 ? String(Math.round((latest.withE / latest.tested) * 100)) : null;
+    latest && latest.tested > 0 && latest.withE > 0 ? ((latest.withE / latest.tested) * 100).toFixed(1) : null;
   const sampled = g.years.filter((y) => y.tested > 0 && y.year <= asOfYear);
 
   return (
     <aside
       aria-label={`Evidence for ${country}`}
-      className="h-full overflow-y-auto bg-surface p-4 text-fg"
+      className="h-full overflow-y-auto overscroll-contain bg-surface p-4 text-fg"
     >
       <div className="flex items-start justify-between gap-3">
         <div>
@@ -564,15 +564,10 @@ export function CountryPanel(props: {
           {GRAPH_VERIFICATION.checkedAt.slice(0, 10)}
         </p>
         <p className="mt-2 text-[0.8125rem] leading-relaxed text-muted">
-          Vetted status: {GRAPH_VETTED.method.length > 200 ? GRAPH_VETTED.method.split(/(?<=\.)\s/)[0] : GRAPH_VETTED.method}{" "}
-          {GRAPH_VETTED.checkedAt.slice(0, 10)}
+          Vetted status: checked on {GRAPH_VETTED.checkedAt.slice(0, 10)} against the associations file System
+          publishes on Harvard Dataverse. In the vetted release = the record&rsquo;s id appears in that file;
+          API-only = it does not.
         </p>
-        {GRAPH_VETTED.method.length > 200 && GRAPH_VETTED.method.split(/(?<=\.)\s/).length > 1 && (
-          <details className="mt-1 text-[0.8125rem] text-muted">
-            <summary className="cursor-pointer text-fg">More about vetted status</summary>
-            <p className="mt-1">{GRAPH_VETTED.method.split(/(?<=\.)\s/).slice(1).join(" ")}</p>
-          </details>
-        )}
         <Notes notes={GRAPH.source.notes} />
         <p className="mt-2 text-[0.8125rem] leading-relaxed text-muted">
           Vetted means the record is in the bulk release System publishes on Harvard Dataverse; API-only

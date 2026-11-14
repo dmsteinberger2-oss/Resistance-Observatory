@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { GENOME_MAX_YEAR } from "@/lib/forecast/data";
 
 const BTN =
-  "inline-flex h-8 w-8 items-center justify-center rounded-[5px] border border-line-strong bg-surface-2 text-fg hover:border-drug focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-drug disabled:cursor-not-allowed disabled:opacity-40";
+  "inline-flex h-8 min-w-8 px-2.5 text-sm tabular-nums whitespace-nowrap gap-1 items-center justify-center rounded-[5px] border border-line-strong bg-surface-2 text-fg hover:border-drug focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-drug disabled:cursor-not-allowed disabled:opacity-40";
 
 export function TimeControl(props: {
   year: number;
@@ -66,13 +66,13 @@ export function TimeControl(props: {
         </div>
         <div className="flex items-center gap-2">
           <button type="button" className={BTN} aria-label="Previous year" disabled={year <= minYear} onClick={() => manual(year - 1)}>
-            <span aria-hidden>◀</span>
+            <span aria-hidden>{year > minYear ? `‹ ${year - 1}` : "‹"}</span>
           </button>
           <button type="button" className={BTN} aria-label={playing ? "Pause" : "Play through the years"} onClick={togglePlay}>
-            <span aria-hidden>{playing ? "❚❚" : "▶"}</span>
+            <span aria-hidden>{playing ? "❚❚ Pause" : "▶ Play"}</span>
           </button>
           <button type="button" className={BTN} aria-label="Next year" disabled={year >= maxYear} onClick={() => manual(year + 1)}>
-            <span aria-hidden>▶▏</span>
+            <span aria-hidden>{year < maxYear ? `${year + 1} ›` : "›"}</span>
           </button>
         </div>
       </div>

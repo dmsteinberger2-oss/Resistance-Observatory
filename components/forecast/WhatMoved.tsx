@@ -77,7 +77,7 @@ export function WhatMoved(props: {
     <section aria-label="What moved" className={`fc-card flex max-h-full min-h-0 w-full flex-col p-3 ${className ?? ""}`}>
       <h2 className="text-xs uppercase tracking-[0.18em] text-muted">What moved</h2>
 
-      <div className="min-h-0 flex-1 overflow-y-auto pb-3 [mask-image:linear-gradient(to_bottom,black_calc(100%_-_20px),transparent)] [scrollbar-width:thin]" tabIndex={0} aria-label="Changes list, scrollable">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-3 [mask-image:linear-gradient(to_bottom,black_calc(100%_-_20px),transparent)] [scrollbar-width:thin]" tabIndex={0} aria-label="Changes list, scrollable">
       <h3 className="mt-2 text-xs font-semibold tabular-nums text-fg">In {year}</h3>
       <div>
         {empty ? (

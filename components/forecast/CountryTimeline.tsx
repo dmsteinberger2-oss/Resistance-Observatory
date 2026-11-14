@@ -105,7 +105,7 @@ export function CountryTimeline(props: { iso3: string; asOfYear: number; alertFe
   const aMarks = alerts.map((a) => ({ key: `a${a.id}`, text: `${a.year} · alert: ${a.headline}` }));
   const wMarks = who.map((m, i) => ({ key: `w${i}`, text: `${m.year} · WHO document: ${m.text}` }));
 
-  const cursorX = x(Math.min(y1, Math.max(y0, asOfYear)));
+  const cursorX = x(Math.min(y1, Math.max(y0, asOfYear))) + step / 2; // end of the as-of year
   const labelRight = cursorX > W - 70;
 
   return (
@@ -133,7 +133,7 @@ export function CountryTimeline(props: { iso3: string; asOfYear: number; alertFe
                 <g key={key} opacity={dim(g.year)} {...markProps(key, text)}>
                   <rect x={cx - bw / 2 - 1} y={gTop - 2} width={bw + 2} height={gH + 4} fill="transparent" />
                   {g.withE > 0 ? (
-                    <rect x={cx - bw / 2} y={gBase - Math.max(4, h)} width={bw} height={Math.max(4, h)} className="fill-drug" />
+                    <rect x={cx - bw / 2} y={gBase - Math.max(6, h)} width={bw} height={Math.max(6, h)} className="fill-drug" />
                   ) : (
                     <rect x={cx - bw / 2} y={gBase - 5} width={bw} height={4.5} fill="none" className="stroke-drug" strokeWidth={1.3} />
                   )}

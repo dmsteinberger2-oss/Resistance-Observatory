@@ -55,9 +55,9 @@ const markerDates = (graph.marker.associations as { pubmed_id?: number | null }[
   .sort();
 
 /* --------------------------------------- The marker: codon 540 of pfdhps --- */
-/* The graph has no variable for K540E on its own. The marker's evidence is
- * every variable whose NAME mentions codon 540 (graph.marker.name_pattern),
- * alone or inside a named combination. */
+/* The graph indexes K540E only lightly. The marker's evidence is every
+ * variable whose NAME mentions codon 540 (graph.marker.name_pattern): a few
+ * name K540E on its own, most name it inside a combination or a list. */
 
 // GET /variables?search=name:<term>&limit=50&offset=<n>&include_total=true
 //   for <term> in dhps, pfdhps, dihydropteroate, K540E, 540E, sulfadoxine,
@@ -77,6 +77,20 @@ export const GRAPH_MARKER_FINDINGS = {
   label: "Findings that name codon 540 of pfdhps directly",
   source: SOURCE,
   query: "GET /variables/{id}/associations?limit=50&offset=<n>&include_total=true, per marker variable",
+} satisfies Stat;
+
+// Subset of the marker associations (same query) in which a variable names
+// K540E on its own: the name matches /K540\s*E/ and names no other codon,
+// gene or combination.
+const NAMES_K540E_ALONE = (name: string) =>
+  /K540\s*E/i.test(name) && !/437|581|51I|59R|108|dhfr|reductase|mutant/i.test(name);
+export const GRAPH_MARKER_K540E_ALONE_FINDINGS = {
+  value: (graph.marker.associations as { variable_1_name: string; variable_2_name: string }[]).filter(
+    (a) => NAMES_K540E_ALONE(a.variable_1_name) || NAMES_K540E_ALONE(a.variable_2_name),
+  ).length,
+  label: "Findings that name K540E on its own, with no other codon",
+  source: SOURCE,
+  query: "subset of GET /variables/{id}/associations?limit=50&offset=<n>&include_total=true, per marker variable",
 } satisfies Stat;
 
 // Distinct study_id over those associations; each resolved with
@@ -161,6 +175,7 @@ export const GRAPH_DOI = graph.source.doi;
 export const ALL_STATS = {
   GRAPH_MARKER_VARIABLES,
   GRAPH_MARKER_FINDINGS,
+  GRAPH_MARKER_K540E_ALONE_FINDINGS,
   GRAPH_MARKER_STUDIES,
   OPENALEX_MARKER_DATED_FINDINGS,
   OPENALEX_MARKER_LAST_PUBLISHED,

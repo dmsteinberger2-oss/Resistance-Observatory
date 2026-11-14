@@ -5,8 +5,8 @@ import {
   GRAPH_KNOWN_BAD_SHARE,
   GRAPH_LICENSE,
   GRAPH_MARKER_FINDINGS,
+  GRAPH_MARKER_K540E_ALONE_FINDINGS,
   GRAPH_MARKER_STUDIES,
-  GRAPH_MARKER_VARIABLES,
   GRAPH_PFDHPS_FINDINGS,
   GRAPH_PFDHPS_STUDIES,
   GRAPH_SNAPSHOT_DATE,
@@ -58,10 +58,11 @@ export function Scale() {
             That is the entire published evidence base for this marker in the graph.
           </p>
           <p className="mt-4 max-w-3xl text-base text-muted text-pretty">
-            <strong className="text-fg">A coverage limitation, stated plainly:</strong> the graph has no variable
-            for K540E itself. Its evidence is indexed at the pfdhps / codon-540 level. These counts cover the{" "}
-            {GRAPH_MARKER_VARIABLES.value} graph variables whose names mention codon 540 of pfdhps, alone or
-            inside a named combination such as the A437G/K540E double mutant.
+            <strong className="text-fg">A coverage limitation, stated plainly:</strong> the graph indexes
+            K540E only lightly. {GRAPH_MARKER_K540E_ALONE_FINDINGS.value} findings name K540E on its own. The
+            other {GRAPH_MARKER_FINDINGS.value - GRAPH_MARKER_K540E_ALONE_FINDINGS.value} codon-540 findings sit
+            at the pfdhps level: they name codon 540 inside a combination or a list, such as the A437G/K540E
+            double mutant, or compare how common it is between two groups. No graph finding gives a prevalence figure for K540E.
           </p>
         </Reveal>
 

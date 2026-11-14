@@ -8,7 +8,8 @@
  * Content comes from content/markers.ts, transcribed from
  * docs/MARKER-CONTENT.md.
  */
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useSelection } from "@/lib/selection";
 import { getMarker, MARKERS } from "@/content/markers";
 import { Chip } from "@/components/Chip";
@@ -16,12 +17,16 @@ import { ActionButtons } from "@/components/learn/ActionButtons";
 import { MarkerDiagram } from "@/components/learn/MarkerDiagram";
 
 export default function LearnPage() {
-  const { markerId, setMarkerId } = useSelection();
+  const { markerId, setMarkerId, hrefWithSelection } = useSelection();
+  // A marker id from the URL that we have no content for. Kept so the notice
+  // stays visible after the URL is corrected.
+  const [uncovered, setUncovered] = useState<string | null>(null);
   const marker = getMarker(markerId);
 
   // Learn sets markerId (LEARN.md). If the URL carries none, or an unknown id,
   // write the shown marker into shared state so every other tab inherits it.
   useEffect(() => {
+    if (markerId && !MARKERS[markerId]) setUncovered(markerId);
     if (!markerId || !MARKERS[markerId]) setMarkerId(marker.id);
   }, [markerId, marker.id, setMarkerId]);
 
@@ -34,6 +39,21 @@ export default function LearnPage() {
       <h1 className="sr-only">
         Learn: {marker.gene} {marker.alteration} and {marker.drug}
       </h1>
+
+      {uncovered ? (
+        <p
+          role="status"
+          className="mb-6 flex items-start gap-3 rounded-[var(--radius)] border-2 border-fg bg-surface px-4 py-3 text-base"
+        >
+          <span aria-hidden className="font-mono font-bold">
+            i
+          </span>
+          <span>
+            <span className="font-mono font-semibold break-all">{uncovered.slice(0, 80)}</span> isn&rsquo;t covered
+            yet &mdash; showing {marker.gene} {marker.alteration}.
+          </span>
+        </p>
+      ) : null}
 
       {/* 1 — Identity strip */}
       <section aria-label="Marker identity" className="border-b border-line pb-5">
@@ -95,6 +115,27 @@ export default function LearnPage() {
             </div>
           ))}
         </div>
+      </section>
+
+      {/* Why this matters — points to Alert's stakes chain; no figures restated here. */}
+      <section aria-labelledby="why-h" className="mb-14 rounded-[calc(var(--radius)+6px)] border border-line bg-surface p-6 sm:p-8">
+        <h2 id="why-h" className="font-display text-2xl font-semibold sm:text-3xl">Why this matters</h2>
+        <p className="mt-4 max-w-3xl text-lg leading-relaxed text-pretty">
+          {marker.gene} {marker.alteration} is associated with reduced efficacy of {marker.drug}, one half of SP.
+          The evidence graph also holds findings that connect SP failure with outcomes for patients: birth weight,
+          placental parasitemia, and malaria at delivery.
+        </p>
+        <p className="mt-3 max-w-3xl text-base text-muted text-pretty">
+          Alert follows that chain of evidence one finding at a time, each linked to its paper. These are
+          associations reported in published studies. They are not a prediction for any patient, and not
+          clinical guidance.
+        </p>
+        <Link
+          href={hrefWithSelection("/alert", { markerId: marker.id })}
+          className="mt-5 inline-flex items-center gap-2 font-semibold text-drug underline decoration-drug/40 underline-offset-4 hover:decoration-drug"
+        >
+          Follow the stakes chain on Alert <span aria-hidden>→</span>
+        </Link>
       </section>
 
       {/* 5 — Limits and actions */}

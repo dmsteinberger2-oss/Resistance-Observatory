@@ -153,6 +153,8 @@ export const MARKERS: Record<string, Marker> = {
   },
 };
 
+/** Unknown ids fall back to the demo marker; Learn shows a visible notice when
+ *  that happens. The key "pfdhps-K540E" is shared with other tabs — keep it exact. */
 export function getMarker(id: string | null | undefined): Marker {
   return (id && MARKERS[id]) || MARKERS[DEMO_MARKER_ID];
 }

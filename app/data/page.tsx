@@ -89,9 +89,11 @@ export default function DataPage() {
             <p>
               These are the {ALL_STATS.GRAPH_MARKER_FINDINGS.value} findings in the graph that name codon 540 of
               pfdhps directly, the marker associated with reduced efficacy of sulfadoxine, from{" "}
-              {ALL_STATS.GRAPH_MARKER_STUDIES.value} studies. The graph has no variable for K540E itself: its
-              evidence is indexed at the pfdhps / codon-540 level, so some findings concern a named combination
-              that includes K540E. Each one links to its paper.
+              {ALL_STATS.GRAPH_MARKER_STUDIES.value} studies. The graph indexes K540E only lightly:{" "}
+              {ALL_STATS.GRAPH_MARKER_K540E_ALONE_FINDINGS.value} of these findings name K540E on its own, and
+              the rest sit at the pfdhps level, naming codon 540 inside a combination or a list, or comparing how common it is between two
+              groups. No graph finding
+              gives a prevalence figure for K540E. Each one links to its paper.
             </p>
             <p className="mt-4">
               The graph has no per-finding publication date, so each date here is the paper&rsquo;s publication
@@ -162,8 +164,7 @@ export default function DataPage() {
               {String(ALL_STATS.GRAPH_KNOWN_BAD_SHARE.value)}
               {ALL_STATS.GRAPH_KNOWN_BAD_SHARE.unit} of associations served by its API are known-bad
               extractions, and variables that failed to ground to a Wikidata concept were removed from the public
-              release. A codon-level mutation may simply not be present: the graph has no variable for K540E on
-              its own. The findings shown here are not yet cross-verified against the source papers; the project
+              release. A codon-level mutation may be missing or only lightly indexed, as K540E is. The findings shown here are not yet cross-verified against the source papers; the project
               README records this.
             </p>
             <PullQuote cite="How the alert demo works">

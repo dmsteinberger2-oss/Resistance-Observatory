@@ -112,6 +112,7 @@ different counts. That is expected.
 | --- | --- | --- |
 | `GRAPH_MARKER_VARIABLES` | 8 | variables that **name codon 540 directly**: hits of `GET /variables?search=name:<term>` whose name mentions codon 540 of pfdhps |
 | `GRAPH_MARKER_FINDINGS` | 8 | findings that **name codon 540 directly**: associations of those variables, `GET /variables/{id}/associations`, de-duplicated |
+| `GRAPH_MARKER_K540E_ALONE_FINDINGS` | 2 | of those 8, findings whose variable names K540E on its own, with no other codon or combination |
 | `GRAPH_MARKER_STUDIES` | 5 | studies that **name codon 540 directly**: distinct `study_id` over those associations, `GET /studies/{study_id}` |
 | `GRAPH_PFDHPS_FINDINGS` | 32 | findings that **cover pfdhps overall**: associations of every variable whose name identifies P. falciparum dhps (includes the 8 above) |
 | `GRAPH_PFDHPS_STUDIES` | 24 | studies that **cover pfdhps overall**: distinct `study_id` over those associations |
@@ -122,12 +123,15 @@ different counts. That is expected.
 
 Coverage limitations, stated on screen as well:
 
-- **The graph has no variable for K540E itself.** `search=name:K540E` returns
-  nothing. The marker's evidence is indexed at the pfdhps / codon-540 level:
-  the 8 variables whose names mention codon 540, alone or inside a named
-  combination (for example the A437G/K540E double mutant). The selection rules
-  are recorded in `data/graph-stats.json` (`marker.selection_rule`,
-  `pfdhps_context.selection_rule`).
+- **The graph indexes K540E only lightly.** 2 findings name K540E on its own
+  (variable "Presence of K540 E: in dihydropteroate synthase"). The other 6
+  codon-540 findings sit at the pfdhps level: their variables name codon 540
+  inside a combination or a list (for example the A437G/K540E double mutant),
+  or compare how common it is between two groups.
+  No graph finding gives a prevalence figure for K540E. `search=name:K540E`
+  returns nothing because of how names are written, so the script matches on
+  name text; the selection rules are recorded in `data/graph-stats.json`
+  (`marker.selection_rule`, `pfdhps_context.selection_rule`).
 - **The graph has no per-finding publication date.** Dates on Home and on the
   Data-tab timeline are each paper's publication date from OpenAlex, matched
   on the finding's `pubmed_id`. All 8 resolved. A finding whose date does not
@@ -148,7 +152,8 @@ Coverage limitations, stated on screen as well:
 **Extraction errors and verification.** System's own documentation says
 roughly 20% of the associations its API serves are known-bad extractions. The
 findings shown on Home and Data have **not yet been cross-verified** against
-the Dataverse CSV or the source papers. Every finding keeps its `system_id`,
+the Dataverse CSV or the source papers (Alert's finding IDs were vetted
+against the CSV; see below). Every finding keeps its `system_id`,
 `pubmed_id` and `doi`, and links to the paper so a reader can check it.
 
 ### Publication dates
@@ -158,15 +163,29 @@ the Dataverse CSV or the source papers. Every finding keeps its `system_id`,
   (`scripts/graph-stats.ts`). Used for the "most recent" figure on Home and
   the Data-tab timeline.
 
-### Alert and Forecast sources
+### Alert sources (David)
 
-_To be completed by David and Benjamin._
+Taken from David's spec for the Alert tab. Items marked _to be added_ are his
+to fill in.
 
-- **Alert** (David): genome counts by country and collection year — source
-  name, version, licence and link to be added. Resend, for sending alert
-  email.
-- **Forecast** (Benjamin): map data source — name, version, licence and link
-  to be added. Any location on the map is attributed to that source, never to
+- **MalariaGEN Pf8** — genome counts by country and collection year: 33
+  countries, 1966–2022. Dataset DOI: _to be added by David_. Licence: _to be
+  added_.
+- **PubMed abstracts** — 372 papers on K540E. The fields Alert uses were
+  **extracted by an AI model and have not been hand-checked**.
+- **WHO malaria guidelines, 13 August 2025** — the source of the resistance
+  bands Alert displays. Citing the guidelines is not a WHO endorsement of this
+  project, and the bands are shown as published context, not as a clinical
+  action rule.
+- **System Public Graph, Dataverse CSV** (same release and DOI as above) —
+  used to vet the finding IDs Alert shows.
+- **Resend** — email delivery service for alert emails. A service, not a data
+  source; listed because the shipped app uses it.
+
+### Forecast sources (Benjamin)
+
+- Map data source — name, version, licence and link _to be added by
+  Benjamin_. Any location on the map is attributed to that source, never to
   the System graph.
 
 ## AI coding tool disclosure
@@ -174,4 +193,6 @@ _To be completed by David and Benjamin._
 This repository was built with the help of Claude Code (Anthropic), an AI
 coding assistant, under the direction of the team. This includes the app
 code, the data-pull script `scripts/graph-stats.ts`, and the transcription of
-the Learn content from `docs/MARKER-CONTENT.md`.
+the Learn content from `docs/MARKER-CONTENT.md`. Separately, the Alert tab's
+PubMed abstract fields were extracted by an AI model and not hand-checked
+(see Data sources).

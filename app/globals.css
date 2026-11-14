@@ -1,0 +1,145 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------------
+ * Design tokens. Light palette on :root, dark palette under
+ * prefers-color-scheme. Every colour in the app goes through these.
+ * Colour is never the only encoding (CLAUDE.md) — tokens are paired with
+ * shape, position or label wherever they carry meaning.
+ * ---------------------------------------------------------------------- */
+:root {
+  --bg: #f4f1ea;
+  --surface: #fbf9f4;
+  --surface-2: #ece7dc;
+  --fg: #15171c;
+  --muted: #5a5f6b;
+  --line: #d6cfbf;
+  --line-strong: #a9a08c;
+
+  /* Semantic hues */
+  --drug: #0d6b66;        /* the drug acting */
+  --drug-soft: #d3ebe7;
+  --signal: #b3341d;      /* the mutation / the turn */
+  --signal-soft: #f5dcd4;
+  --gap: #8a6400;         /* the evidence gap / pending */
+  --gap-soft: #f3e8c8;
+
+  --focus: #1d4ed8;
+  --radius: 14px;
+  --shadow: 0 1px 0 rgb(0 0 0 / 0.04), 0 8px 24px -12px rgb(0 0 0 / 0.18);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b0d11;
+    --surface: #12151b;
+    --surface-2: #1a1e26;
+    --fg: #ece8de;
+    --muted: #9ba1ad;
+    --line: #262b35;
+    --line-strong: #3b4250;
+
+    --drug: #46c2b6;
+    --drug-soft: #123632;
+    --signal: #ff6b4e;
+    --signal-soft: #3b1a13;
+    --gap: #e8b84a;
+    --gap-soft: #33280f;
+
+    --focus: #8ab4ff;
+    --shadow: 0 1px 0 rgb(255 255 255 / 0.03), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-drug: var(--drug);
+  --color-drug-soft: var(--drug-soft);
+  --color-signal: var(--signal);
+  --color-signal-soft: var(--signal-soft);
+  --color-gap: var(--gap);
+  --color-gap-soft: var(--gap-soft);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-mono: var(--font-mono-face), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+html {
+  background: var(--bg);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+::selection {
+  background: var(--signal-soft);
+  color: var(--fg);
+}
+
+/* Visible placeholder token for unsourced figures. Intentionally loud. */
+.placeholder-token {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.42em;
+  letter-spacing: 0.04em;
+  vertical-align: middle;
+  padding: 0.35em 0.6em;
+  border: 1.5px dashed var(--gap);
+  color: var(--gap);
+  background: var(--gap-soft);
+  border-radius: 6px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------ Motion --- */
+/* Every animated element has a legible static state. Under reduced motion
+ * nothing moves and everything is visible. */
+
+.reveal {
+  opacity: 0;
+  transform: translate3d(0, 28px, 0);
+  transition:
+    opacity 700ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 700ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: var(--delay, 0ms);
+}
+.reveal[data-visible="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

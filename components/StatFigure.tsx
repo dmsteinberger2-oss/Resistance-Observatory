@@ -6,20 +6,20 @@ import { useInView, usePrefersReducedMotion } from "@/lib/motion";
 
 /**
  * Renders a Stat from lib/stats.ts. Numeric values count up on first scroll
- * into view (static under reduced motion). Unsourced values (null) render a
- * visible placeholder token naming the constant — never a made-up number.
+ * into view (static under reduced motion). Text values render as they are.
  */
 export function StatFigure({
   stat,
-  name,
   className = "",
   showLabel = true,
+  showSource = true,
+  size = "lg",
 }: {
   stat: Stat;
-  /** The constant's name, shown in the placeholder token. */
-  name: string;
   className?: string;
   showLabel?: boolean;
+  showSource?: boolean;
+  size?: "lg" | "md";
 }) {
   const { ref, inView } = useInView<HTMLDivElement>({ threshold: 0.4 });
   const reduced = usePrefersReducedMotion();
@@ -47,19 +47,12 @@ export function StatFigure({
   }, [inView, reduced, target]);
 
   const decimals = target !== null && !Number.isInteger(target) ? 1 : 0;
+  const sizeClass = size === "lg" ? "text-6xl sm:text-7xl" : "text-4xl sm:text-5xl";
 
   return (
     <div ref={ref} className={className}>
-      <p className="font-display text-6xl sm:text-8xl font-semibold tracking-tight tabular-nums leading-none">
-        {stat.value === null ? (
-          <span
-            title={`Unsourced — fill ${name} in lib/stats.ts`}
-            className="inline-block min-w-[3ch] border-b-4 border-dashed border-gap text-gap/40"
-          >
-            <span aria-hidden>?</span>
-            <span className="sr-only">Figure not yet sourced.</span>
-          </span>
-        ) : target !== null ? (
+      <p className={`font-display ${sizeClass} font-semibold tracking-tight tabular-nums leading-none`}>
+        {target !== null ? (
           <>
             {/* Screen readers get the final figure, not the animation. */}
             <span aria-hidden>
@@ -82,14 +75,7 @@ export function StatFigure({
         )}
       </p>
       {showLabel ? <p className="mt-3 max-w-xs text-sm text-muted">{stat.label}</p> : null}
-      {stat.value === null ? (
-        <p className="mt-2 inline-block max-w-full break-all rounded border border-dashed border-gap/70 bg-gap-soft/60 px-2 py-1 font-mono text-[0.7rem] text-gap">
-          {name} · source pending
-        </p>
-      ) : null}
-      {stat.source ? (
-        <p className="mt-1 font-mono text-[0.7rem] text-muted">Source: {stat.source}</p>
-      ) : null}
+      {showSource ? <p className="mt-1 font-mono text-[0.7rem] text-muted">Source: {stat.source}</p> : null}
     </div>
   );
 }

@@ -1,18 +1,14 @@
 "use client";
 
 import { useInView } from "@/lib/motion";
-import { PLACEHOLDER_EVIDENCE_LAG_MONTHS } from "@/lib/stats";
 import { Reveal } from "@/components/Reveal";
 
 /**
  * The gap: a finding is published; it takes time to reach the people choosing
- * drugs. The duration is a stats constant — rendered as a token until sourced.
+ * drugs. No duration is shown: the evidence graph holds no figure for it.
  */
 export function Gap() {
   const { ref, inView } = useInView<HTMLDivElement>({ threshold: 0.45 });
-  const lag = PLACEHOLDER_EVIDENCE_LAG_MONTHS;
-  const lagText =
-    lag.value === null ? null : `${String(lag.value)}${lag.unit ?? ""}`;
 
   return (
     <section aria-labelledby="gap-h" className="py-32">
@@ -34,7 +30,7 @@ export function Gap() {
           data-on={inView ? "true" : "false"}
           className="group mt-20"
           role="img"
-          aria-label={`Timeline: a finding is published; ${lagText ?? "an unsourced length of time"} passes; it reaches the people choosing drugs.`}
+          aria-label="Timeline: a finding is published; time passes; it reaches the people choosing drugs."
         >
           <div className="relative grid grid-cols-[auto_1fr_auto] items-center gap-4">
             <Node glyph="paper" label="Finding published" tone="drug" />
@@ -43,15 +39,6 @@ export function Gap() {
               <div
                 className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-gap transition-[left] duration-[2400ms] ease-in-out left-0 group-data-[on=true]:left-[calc(100%-0.75rem)]"
               />
-              <div className="absolute inset-x-0 -top-10 text-center">
-                {lagText ? (
-                  <span className="font-display text-3xl font-semibold text-gap">{lagText}</span>
-                ) : (
-                  <span className="placeholder-token !text-xs !whitespace-normal break-all" title="Unsourced — fill PLACEHOLDER_EVIDENCE_LAG_MONTHS in lib/stats.ts">
-                    PLACEHOLDER_EVIDENCE_LAG_MONTHS · source pending
-                  </span>
-                )}
-              </div>
             </div>
             <Node glyph="people" label="Reaches people choosing drugs" tone="gap" />
           </div>

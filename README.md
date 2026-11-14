@@ -405,6 +405,52 @@ country-level only.
 AI disclosure: the Map tab's code, data scripts and the spot-check were
 produced with Claude Code (Anthropic) under Benjamin's direction.
 
+### Graph extraction audit: what the Map shows and what it holds back
+
+The Map does not pass Graph records through unexamined. Every Graph finding it
+displays carries two checks, both pinned in the repo:
+
+1. **Is it in System's vetted release?** Looked up by `system_id` in the
+   Dataverse associations file (`data/forecast/graph-vetted.json`). Vetted
+   records are shown by default; API-only records sit behind a labelled toggle.
+2. **Does it match its own paper?** An AI-assisted spot-check compared each
+   record with the paper's abstract or open full text
+   (`data/forecast/graph-verification.json`, with a quote of at most 30 words
+   per record). It was **not reviewed by a human**, and "differs" is a
+   statement about the extraction, never about the study.
+
+Result over all 153 records audited: 86 match their paper, 38 partly match, 26
+differ and 3 could not be checked. Being in the vetted release lowers the rate
+of differences but does not remove it: among SP findings that name a country,
+7 of 72 vetted records differ from their paper, against 15 of 67 API-only
+records.
+
+What the Graph says when read unfiltered, and what the app does instead:
+
+| Record | What the Graph record says | What the paper says | What the app does |
+|---|---|---|---|
+| `paFNq6MPX5`, `AeI-laBxXr` (PMID 25564249) | A prevalence ratio for the presence of K540E | The ratio belongs to the sextuple mutant (the quintuple plus A581G); K540E is named only as a marker for the quintuple background | Hidden on Map and Data |
+| `QIrkddNp_j` (PMID 16023986) | Odds ratio 24.72 for "dhfr triple or dhps double" mutants in children under five | The 24.72 is for the quintuple mutant, in younger and older children | Hidden on Map and Data |
+| `iD_4aq3uIs` (PMID 29854394) | A difference of −41.3 in the prevalence of a set of markers that includes 540E | No change in the antifolate markers; the 41.3 points belong to a different marker | Hidden on Map and Data |
+| `PEyo2A8Ol0` (PMID 26429700, in the vetted release) | A relative risk of 0.32 attached to SP | The 0.32 compares dihydroartemisinin-piperaquine against SP, with DP lower | Shown on the Map marked "differs from the paper"; dropped from the Alert tab's stakes list |
+
+Taken at face value, the first four would be read as evidence about K540E that
+their papers do not contain, and the fifth would be read the wrong way round.
+None of this is a clinical conclusion. It is a check of what a machine
+extraction says against the sentence it came from.
+
+**Precision of ratio findings.** For ratio statistics that come with an
+interval (odds, risk, rate, hazard and prevalence ratios), `ratioPrecision` in
+`lib/forecast/data.ts` derives the log effect, its standard error
+`(ln(upper) − ln(lower)) / (2 × 1.96)` and the precision `1/SE`. 94 of the 149
+findings the Map displays get a value. The formula assumes a 95% interval: the
+Graph records no interval level for these records (`ci_level` is 0 on all 94),
+so every value carries a flag saying so (`seAssumes95`). The Map does not sort,
+filter or display by these values yet, and nothing compares effect sizes across
+different statistic types. `node --test lib/forecast/forecast.test.mts` checks
+the formula on a real record and that all 12 alerts in `data/alerts.json` sit
+on a sampled genome country-year.
+
 ## AI coding tool disclosure
 
 This repository was built with the help of Claude Code (Anthropic), an AI

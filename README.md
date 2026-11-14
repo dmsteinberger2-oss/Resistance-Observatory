@@ -280,4 +280,80 @@ coding assistant, under the direction of the team. This includes the app
 code, the data-pull script `scripts/graph-stats.ts`, and the transcription of
 the Learn content from `docs/MARKER-CONTENT.md`. Separately, the Alert tab's
 PubMed abstract fields were extracted by an AI model and not hand-checked
-(see Data sources).
+(see Data sources). All science content is gated on human review (see `docs/SCIENCE.md`, `docs/LEARN.md`).
+
+## Alert tab — sources, method and disclosure
+
+The Alert tab (`/alert`) goes deep on one marker, **PfDHPS K540E**, and the
+drug it bears on, sulfadoxine-pyrimethamine (SP). A researcher writes a watch
+as a sentence; the tab replays every moment the evidence moved, with the
+counts, the threshold and its basis, what the System graph holds, and the
+email a subscriber would receive. It replays the historical record. It is not
+live surveillance and not clinical guidance.
+
+**URL convention for the other tabs:** `?marker=pfdhps-K540E&area=<ISO3>`
+(the shell's existing `marker` id plus an ISO3 country). The current watch
+adds `trig`, `level`, `pts`, `n`; the open alert uses the shell's `finding`
+parameter. Saved, named watches live in `localStorage` in the user's browser
+only; the link always holds the current watch.
+
+### Data sources (all in `k540e-data-pack/`)
+
+| Evidence | Source | Licence / notes |
+| --- | --- | --- |
+| Genome counts by country and collection year (K540E, A581G, A437G, quintuple haplotype) | MalariaGEN Pf8, <https://zenodo.org/records/18681980> (DOI 10.5281/zenodo.18681980) | CC BY 4.0. Convenience samples, dated by collection year. Wilson 95% intervals are computed in the app. |
+| 372 papers mentioning K540E, with abstract figures, association sentences and first-report claims | PubMed (NCBI E-utilities), searched 14 November 2026 | Abstract items were read by a language model; a program kept only quotes that appear word for word in the abstract. Not checked by hand, so every one is shown as a quote with its PubMed link. |
+| Graph findings, concept ids, vetted association ids; live queries | System Public Graph, <https://doi.org/10.7910/DVN/7V6JDO>; API <https://public-api.system.com> | Non-commercial. Work deriving from the graph is CC BY-NC. |
+| Marker status, SP-resistance categories, history | WHO guidelines for malaria, 13 August 2025, <https://iris.who.int/server/api/core/bitstreams/26a6af2d-060c-4449-8207-1f25e63c6cc3/content> (categories: PDF page 105; continuing IPTp-SP: PDF pages 104 and 107–108); WHO Compendium of molecular markers for antimalarial drug resistance, <https://www.who.int/publications/m/item/compendium-of-molecular-markers-for-antimalarial-drug-resistance>; other WHO documents linked inside `k540e-thresholds.json` | Quoted verbatim with page references. Presets outside East and Southern Africa are this project's, and are labelled as presets. |
+
+Citation: System, Inc. (2026). *System Public Graph* (Version 2.1) [Data set].
+DOI: <https://doi.org/10.7910/DVN/7V6JDO>
+
+### How the graph is used, and what was verified
+
+- The graph has read 10 of the 372 K540E papers, and no graph finding names
+  K540E on its own. The tab shows that gap, what the graph did extract from
+  those 10 papers, and the unread papers for the selected country as a
+  ready-to-ingest PubMed id queue.
+- About a fifth of associations returned by the API are known-bad
+  extractions. `/api/alert/system` returns only associations whose id is in
+  the vetted list (4,912 ids, from the Dataverse CSV snapshot of 8 July 2026)
+  and counts the rest as quarantined; they are never displayed.
+- Seven graph findings were compared against their paper
+  (`source_checked: true` in the pack) and are labelled "Source-checked
+  against paper". Every other graph finding is labelled "Reported by System
+  Graph, unverified".
+- Alert sentences are templates filled from the data. No language model runs
+  in the app.
+
+### Running and testing
+
+```bash
+node --test lib/alert/*.test.mts   # derivation + the data pack's check figures (Node 24, no test library)
+npx tsc --noEmit
+npx next build
+```
+
+Optional server-side environment variables: a System API key
+(`SYSTEM_API_KEY`) for live graph calls, and `RESEND_API_KEY` (plus optional
+`ALERT_FROM_EMAIL`) to send alert emails. Without them the tab shows the
+snapshot and the email control reads "Preview only".
+
+### AI-assistance disclosure (Alert tab)
+
+The Alert tab's code was written with AI assistance (Claude Code, Anthropic)
+under the direction of the team. The data pack was also prepared with AI
+assistance from the public sources above, including the machine-read,
+quote-verified abstract items, which no human has checked.
+
+### Forecast map contract
+
+`data/alerts.json` lists the Alert tab's default alerts for every country
+(each region's default rule on the genome counts; cells of at least 20
+samples, except first detections, which are badged weak when thin). Each item
+is `{ id, marker_id, country_iso3, year, rule, headline }`.
+`getDefaultMapAlerts()` in `lib/alert/mapAlerts.ts` returns the same list.
+Regenerate with `node lib/alert/generate-map-alerts.mts` (a test fails if the
+file drifts from the pack). Link an alert to its inspector with
+`/alert?alert=<id>`; the Alert tab links back with
+`/forecast?country=<ISO3>&marker=pfdhps-K540E`.

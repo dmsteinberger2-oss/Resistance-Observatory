@@ -164,7 +164,7 @@ export function LegendStrip({
           <Item mark={<Ramp css={paperRampGradientCss()} lo="1" hi={String(paperMax)} />}>papers</Item>
           <Item mark={<SquareGlyph read />}>Graph read at least one</Item>
           <Item mark={<SquareGlyph read={false} />}>Graph read none</Item>
-          <Item mark={<Swatch kind="not_sampled" />}>no mark: no paper</Item>
+          <li className="leading-tight">no mark: no paper</li>
         </ul>
       ) : (
         <ul

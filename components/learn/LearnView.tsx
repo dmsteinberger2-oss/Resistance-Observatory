@@ -16,6 +16,9 @@ import { Chip } from "@/components/Chip";
 import { ActionButtons } from "@/components/learn/ActionButtons";
 import { MarkerDiagram } from "@/components/learn/MarkerDiagram";
 
+/** Same side gutters as the nav and the story page, so left edges line up. */
+const WRAP = "mx-auto max-w-[1340px] px-[clamp(16px,5.4vw,100px)]";
+
 export function LearnView({ structureFigure }: { structureFigure?: ReactNode }) {
   const { markerId, setMarkerId, hrefWithSelection } = useSelection();
   // A marker id from the URL that we have no content for. Kept so the notice
@@ -35,66 +38,91 @@ export function LearnView({ structureFigure }: { structureFigure?: ReactNode }) 
   const mechanism = marker.mechanism;
 
   return (
-    <article className="mx-auto max-w-6xl px-4 pb-16 pt-10 sm:px-6 sm:pt-14">
+    <article className="pb-16">
       <h1 className="sr-only">
         Learn: {marker.gene} {marker.alteration} and {marker.drug}
       </h1>
 
-      {uncovered ? (
-        <p
-          role="status"
-          className="mb-6 flex items-start gap-3 rounded-[var(--radius)] border-2 border-fg bg-surface px-4 py-3 text-base"
-        >
-          <span aria-hidden className="font-mono font-bold">
-            i
-          </span>
-          <span>
-            <span className="font-mono font-semibold break-all">{uncovered.slice(0, 80)}</span> isn&rsquo;t covered
-            yet &mdash; showing {marker.gene} {marker.alteration}.
-          </span>
-        </p>
-      ) : null}
-
-      {/* 1 — Identity strip */}
-      <section aria-label="Marker identity" className="border-b border-line pb-5">
-        <p className="flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-sm sm:text-base">
-          <span className="italic">{marker.organism}</span>
-          <Dot />
-          <span>
-            <span className="font-semibold">{marker.gene}</span>
-            {marker.geneFullName ? <span className="text-muted"> ({marker.geneFullName})</span> : null}
-          </span>
-          <Dot />
-          <span>
-            <span className="font-semibold text-signal">{marker.alteration}</span>
-            {marker.alterationPlain ? <span className="text-muted"> ({marker.alterationPlain})</span> : null}
-          </span>
-          <Dot />
-          <span>
-            affects <span className="font-semibold text-drug">{marker.drug}</span>
-            {marker.drugNote ? <span className="text-muted"> ({marker.drugNote})</span> : null}
-          </span>
-          {marker.classification ? (
-            <Chip tone="neutral" title={`Source: ${marker.classification.source}`}>
-              {marker.classification.label} · {marker.classification.source}
-            </Chip>
+      {/* First screen: identity, answer and diagram composed as one unit, on
+          the story's dark gradient field. Blocks 1-3 keep their order. */}
+      <div className="learn-top border-b border-line">
+        <div className={`${WRAP} pb-12 pt-8 xl:pb-14 xl:pt-12`}>
+          {uncovered ? (
+            <p
+              role="status"
+              className="mb-6 flex items-start gap-3 rounded-[var(--radius)] border-2 border-fg bg-surface px-4 py-3 text-base"
+            >
+              <span aria-hidden className="font-mono font-bold">
+                i
+              </span>
+              <span>
+                <span className="font-mono font-semibold break-all">{uncovered.slice(0, 80)}</span> isn&rsquo;t covered
+                yet &mdash; showing {marker.gene} {marker.alteration}.
+              </span>
+            </p>
           ) : null}
-        </p>
-      </section>
 
-      {/* 2 — The one-sentence answer */}
-      <section aria-label="The answer in one sentence" className="py-10 sm:py-14">
-        <p className="max-w-5xl font-display text-[clamp(1.9rem,4.4vw,3.6rem)] font-bold leading-[1.08] tracking-tight text-balance">
-          {sentence.value}
-        </p>
-      </section>
+          {/* 1 — Identity strip */}
+          <section aria-label="Marker identity" className="border-b border-line pb-5">
+            {/* The story's eyebrow hairline, carried over. */}
+            <span aria-hidden className="mb-4 block h-px w-[34px] bg-drug" />
+            <p className="flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-sm sm:text-base">
+              <span className="italic">{marker.organism}</span>
+              <Dot />
+              <span>
+                <span className="font-semibold">{marker.gene}</span>
+                {marker.geneFullName ? <span className="text-muted"> ({marker.geneFullName})</span> : null}
+              </span>
+              <Dot />
+              <span>
+                <span className="font-semibold text-signal">{marker.alteration}</span>
+                {marker.alterationPlain ? <span className="text-muted"> ({marker.alterationPlain})</span> : null}
+              </span>
+              <Dot />
+              <span>
+                affects <span className="font-semibold text-drug">{marker.drug}</span>
+                {marker.drugNote ? <span className="text-muted"> ({marker.drugNote})</span> : null}
+              </span>
+              {marker.classification ? (
+                <Chip tone="neutral" title={`Source: ${marker.classification.source}`}>
+                  {marker.classification.label} · {marker.classification.source}
+                </Chip>
+              ) : null}
+            </p>
+          </section>
 
-      {/* 3 — The diagram */}
-      <section aria-label="Diagram" className="rounded-[calc(var(--radius)+6px)] border border-line bg-surface p-4 sm:p-8">
-        <h2 className="mb-6 font-display text-2xl font-semibold sm:text-3xl">{diagram.value.title}</h2>
-        <MarkerDiagram diagram={diagram.value} />
-      </section>
+          <div className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,5fr)_minmax(0,8fr)] xl:items-center xl:gap-10">
+            <div className="min-w-0">
+              {/* Left-hand anchor: the marker name, large and quiet. Decorative;
+                  the name is already in the identity strip and the heading. */}
+              <p
+                aria-hidden
+                className="select-none font-display text-[clamp(3.5rem,7vw,6.5rem)] leading-none text-fg/15"
+              >
+                {marker.alteration}
+              </p>
 
+              {/* 2 — The one-sentence answer */}
+              <section aria-label="The answer in one sentence" className="mt-5">
+                <p className="font-display text-[clamp(1.6rem,2.8vw,2.6rem)] leading-[1.12] text-balance">
+                  {sentence.value}
+                </p>
+              </section>
+            </div>
+
+            {/* 3 — The diagram */}
+            <section
+              aria-label="Diagram"
+              className="min-w-0 rounded-[calc(var(--radius)+6px)] border border-line bg-surface p-4 sm:p-6 xl:p-5"
+            >
+              <h2 className="mb-4 font-display text-2xl font-semibold">{diagram.value.title}</h2>
+              <MarkerDiagram diagram={diagram.value} />
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <div className={`${WRAP} pt-10`}>
       {/* 3b — Published crystal structures (rendered on the server; absent if the images are). */}
       {structureFigure}
 
@@ -177,6 +205,7 @@ export function LearnView({ structureFigure }: { structureFigure?: ReactNode }) 
           <ActionButtons marker={marker} />
         </div>
       </section>
+      </div>
     </article>
   );
 }

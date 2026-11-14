@@ -251,6 +251,24 @@ a:hover {
   white-space: nowrap;
 }
 
+/* ------------------------------------------------- Learn first screen --- */
+/* The story's dark field, carried into Learn so arriving from the story reads
+ * as a continuation: deep navy with a soft teal glow behind the diagram. */
+.learn-top {
+  margin-top: -76px;
+  padding-top: 76px;
+  background:
+    radial-gradient(ellipse 60% 70% at 78% 38%, #247a7d38, transparent 70%),
+    linear-gradient(90deg, #030913 0%, #030913d8 30%, #03091300 70%),
+    #050d17;
+}
+@media (max-width: 500px) {
+  .learn-top {
+    margin-top: -65px;
+    padding-top: 65px;
+  }
+}
+
 /* ------------------------------------------------------------ Motion --- */
 /* Every animated element has a legible static state. Under reduced motion
  * nothing moves and everything is visible. */

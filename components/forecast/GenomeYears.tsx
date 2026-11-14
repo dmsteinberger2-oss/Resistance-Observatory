@@ -10,7 +10,7 @@ export function GenomeYears({ years }: { years: GenomeYear[] }) {
       const b = y.year - 1;
       rows.push(
         <tr key={`gap-${a}`}>
-          <td colSpan={3} className="py-1 text-center text-[0.72rem] italic text-muted">
+          <td colSpan={3} className="py-1 text-center text-[0.8125rem] italic text-muted">
             <span className="border-y border-dashed border-line-strong px-2">
               not sampled {a === b ? a : `${a}–${b}`}
             </span>
@@ -21,7 +21,7 @@ export function GenomeYears({ years }: { years: GenomeYear[] }) {
     const frac = y.tested > 0 ? Math.min(1, y.withE / y.tested) : 0;
     rows.push(
       <tr key={y.year}>
-        <th scope="row" className="py-1 pr-2 text-left text-xs font-normal tabular-nums text-fg">
+        <th scope="row" className="py-1 pr-2 text-left text-[0.8125rem] font-normal tabular-nums text-fg">
           {y.year}
         </th>
         <td className="w-full py-1 pr-2">
@@ -34,27 +34,36 @@ export function GenomeYears({ years }: { years: GenomeYear[] }) {
             )}
           </div>
         </td>
-        <td className="whitespace-nowrap py-1 text-right text-xs tabular-nums text-fg">
+        <td className="whitespace-nowrap py-1 text-right text-[0.8125rem] tabular-nums text-fg">
           {y.withE} / {y.tested}
+          {y.other > 0 && <span className="text-muted"> {"\u00b7"} {y.other} other</span>}
         </td>
       </tr>,
     );
     prev = y.year;
   }
+  const anyOther = years.some((y) => y.other > 0);
   return (
+    <div>
     <table className="w-full border-collapse">
       <caption className="sr-only">
         Samples carrying K540E out of samples tested, by collection year. Years without
         samples are listed as not sampled.
       </caption>
       <thead>
-        <tr className="text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+        <tr className="text-[0.75rem] uppercase tracking-[0.18em] text-muted">
           <th scope="col" className="pb-1 text-left font-normal">Year</th>
-          <th scope="col" className="pb-1 text-left font-normal">Share carrying K540E</th>
-          <th scope="col" className="pb-1 text-right font-normal">K540E / tested</th>
+          <th scope="col" className="pb-1 text-left font-normal">Share</th>
+          <th scope="col" className="whitespace-nowrap pb-1 text-right font-normal">K540E / tested</th>
         </tr>
       </thead>
       <tbody>{rows}</tbody>
     </table>
+    {anyOther && (
+      <p className="mt-1 text-[0.8125rem] text-muted">
+        other = samples with a different amino acid at codon 540; they are not K540E.
+      </p>
+    )}
+    </div>
   );
 }

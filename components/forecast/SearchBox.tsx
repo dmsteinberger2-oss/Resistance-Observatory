@@ -59,6 +59,7 @@ export function SearchBox(props: {
         choose(results[active >= 0 ? active : 0]);
       }
     } else if (e.key === "Escape") {
+      if (!showList) setValue("");
       setOpen(false);
       setActive(-1);
     }
@@ -68,7 +69,7 @@ export function SearchBox(props: {
     <div className={`relative ${className}`}>
       <label
         htmlFor={`${uid}-input`}
-        className="mb-1 block text-[0.68rem] uppercase tracking-[0.18em] text-muted"
+        className="mb-1 block text-[0.75rem] uppercase tracking-[0.18em] text-muted"
       >
         Search a country or city
       </label>
@@ -84,7 +85,8 @@ export function SearchBox(props: {
         spellCheck={false}
         value={value}
         placeholder="For example Nigeria or Lagos"
-        onFocus={() => {
+        onFocus={(e) => {
+          e.currentTarget.select();
           ensurePlaces();
           setOpen(true);
         }}
@@ -97,18 +99,20 @@ export function SearchBox(props: {
         onKeyDown={onKeyDown}
         className="w-full rounded-[5px] border border-line-strong bg-surface px-3 py-2 text-sm text-fg placeholder:text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-drug"
       />
+      <div role="status" aria-live="polite">
+        {showList && results.length === 0 && (
+          <p className="absolute left-0 right-0 z-20 mt-1 rounded-[10px] border border-line-strong bg-surface-2 px-3 py-2 text-sm text-muted">
+            No country or city matches. Try a country name.
+          </p>
+        )}
+      </div>
       <ul
         id={listId}
         role="listbox"
         aria-label="Search results"
-        hidden={!showList}
+        hidden={!showList || results.length === 0}
         className="absolute left-0 right-0 z-20 mt-1 overflow-hidden rounded-[10px] border border-line-strong bg-surface-2 shadow-lg"
       >
-        {showList && results.length === 0 && (
-          <li role="presentation" className="px-3 py-2 text-sm text-muted">
-            No country or city matches. Try a country name.
-          </li>
-        )}
         {showList &&
           results.map((r, i) => (
             <li
@@ -124,7 +128,7 @@ export function SearchBox(props: {
               }`}
             >
               <span className="block text-sm text-fg">{r.label}</span>
-              <span className="block text-xs text-muted">{r.sublabel}</span>
+              <span className="block text-[0.8125rem] text-muted">{r.sublabel}</span>
             </li>
           ))}
       </ul>

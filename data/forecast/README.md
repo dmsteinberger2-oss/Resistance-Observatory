@@ -55,6 +55,7 @@ python3 -I scripts/forecast/pf8_k540e.py <Pf8_drug_resistance_marker_genotypes.t
 - Work deriving from the Graph inherits CC BY-NC 4.0.
 - Selection rule: see `selectionRule` in `graph-findings.json` (from the recon summary). Kinds: `sp` = a variable name refers to SP; `codon540` = a variable name explicitly includes 540E. Other dhps findings (44) are dropped.
 - Totals, computed from all 454 SP and 540E records: SP 443 (139 name a country, 255 have no study record); codon540 11 (11 name a country, 8 papers). `findings` lists the 150 that name a country.
+- Two codon540 findings, `paFNq6MPX5` and `AeI-laBxXr` (PMID 25564249), stay in `graph-findings.json` but are hidden in the app (`MIS_EXTRACTED_IDS` in `lib/forecast/data.ts`): checked against the source paper, their numbers belong to the A581G sextuple mutant. Same exclusion as the Data and Alert tabs.
 - `spLooksLikeUptake` is a name-based hint only (the SP variable name looks like an uptake or coverage measure).
 - `dataverse-studies-subset.tsv` holds the 57 study rows used from the Dataverse studies table (the upstream file is comma-separated despite its `.tsv` name; the subset keeps that format). The other 12 study records came from the API (`raw/graph/studies_*.json`).
 

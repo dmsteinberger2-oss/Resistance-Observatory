@@ -55,7 +55,11 @@ python3 -I scripts/forecast/pf8_k540e.py <Pf8_drug_resistance_marker_genotypes.t
 - Work deriving from the Graph inherits CC BY-NC 4.0.
 - Selection rule: see `selectionRule` in `graph-findings.json` (from the recon summary). Kinds: `sp` = a variable name refers to SP; `codon540` = a variable name explicitly includes 540E. Other dhps findings (44) are dropped.
 - Totals, computed from all 454 SP and 540E records: SP 443 (139 name a country, 255 have no study record); codon540 11 (11 name a country, 8 papers). `findings` lists the 150 that name a country.
-- Two codon540 findings, `paFNq6MPX5` and `AeI-laBxXr` (PMID 25564249), stay in `graph-findings.json` but are hidden in the app (`MIS_EXTRACTED_IDS` in `lib/forecast/data.ts`): checked against the source paper, their numbers belong to the A581G sextuple mutant. Same exclusion as the Data and Alert tabs.
+- Four codon540 findings stay in `graph-findings.json` and `graph-verification.json` but are hidden in the app (`MIS_EXTRACTED_IDS` in `lib/forecast/data.ts`): `paFNq6MPX5` and `AeI-laBxXr` (PMID 25564249), `iD_4aq3uIs` (PMID 29854394, Cameroon) and `QIrkddNp_j` (PMID 16023986, Nigeria). Each was checked against its source paper and found mis-extracted: the first two by a human check of the abstract plus the vetted CSV, the last two by the AI-assisted spot-check. Same exclusion as the Data tab (`data/graph-stats.json`, `marker.associations` with `vetted: false`). The ids are hardcoded in `data.ts` (that file is not imported by the app); `check-data.mjs` fails if they drift from `graph-stats.json`. Every count over displayed findings excludes them.
+
+## Used by other tabs
+
+`data/forecast/graph-verification.json` is imported read-only by `lib/findings.ts` (Learn, Data, Overview). Its path and the fields `checkedBy`, `records[].systemId`, `records[].status`, `records[].where` and `records[].note` must not change. `check-data.mjs` checks that shape.
 - `spLooksLikeUptake` is a name-based hint only (the SP variable name looks like an uptake or coverage measure).
 - `dataverse-studies-subset.tsv` holds the 57 study rows used from the Dataverse studies table (the upstream file is comma-separated despite its `.tsv` name; the subset keeps that format). The other 12 study records came from the API (`raw/graph/studies_*.json`).
 

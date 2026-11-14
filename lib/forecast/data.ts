@@ -76,10 +76,12 @@ const vettedFlag = (id: string): boolean | null =>
   typeof VETTED_IDS[id] === "boolean" ? (VETTED_IDS[id] as boolean) : null;
 
 const graphBase = graphJson as GraphDataset;
-/** Findings checked against their source paper and found mis-extracted: the numbers belong to the
- *  A581G sextuple mutant, not K540E. Same exclusion as the Data and Alert tabs
- *  (data/graph-stats.json, marker.associations with vetted: false, see vetting_note). Hidden on the map. */
-export const MIS_EXTRACTED_IDS: ReadonlySet<string> = new Set(["paFNq6MPX5", "AeI-laBxXr"]);
+/** Codon-540 findings checked against their source paper and found mis-extracted (two by a human check
+ *  of the abstract plus the vetted CSV, two by the AI-assisted spot-check). Same exclusion as the Data tab
+ *  (data/graph-stats.json, marker.associations with vetted: false). Hidden on the map; they stay in
+ *  graph-findings.json and in graph-verification.json. Hardcoded on purpose (graph-stats.json is not imported);
+ *  scripts/forecast/check-data.mjs fails if this list drifts from that file. Keep the ids on one line. */
+export const MIS_EXTRACTED_IDS: ReadonlySet<string> = new Set(["paFNq6MPX5", "AeI-laBxXr", "iD_4aq3uIs", "QIrkddNp_j"]);
 export const GRAPH: GraphDataset = {
   ...graphBase,
   findings: graphBase.findings.filter((f) => !MIS_EXTRACTED_IDS.has(f.systemId)).map((f) => ({

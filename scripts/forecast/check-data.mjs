@@ -68,6 +68,32 @@ console.log(
 // Paper spot-check join
 const STATUSES = ["supported", "partly_supported", "contradicted", "not_verifiable"];
 const verification = load("data/forecast/graph-verification.json");
+
+// (a) Shape guard: graph-verification.json is imported read-only by other tabs (lib/findings.ts).
+if (typeof verification.checkedBy !== "string" || !verification.checkedBy.trim()) fail("graph-verification.json: checkedBy must be a non-empty string");
+if (!Array.isArray(verification.records)) fail("graph-verification.json: records must be an array");
+for (const [i, r] of (Array.isArray(verification.records) ? verification.records : []).entries()) {
+  if (typeof r?.systemId !== "string" || !r.systemId) fail(`graph-verification.json records[${i}]: systemId must be a string`);
+  if (!STATUSES.includes(r?.status)) fail(`graph-verification.json records[${i}] (${r?.systemId}): status ${JSON.stringify(r?.status)} not allowed`);
+  for (const k of ["where", "note"]) {
+    if (!(r?.[k] === null || typeof r?.[k] === "string")) fail(`graph-verification.json records[${i}] (${r?.systemId}): ${k} must be a string or null`);
+  }
+}
+
+// (b) Drift guard: the ids hidden in the app (parsed from the MIS_EXTRACTED_IDS line in lib/forecast/data.ts)
+// must equal the team list (data/graph-stats.json, marker.associations with vetted === false).
+const dataTs = readFileSync(new URL("../../lib/forecast/data.ts", import.meta.url), "utf8");
+const misLine = dataTs.split("\n").find((l) => /export const MIS_EXTRACTED_IDS\b/.test(l)) ?? "";
+const hiddenIds = new Set([...misLine.matchAll(/"([^"]+)"/g)].map((m) => m[1]));
+if (!misLine) fail("could not find the MIS_EXTRACTED_IDS line in lib/forecast/data.ts");
+const teamStats = load("data/graph-stats.json");
+const teamIds = new Set((teamStats?.marker?.associations ?? []).filter((a) => a.vetted === false).map((a) => a.system_id));
+const onlyApp = [...hiddenIds].filter((x) => !teamIds.has(x));
+const onlyTeam = [...teamIds].filter((x) => !hiddenIds.has(x));
+if (onlyApp.length || onlyTeam.length)
+  fail(`MIS_EXTRACTED_IDS drifted from data/graph-stats.json (vetted: false). Only in data.ts: [${onlyApp}]. Only in graph-stats.json: [${onlyTeam}]`);
+console.log("Hidden in the app (MIS_EXTRACTED_IDS)", [...hiddenIds].join(", "), "| matches data/graph-stats.json vetted:false:", !(onlyApp.length || onlyTeam.length));
+const shown = graph.findings.filter((f) => !hiddenIds.has(f.systemId)); // what lib/forecast/data.ts exposes as GRAPH.findings
 const recon = load("data/forecast/raw/graph/sp_findings.json");
 const reconIds = new Set(recon.map((r) => r.system_id));
 const pinnedIds = new Set(graph.findings.map((f) => f.systemId));
@@ -80,12 +106,19 @@ for (const r of verification.records ?? []) {
 }
 const notDisplayed = (verification.records ?? []).filter((r) => !pinnedIds.has(r.systemId)).map((r) => r.systemId);
 const vc = { supported: 0, partly_supported: 0, contradicted: 0, not_verifiable: 0, unchecked: 0 };
-const countryFindings = graph.findings.filter((f) => f.countries.length > 0);
+const countryFindings = shown.filter((f) => f.countries.length > 0);
 for (const f of countryFindings) vc[byId.get(f.systemId)?.status ?? "unchecked"] += 1;
 console.log("Verification records", (verification.records ?? []).length, "| not among displayed findings:", notDisplayed.length ? notDisplayed.join(", ") : "none");
-console.log("Verification over country-naming findings", countryFindings.length, JSON.stringify(vc));
+console.log(
+  "Displayed country-naming findings", countryFindings.length,
+  "| sp", countryFindings.filter((f) => f.kind === "sp").length,
+  "| codon540", countryFindings.filter((f) => f.kind === "codon540").length,
+  "| vetted", countryFindings.filter((f) => f.inVettedCsv === true).length,
+  "| API only", countryFindings.filter((f) => f.inVettedCsv === false).length,
+);
+console.log("Verification over displayed country-naming findings", JSON.stringify(vc));
 console.log("Global haplotype findings (shown in every panel as not country-specific):");
-for (const f of graph.findings.filter((x) => x.kind === "haplotype"))
+for (const f of shown.filter((x) => x.kind === "haplotype"))
   console.log(`  ${f.systemId} | paper ${f.paper.year} | PMID ${f.pubmedId} | vetted ${f.inVettedCsv} | status ${byId.get(f.systemId)?.status ?? "unchecked"} | ${f.paper.title}`);
 
 // Papers layer
@@ -152,10 +185,10 @@ for (const f of countryFindings) {
   xt[k][byId.get(f.systemId)?.status ?? "unchecked"] += 1;
   xt[k].total += 1;
 }
-console.log("Vetted x spot-check over country-naming findings:");
+console.log("Vetted x spot-check over displayed country-naming findings:");
 for (const k of Object.keys(xt).sort()) console.log(`  ${k.padEnd(18)}`, JSON.stringify(xt[k]));
 for (const c of ["NGA", "KEN", "GMB"]) {
-  const sp = graph.findings.filter((f) => f.kind === "sp" && f.countries.some((x) => x.iso3 === c));
+  const sp = shown.filter((f) => f.kind === "sp" && f.countries.some((x) => x.iso3 === c));
   console.log(`  ${c} SP findings`, sp.length, "| vetted", sp.filter((f) => f.inVettedCsv === true).length, "| API only", sp.filter((f) => f.inVettedCsv === false).length);
 }
 

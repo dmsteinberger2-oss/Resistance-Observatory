@@ -27,12 +27,12 @@ export function LiveStatus({ live, snapshotLabel }: { live: "loading" | "live" |
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 font-mono text-[0.7rem] text-muted"
-      title={live === "live" ? "Answers below come from the System API now" : "The System API is not answering; showing the data pack"}
+      title={live === "live" ? "Connected to the System API: answers below were fetched from it just now" : "The System API is not answering; showing the data pack"}
     >
       {live === "live" ? (
         <>
           <span aria-hidden className={`inline-block h-2 w-2 rounded-full bg-drug ${css.liveDot}`} />
-          System API · live
+          System API · connected
         </>
       ) : live === "loading" ? (
         <>
@@ -100,7 +100,7 @@ export function GraphPanel(p: Props) {
           <li className="text-muted">
             {exact?.state === "live" ? (
               <>
-                Live probe: {exact.data.count === 0 ? "no" : exact.data.count} graph variable{exact.data.count === 1 ? "" : "s"} named “{exact.data.q}”
+                API probe: {exact.data.count === 0 ? "no" : exact.data.count} graph variable{exact.data.count === 1 ? "" : "s"} named “{exact.data.q}”
                 {loose?.state === "live" && loose.data.count > 0 ? (
                   <>
                     ; {loose.data.count} mention{loose.data.count === 1 ? "s" : ""} “{loose.data.q}”:{" "}
@@ -112,7 +112,7 @@ export function GraphPanel(p: Props) {
                 )}
               </>
             ) : exact?.state === "snapshot" ? (
-              <>Live probe unavailable; the data pack records no finding naming {p.mutation} alone.</>
+              <>API probe unavailable; the data pack records no finding naming {p.mutation} alone.</>
             ) : (
               <span className={`inline-block h-4 w-48 align-middle ${css.skeleton}`} />
             )}
@@ -121,7 +121,7 @@ export function GraphPanel(p: Props) {
             Accuracy quarantine: only the {p.vettedCount.toLocaleString("en-US")} vetted association ids are ever shown.{" "}
             {cov?.state === "live" ? (
               <>
-                Live, for the {cov.data.papers.length} papers it has read: {cov.data.total} associations returned, {cov.data.shown} vetted,{" "}
+                From the API, for the {cov.data.papers.length} papers it has read: {cov.data.total} associations returned, {cov.data.shown} vetted,{" "}
                 <strong className={cov.data.quarantined > 0 ? "text-gap" : "text-fg"}>{cov.data.quarantined} quarantined</strong>.
               </>
             ) : (
@@ -175,7 +175,7 @@ export function GraphPanel(p: Props) {
                 </>
               )
             ) : rel?.state === "snapshot" ? (
-              <p className="text-sm text-muted">Live relationships unavailable ({p.snapshotLabel}).</p>
+              <p className="text-sm text-muted">API relationships unavailable ({p.snapshotLabel}).</p>
             ) : (
               <div className="space-y-2" aria-label="Loading">
                 {[70, 55, 40, 32].map((w) => (

@@ -65,14 +65,14 @@ export function CurationQueue({ pack, marker, area, country, replayYear }: { pac
         <p className="font-mono text-[0.7rem] text-muted" aria-live="polite">
           {coverage?.state === "live" ? (
             <>
-              Live: {coverage.data.confirmed} of {coverage.data.papers.length} in-graph papers confirmed · API returns {coverage.data.total} associations ·{" "}
+              System API connected: {coverage.data.confirmed} of {coverage.data.papers.length} in-graph papers confirmed · API returns {coverage.data.total} associations ·{" "}
               <strong className="text-fg">{coverage.data.shown} vetted</strong> ·{" "}
               <strong className={coverage.data.quarantined > 0 ? "text-gap" : "text-fg"}>{coverage.data.quarantined} quarantined</strong> (not in the vetted set, never shown)
             </>
           ) : coverage?.state === "snapshot" ? (
-            "Live check unavailable; showing the data pack"
+            "System API not connected; showing the data pack"
           ) : (
-            "Checking the live graph…"
+            "Checking the System API…"
           )}
         </p>
       </div>
@@ -82,10 +82,15 @@ export function CurationQueue({ pack, marker, area, country, replayYear }: { pac
         <a href="https://pubmed.ncbi.nlm.nih.gov/25564249/" target="_blank" rel="noopener noreferrer" className="text-drug underline underline-offset-2">
           PMID 25564249 ↗
         </a>
-        ), the live API returns two associations on variable <span className="font-mono">w1ktrLk4Wc</span>: <span className="font-mono">paFNq6MPX5</span> (adjusted prevalence ratio 2.76) and{" "}
+        ), the System API returns two associations on variable <span className="font-mono">w1ktrLk4Wc</span>: <span className="font-mono">paFNq6MPX5</span> (adjusted prevalence ratio 2.76) and{" "}
         <span className="font-mono">AeI-laBxXr</span> (adjusted prevalence ratio 3.28). The extractor attached risks reported for the A581G-bearing sextuple haplotype onto {marker.mutation}. Neither id is in
         the vetted set, so this tab counts them and never shows them as evidence about {marker.mutation}. This is what happens when machine extraction drops a study’s
-        meta-context: which haplotype was measured, in whom, by what kind of study. Every item shown on this page therefore carries its evidence tier, study type and population.
+        meta-context: which haplotype was measured, in whom, by what kind of study. Being in the vetted set is not proof either: <span className="font-mono">PEyo2A8Ol0</span> (
+        <a href="https://pubmed.ncbi.nlm.nih.gov/26429700/" target="_blank" rel="noopener noreferrer" className="text-drug underline underline-offset-2">
+          PMID 26429700 ↗
+        </a>
+        , a Kenya trial) is a vetted id, but its relative risk of 0.32 is dihydroartemisinin-piperaquine compared against {marker.drugShort}, presented by the graph as an effect of {marker.drugShort}. We caught the
+        reversed arms against the paper and excluded it from the {marker.drugShort} findings shown here. Every item shown on this page therefore carries its evidence tier, study type and population.
       </p>
 
       <div className="mt-4 grid gap-6 xl:grid-cols-2">
@@ -118,7 +123,7 @@ export function CurationQueue({ pack, marker, area, country, replayYear }: { pac
                       {fs[0]?.study_id ? <span>study_id {fs[0].study_id}</span> : lp?.studyId ? <span>study_id {lp.studyId}</span> : null}
                       {lp ? (
                         <span className="text-drug">
-                          live ✓ {lp.total} returned, {lp.shown} vetted{lp.quarantined ? `, ${lp.quarantined} quarantined` : ""}
+                          API ✓ {lp.total} returned, {lp.shown} vetted{lp.quarantined ? `, ${lp.quarantined} quarantined` : ""}
                         </span>
                       ) : null}
                     </p>
@@ -164,7 +169,7 @@ export function CurationQueue({ pack, marker, area, country, replayYear }: { pac
           </div>
           <p className="mt-1 text-xs text-muted">
             {marker.mutation} papers naming {country}, published by {replayYear}, that the graph has not read. Papers whose abstract states a {marker.mutation} figure come first.
-            {nowHeld ? ` Live check: ${nowHeld.size} of ${Math.min(queueIds.length, 45)} have been ingested since the snapshot.` : ""}
+            {nowHeld ? ` API check: ${nowHeld.size} of ${Math.min(queueIds.length, 45)} have been ingested since the snapshot.` : ""}
           </p>
           {queue.length === 0 ? (
             <p className="mt-3 rounded-lg border border-dashed border-line-strong p-4 text-sm text-muted">
@@ -186,7 +191,7 @@ export function CurationQueue({ pack, marker, area, country, replayYear }: { pac
                       {figure ? <span className="rounded-full border border-gap/60 px-1.5 text-gap">states a K540E figure</span> : null}
                       {claim ? <span className="rounded-full border border-gap/60 px-1.5 text-gap">first-report claim</span> : null}
                       {a ? <span className="rounded-full border border-line-strong px-1.5">association sentence</span> : null}
-                      {nowHeld?.has(id) ? <span className="text-drug">now in the live graph</span> : null}
+                      {nowHeld?.has(id) ? <span className="text-drug">now in the graph, per the API</span> : null}
                     </span>
                   </span>
                 </li>

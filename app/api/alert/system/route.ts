@@ -22,6 +22,7 @@
  */
 import { NextResponse } from "next/server";
 import { loadPack, vettedIds } from "@/lib/alert/loadPack";
+import { EXCLUDED_AFTER_CHECK } from "@/lib/alert/receipt";
 
 export const dynamic = "force-dynamic";
 
@@ -90,7 +91,7 @@ async function paperLive(pmid: string) {
 
 async function tag(list: Assoc[]) {
   const vetted = await vettedIds();
-  return list.map((a) => ({ ...a, vetted: vetted ? vetted.has(String(a.system_id)) : null }));
+  return list.map((a) => ({ ...a, vetted: vetted ? vetted.has(String(a.system_id)) && !(String(a.system_id) in EXCLUDED_AFTER_CHECK) : null }));
 }
 
 type Concept = { system_id?: string; wikidata_label?: string };

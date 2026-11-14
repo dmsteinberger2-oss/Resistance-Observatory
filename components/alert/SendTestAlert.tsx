@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { deriveAlerts, type AlertData, type Watch } from "@/lib/alert/derive";
 import { composeAlert, composeEmail } from "@/lib/alert/compose";
 import { pmidStr, type ClientPack, type MarkerDef, type Paper } from "@/lib/alert/pack";
-import { pubmedUrl, type EmailExtras } from "@/lib/alert/receipt";
+import { GRAPH_RELEASE, pubmedUrl, type EmailExtras } from "@/lib/alert/receipt";
 import type { LiveCoverage, LiveFinding, LivePaper, LiveStudies } from "./useSystem";
 
 /**
@@ -82,7 +82,7 @@ export function SendTestAlert({
     if (!configured) return;
     onJump(qs);
     try {
-      setState({ s: "working", step: "Checking the live System graph…" });
+      setState({ s: "working", step: "Checking the System API…" });
       const composed = composeAlert({ e, watch, marker, country, basis: info.who_basis, pack, cells: data.cells, papers });
 
       const unread = pack.literature.papers
@@ -105,28 +105,28 @@ export function SendTestAlert({
         const c = leadChecks[i];
         if (!c) return;
         const v = c.finding?.statistic_value;
-        liveChecked[f.system_id] = c.vetted === false ? "live check: id not in the vetted set" : c.finding ? `live check: ${v === f.statistic_value ? "matches snapshot" : "differs from snapshot"}` : "live check: id not returned by the API";
+        liveChecked[f.system_id] = c.vetted === false ? "API check: id not in the vetted set" : c.finding ? `API check: ${v === f.statistic_value ? "matches snapshot" : "differs from snapshot"}` : "API check: id not returned";
       });
 
       const graphLive: string[] = [];
       if (coverage) {
         graphLive.push(
-          `Live check just now: ${coverage.total} associations returned across the ${coverage.papers.length} ${marker.mutation} papers the graph has read (${coverage.confirmed} confirmed live): ${coverage.shown} vetted, ${coverage.quarantined} unvetted and quarantined. Quarantined associations are counted, never shown.`,
+          `System API connected, checked just now: ${coverage.total} associations returned across the ${coverage.papers.length} ${marker.mutation} papers the graph has read (${coverage.confirmed} confirmed live): ${coverage.shown} vetted, ${coverage.quarantined} unvetted and quarantined. Quarantined associations are counted, never shown.`,
         );
       } else {
-        graphLive.push("Live check unavailable just now; the graph details in this email are from the data pack snapshot.");
+        graphLive.push(`System API not connected just now; the graph details in this email are from the data pack (${GRAPH_RELEASE}).`);
       }
       const quarantinedIds = QUARANTINE_EXAMPLE.ids.filter((_, i) => exampleChecks[i]?.found && exampleChecks[i]?.vetted === false);
       if (example?.inGraph && quarantinedIds.length) {
         graphLive.push(
-          `Quarantine example, ${QUARANTINE_EXAMPLE.label} (PMID ${QUARANTINE_EXAMPLE.pmid}): the live API returns ${example.total} association${example.total === 1 ? "" : "s"} for this paper, ${example.quarantined} outside the vetted set, including ${quarantinedIds.join(" and ")}. The extractor attached risks reported for the A581G-bearing sextuple haplotype to ${marker.mutation}; they are not shown as evidence about ${marker.mutation}.`,
+          `Quarantine example, ${QUARANTINE_EXAMPLE.label} (PMID ${QUARANTINE_EXAMPLE.pmid}): the System API returns ${example.total} association${example.total === 1 ? "" : "s"} for this paper, ${example.quarantined} outside the vetted set, including ${quarantinedIds.join(" and ")}. The extractor attached risks reported for the A581G-bearing sextuple haplotype to ${marker.mutation}; they are not shown as evidence about ${marker.mutation}.`,
         );
       }
 
       const figures = pack.literature.abstract_prevalence.filter((f) => f.iso3 === area && f.pub_year >= cell.year).sort((a, b) => b.pub_year - a.pub_year);
       const nowHeld = held ? new Set(held.held.map((h) => h.pmid)) : null;
       const extras: EmailExtras = {
-        subjectTag: live ? "Live System Graph" : "System Graph snapshot",
+        subjectTag: live ? "System API connected" : "System graph v2.1 snapshot",
         liveChecked,
         graphLive,
         recent: {
@@ -142,10 +142,10 @@ export function SendTestAlert({
           note: `Published Molecular / Clinical Papers: machine-read abstracts, quoted word for word, not checked by hand. They sit beside the ${composed.ctx?.geo?.site ? `single-site ${composed.ctx.geo.site} ` : ""}genome count and are never pooled with it: different designs, places and years.`,
         },
         queue: {
-          title: `${marker.mutation} papers naming ${country}, published since ${cell.year}, that the graph has not read (snapshot)${nowHeld ? `; the live graph now holds ${unreadIds.filter((id) => nowHeld.has(id)).length} of ${unreadIds.length}` : ""}:`,
+          title: `${marker.mutation} papers naming ${country}, published since ${cell.year}, that the graph has not read (snapshot)${nowHeld ? `; per the API the graph now holds ${unreadIds.filter((id) => nowHeld.has(id)).length} of ${unreadIds.length}` : ""}:`,
           items: unread.slice(0, 6).map((p) => {
             const id = pmidStr(p.pmid);
-            return { text: `Published ${p.pub_year}: ${p.title}${nowHeld?.has(id) ? " (now in the live graph)" : ""}`, link: { label: `PMID ${id}`, url: p.url ?? pubmedUrl(id) } };
+            return { text: `Published ${p.pub_year}: ${p.title}${nowHeld?.has(id) ? " (now in the graph, per the API)" : ""}`, link: { label: `PMID ${id}`, url: p.url ?? pubmedUrl(id) } };
           }),
         },
         links: [{ label: "See this country on the Forecast map", url: `${window.location.origin}/forecast?country=${area}&marker=${encodeURIComponent(marker.urlId)}` }],
@@ -210,7 +210,7 @@ export function SendTestAlert({
         ) : configured === false ? (
           "No email key is configured on this server, so nothing can be sent. Open the alert to preview the email."
         ) : (
-          "One email: the count beside the watch cutoff, the study behind it, papers published since, a live System graph check with its quarantine count, the curation queue, and the receipt. A replay of the historical record, not live surveillance."
+          "One email: the count beside the watch cutoff, the study behind it, papers published since, a System API check with its quarantine count, the curation queue, and the receipt. A replay of the historical record, not live surveillance."
         )}
       </p>
     </section>

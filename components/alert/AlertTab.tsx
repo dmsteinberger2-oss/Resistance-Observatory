@@ -20,6 +20,7 @@ import { AlertDetail } from "./AlertDetail";
 import { CountryPicker, type CountryRow } from "./CountryPicker";
 import { CurationQueue } from "./CurationQueue";
 import { SendTestAlert } from "./SendTestAlert";
+import { GRAPH_RELEASE } from "@/lib/alert/receipt";
 import { RULE_TRIGGER, eventIdFor, getDefaultMapAlerts } from "@/lib/alert/mapAlerts";
 import { EVIDENCE_TIER, NO_STUDY_TYPE, assayKeywords, geoScope, localPrior, methodText, studyCellFor } from "@/lib/alert/context";
 import { KindGlyph, SourceGlyph, SOURCE_TONE } from "./glyphs";
@@ -397,8 +398,8 @@ export function AlertTab({ pack }: { pack: ClientPack }) {
   const lastCollection = rows.reduce((mx, r) => Math.max(mx, r[1]), 0);
   const graphDate = fmtDate(pack.graph._meta?.snapshot_generated_at as string | undefined);
   const pubmedDate = fmtDate(pack.literature._meta?.source as string | undefined);
-  const asOfLine = `Data as of: genome counts, MalariaGEN Pf8, collections to ${lastCollection}; papers, PubMed searched ${pubmedDate ?? "date not stated"}; System graph, snapshot of ${graphDate ?? "date not stated"}.`;
-  const snapshotLabel = `snapshot of ${graphDate ?? "the data pack"}`;
+  const asOfLine = `Data as of: genome counts, MalariaGEN Pf8, collections to ${lastCollection}; papers, PubMed searched ${pubmedDate ?? "date not stated"}; ${GRAPH_RELEASE}.`;
+  const snapshotLabel = GRAPH_RELEASE;
 
   const linkTo = (path: string) => `${path}?marker=${encodeURIComponent(marker.urlId)}&area=${encodeURIComponent(area)}`;
   const needsLevel = watch.trigger === "rise" || watch.trigger === "fall";

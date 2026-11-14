@@ -296,9 +296,7 @@ What the viewer does and does not say (`components/learn/StructureViewer.tsx`):
 Taken from David's spec for the Alert tab. Items marked _to be added_ are his
 to fill in.
 
-- **MalariaGEN Pf8** — genome counts by country and collection year: 33
-  countries, 1966–2022. Dataset DOI: _to be added by David_. Licence: _to be
-  added_.
+- **MalariaGEN Pf8**: genome counts by country and collection year: 33 countries, 1966–2022. Dataset DOI: [10.5281/zenodo.18681980](https://doi.org/10.5281/zenodo.18681980) (Zenodo record, v1). Licence: CC BY 4.0. Cite: MalariaGEN et al., "Pf8: An open dataset of Plasmodium falciparum genome variation in 33,325 worldwide samples", Wellcome Open Research 2025; 10: 325, doi:10.12688/wellcomeopenres.24031.1.
 - **PubMed abstracts** — 372 papers on K540E. The fields Alert uses were
   **extracted by an AI model and have not been hand-checked**.
 - **WHO malaria guidelines, 13 August 2025** — the source of the resistance
@@ -411,10 +409,13 @@ DOI: <https://doi.org/10.7910/DVN/7V6JDO>
   extractions. `/api/alert/system` returns only associations whose id is in
   the vetted list (4,912 ids, from the Dataverse CSV snapshot of 8 July 2026)
   and counts the rest as quarantined; they are never displayed.
-- Seven graph findings were compared against their paper
+- Six graph findings were compared against their paper
   (`source_checked: true` in the pack) and are labelled "Source-checked
   against paper". Every other graph finding is labelled "Reported by System
-  Graph, unverified".
+  Graph, unverified". A seventh, `PEyo2A8Ol0` (PMID 26429700), is a vetted id
+  that the check contradicted: its relative risk of 0.32 is
+  dihydroartemisinin-piperaquine compared against SP, presented by the graph
+  as an effect of SP. Like the Gutman 2015 extractions, it is excluded.
 - Alert sentences are templates filled from the data. No language model runs
   in the app.
 - Early-warning alerts fire on thin signals too. Nothing is suppressed;

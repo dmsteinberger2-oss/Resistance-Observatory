@@ -25,7 +25,14 @@
 "known_gaps": {
 "no_finding_names_K540E_alone": true,
 "reason": "Searched the full associations CSV snapshot for variables containing 540, dhps, dihydropteroate, sulfadoxine, pyrimethamine, IPTp, chemoprevention and related terms. The closest the graph holds are the two Tanzania birth-weight findings on the dhfr/dhps sextuple haplotype and one Ethiopia finding on the dhfr triple mutant."
+},
+"excluded_after_source_check": [
+{
+"system_id": "PEyo2A8Ol0",
+"pubmed_id": "26429700",
+"reason": "Reversed comparison. In the paper, relative risk 0.32 is dihydroartemisinin-piperaquine IPTp compared against sulfadoxine-pyrimethamine IPTp; the graph presents it as an effect of SP. The id is in the vetted list but was removed from stakes_sp after checking against the paper."
 }
+]
 },
 "haplotype_findings": [
 {
@@ -151,40 +158,6 @@
 }
 ],
 "stakes_sp": [
-{
-"system_id": "PEyo2A8Ol0",
-"study_id": "nTA-uxOaR-",
-"pubmed_id": "26429700",
-"pubmed_url": "https://pubmed.ncbi.nlm.nih.gov/26429700/",
-"doi": "10.1016/s0140-6736(15)00310-4",
-"paper_title": "Intermittent screening and treatment or intermittent preventive treatment with dihydroartemisinin-piperaquine versus intermittent preventive treatment with sulfadoxine-pyrimethamine for the control of malaria during pregnancy in western Kenya: an open-label, three-group, randomised controlled superiority trial.",
-"journal": "Lancet",
-"pub_date": "2015 Dec 19",
-"pub_year": 2015,
-"variable_1": "intermittent preventive treatment with sulfadoxine-pyrimethamine",
-"variable_2": "malaria infection at delivery",
-"variable_1_concept_id": "bzQO0hAZXK",
-"variable_2_concept_id": "7xpZryeSKE",
-"statistic_type": "relative_risk_ratio",
-"statistic_label": "relative risk",
-"statistic_value": 0.32,
-"ci_level": 0.95,
-"ci_lower": 0.18,
-"ci_upper": 0.56,
-"p_value": 0.0001,
-"p_value_equality": null,
-"population": "HIV-negative pregnant women between 16 and 32 weeks' gestation in western Kenya.",
-"study_type": "Experimental Trial",
-"use": "IPTp (pregnancy)",
-"source_checked": true,
-"checked": {
-"country_iso3": "KEN",
-"site": "Four sites in western Kenya",
-"sample_size": "1,546 pregnant women randomised (459 in IPTp-SP delivery comparison)",
-"abstract_quote": "relative risk 0·32, 95% CI 0·18-0·56; p<0·0001 (IPTp-DP vs IPTp-SP malaria infection at delivery: 3% vs 10%)",
-"source_url": "https://pubmed.ncbi.nlm.nih.gov/26429700/"
-}
-},
 {
 "system_id": "lz2GF4sdfw",
 "study_id": "DS1q-zRSTN",

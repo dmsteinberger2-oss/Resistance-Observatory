@@ -5,7 +5,7 @@
     "country_iso3": "KEN",
     "year": 2003,
     "rule": "band_change",
-    "headline": "Kenya, collected 2003: K540E moves from the low to the high WHO band (44 of 56 samples, 78.6%; previous cell 1998: 37.5%)"
+    "headline": "Kenya, collected 2003: K540E moves from the low to the high WHO band (44 of 56 samples, 78.6%; previous sampled year 1998: 37.5%)"
   },
   {
     "id": "k540e-KHM-2008-change",
@@ -77,7 +77,7 @@
     "country_iso3": "TZA",
     "year": 2019,
     "rule": "band_change",
-    "headline": "Tanzania, collected 2019: K540E moves from the very high to the high WHO band (388 of 432 samples, 89.8%; previous cell 2014: 93.7%)"
+    "headline": "Tanzania, collected 2019: K540E moves from the very high to the high WHO band (388 of 432 samples, 89.8%; previous sampled year 2014: 93.7%)"
   },
   {
     "id": "k540e-LAO-2020-change",

@@ -21,6 +21,17 @@ export const SOURCES = {
   },
 } as const;
 
+/** The graph release every tab names. The pack's CSV export is dated a week later; that date stays in the pack metadata. */
+export const GRAPH_RELEASE = "System graph v2.1, 1 July 2026";
+
+/**
+ * Vetted ids removed after checking against the paper. PEyo2A8Ol0 (PMID 26429700): relative risk 0.32 is
+ * dihydroartemisinin-piperaquine IPTp compared against SP IPTp; the graph presents it as an effect of SP.
+ */
+export const EXCLUDED_AFTER_CHECK: Record<string, string> = {
+  PEyo2A8Ol0: "reversed comparison: the paper reports dihydroartemisinin-piperaquine against SP, not an effect of SP",
+};
+
 export const PRESET_BADGE = "Project notification preset (no published WHO K540E cut-off for this region)";
 export const TIER = {
   checked: "Source-checked against paper",
@@ -73,7 +84,8 @@ export function pickStakes(pack: ClientPack, area: string, basis: WhoBasis): Sta
   const local = pack.graph.haplotype_findings.filter((f) => f.country_iso3 === area);
   const score = (f: GraphFinding) => (f.checked?.country_iso3 === area ? 0 : f.source_checked ? 1 : 2);
   const byUse = new Map<string, GraphFinding[]>();
-  for (const f of pack.graph.stakes_sp) {
+  const stakesSp = pack.graph.stakes_sp.filter((f) => !(f.system_id in EXCLUDED_AFTER_CHECK));
+  for (const f of stakesSp) {
     const use = f.use ?? "Other";
     byUse.set(use, [...(byUse.get(use) ?? []), f]);
   }
@@ -85,7 +97,7 @@ export function pickStakes(pack: ClientPack, area: string, basis: WhoBasis): Sta
     .map(([use, findings]) => ({ use, findings: [...findings].sort((a, b) => score(a) - score(b)) }))
     .sort((a, b) => rank(a.use) - rank(b.use));
   // lead: a same-country checked SP finding if there is one, then the best of the two most relevant uses
-  const sameCountry = pack.graph.stakes_sp.filter((f) => f.checked?.country_iso3 === area);
+  const sameCountry = stakesSp.filter((f) => f.checked?.country_iso3 === area);
   const lead: GraphFinding[] = [...local];
   for (const f of [...sameCountry, ...groups.slice(0, 2).map((g) => g.findings[0])]) {
     if (f && !lead.includes(f) && lead.length < Math.max(3, local.length + 1)) lead.push(f);

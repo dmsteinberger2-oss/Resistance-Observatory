@@ -11,15 +11,18 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
+/** The key, under any of the names the team has used for it. Never logged, never sent to the browser. */
+const resendKey = () => (process.env.RESEND_API_KEY || process.env.resend_api_key || process.env.RESEND_KEY || process.env.resend_key || "").trim();
+
 const FROM = () => process.env.ALERT_FROM_EMAIL || "onboarding@resend.dev";
 const EMAIL = /^[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+$/;
 
 export async function GET() {
-  return NextResponse.json({ configured: Boolean(process.env.RESEND_API_KEY), from: FROM() });
+  return NextResponse.json({ configured: Boolean(resendKey()), from: FROM() });
 }
 
 export async function POST(req: Request) {
-  const key = process.env.RESEND_API_KEY;
+  const key = resendKey();
   if (!key) {
     return NextResponse.json(
       { ok: false, previewOnly: true, error: "No email key is configured on this server. Preview only." },
@@ -35,8 +38,8 @@ export async function POST(req: Request) {
   }
   const to = typeof body.to === "string" ? body.to.trim() : "";
   const subject = typeof body.subject === "string" ? body.subject.slice(0, 300) : "";
-  const text = typeof body.text === "string" ? body.text.slice(0, 20000) : "";
-  const html = typeof body.html === "string" ? body.html.slice(0, 60000) : undefined;
+  const text = typeof body.text === "string" ? body.text.slice(0, 40000) : "";
+  const html = typeof body.html === "string" ? body.html.slice(0, 120000) : undefined;
   if (!EMAIL.test(to)) {
     return NextResponse.json({ ok: false, error: "Enter one plain email address." }, { status: 400 });
   }

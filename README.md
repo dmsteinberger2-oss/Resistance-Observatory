@@ -384,7 +384,14 @@ npx next build
 
 Optional server-side environment variables: a System API key
 (`SYSTEM_API_KEY`) for live graph calls, and `RESEND_API_KEY` (plus optional
-`ALERT_FROM_EMAIL`) to send alert emails. Without them the tab shows the
+`ALERT_FROM_EMAIL`) to send alert emails. `NEXT_PUBLIC_DEMO_EMAIL` prefills the
+recipient box; no address is stored in the repo. "Send Test Alert" on `/alert`
+sends one digest for the newest genome cell (DR Congo, collected 2022, on a
+25% preset watch): the count beside the cutoff, the study behind it, papers
+published since, a live System graph check with its quarantine count, the
+unread curation queue and the Decision Receipt. The email HTML sets every
+background and text colour inline on table cells, so it reads the same in
+Gmail and Apple Mail. Without them the tab shows the
 snapshot and the email control reads "Preview only".
 
 ### AI-assistance disclosure (Alert tab)

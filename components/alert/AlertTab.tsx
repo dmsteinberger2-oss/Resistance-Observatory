@@ -19,6 +19,7 @@ import { GraphPanel, type ConceptRef } from "./GraphPanel";
 import { AlertDetail } from "./AlertDetail";
 import { CountryPicker, type CountryRow } from "./CountryPicker";
 import { CurationQueue } from "./CurationQueue";
+import { SendTestAlert } from "./SendTestAlert";
 import { RULE_TRIGGER, eventIdFor, getDefaultMapAlerts } from "@/lib/alert/mapAlerts";
 import { EVIDENCE_TIER, NO_STUDY_TYPE, assayKeywords, geoScope, localPrior, methodText, studyCellFor } from "@/lib/alert/context";
 import { KindGlyph, SourceGlyph, SOURCE_TONE } from "./glyphs";
@@ -420,6 +421,21 @@ export function AlertTab({ pack }: { pack: ClientPack }) {
           A replay of the historical record, not live surveillance and not clinical guidance. {asOfLine}
         </p>
       </header>
+
+      <SendTestAlert
+        pack={pack}
+        marker={marker}
+        data={data}
+        papers={papers}
+        asOfLine={asOfLine}
+        configured={emailStatus ? emailStatus.configured : null}
+        onJump={(qs) =>
+          replaceParams((q) => {
+            for (const k of WATCH_PARAMS) q.delete(k);
+            for (const [k, v] of Object.entries(qs)) q.set(k, v);
+          })
+        }
+      />
 
       <GraphPanel
         marker={marker.label}

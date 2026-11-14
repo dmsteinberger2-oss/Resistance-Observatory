@@ -4,12 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { AlertEvent, Cell, Watch, WhoBasis } from "@/lib/alert/derive";
 import { EVIDENCE_TIER, NEXT_STEPS_NOTE, NO_STUDY_TYPE, genomeContext, genomeSubject, itemSubject, matchingFigures, methodText } from "@/lib/alert/context";
+import { composeAlert, composeEmail } from "@/lib/alert/compose";
 import { ItemTier, StudyContextPanel, TierBadge as EvidenceTierBadge } from "./StudyContext";
 import { BAND_LABEL, BAND_RULE, KIND_LABEL, SOURCE_LABEL, ci, eventCopy, frac, limits, pct, thresholdBasis, watchSentence } from "@/lib/alert/copy";
 import { pmidStr, type AbstractPrevalence, type ClientPack, type GraphFinding, type MarkerDef, type Paper } from "@/lib/alert/pack";
 import { PRESET_BADGE, SOURCES, TIER, buildEmail, buildReceipt, graphTierDetail, paperTierDetail, pickStakes, pubmedUrl, statText, type ReceiptSection } from "@/lib/alert/receipt";
 import { KindGlyph, SourceGlyph, SOURCE_TONE } from "./glyphs";
 import { useSystem, type LiveFinding, type LivePaper } from "./useSystem";
+import { DEMO_EMAIL } from "./SendTestAlert";
 import css from "./alert.module.css";
 
 /* ------------------------------------------------------ graph finding --- */
@@ -180,132 +182,28 @@ function Node({ tone, kicker, children }: { tone: "signal" | "drug" | "fg"; kick
 
 export function AlertDetail(p: Props) {
   const { event: e, watch, marker, country, basis, pack } = p;
-  const copy = eventCopy(e, watch, marker.label, country);
-  const tb = thresholdBasis(watch, basis);
-  const lim = limits(e, basis, marker.label, marker.drugShort);
-  const paper = e.pmid ? p.papers.get(e.pmid) : undefined;
-  const figure: AbstractPrevalence | undefined =
-    e.rule === "abstract_figure" ? pack.literature.abstract_prevalence.find((f) => pmidStr(f.pmid) === e.pmid && f.quote === e.quote) : undefined;
+  const composed = useMemo(() => composeAlert({ e, watch, marker, country, basis, pack, cells: p.cells, papers: p.papers }), [e, watch, marker, country, basis, pack, p.cells, p.papers]);
+  const { copy, tb, lim, paper, figure, stakes, extracted, graphFinding, graphLine, whoStatus, ctx, matched, itemDetail, receipt, stakesCaveat } = composed;
   const conceptLabel = (id: string) => pack.graph.concepts.find((c) => c.system_id === id)?.label ?? null;
-
-  const stakes = useMemo(() => pickStakes(pack, watch.area, basis), [pack, watch.area, basis]);
   const [openUse, setOpenUse] = useState<string | null>(null);
   const outcomeIds = [...new Set(stakes.lead.map((f) => f.variable_2_concept_id).filter((x): x is string => Boolean(x)))];
   const drugConcepts = pack.graph.concepts.filter((c) => /^(sulfadoxine|pyrimethamine)$/i.test(c.label));
-
-  /* what the graph has on it */
-  const extracted: GraphFinding[] = e.pmid ? pack.graph.findings_from_k540e_papers.filter((f) => pmidStr(f.pubmed_id) === e.pmid) : [];
-  const graphFinding = e.graphFindingId ? pack.graph.haplotype_findings.find((f) => f.system_id === e.graphFindingId) : undefined;
   const livePaper = useSystem<LivePaper>(e.pmid && /^\d+$/.test(e.pmid) ? `op=paper&pmid=${e.pmid}` : null);
-  const countryPapers = pack.literature.papers.filter((x) => (x.countries_iso3 ?? []).includes(watch.area));
-  const countryInGraph = countryPapers.filter((x) => x.in_graph);
-
-  let graphLine: string;
-  if (graphFinding) {
-    graphLine = `The graph holds this finding (system_id ${graphFinding.system_id}) on a haplotype that contains ${marker.mutation}. ${graphFinding.source_checked ? TIER.checked : TIER.unverified}.`;
-  } else if (e.pmid) {
-    graphLine = paper?.in_graph
-      ? `The graph has read this paper (PMID ${e.pmid}) and extracted ${extracted.length} finding${extracted.length === 1 ? "" : "s"} from it. None names ${marker.mutation} on its own.`
-      : `The graph has not read this paper (PMID ${e.pmid}). It is in the ready-to-ingest queue below.`;
-  } else if (stakes.local.length > 0) {
-    graphLine = `The graph has ${stakes.local.length} finding${stakes.local.length === 1 ? "" : "s"} from ${country} on a haplotype containing ${marker.mutation} (shown in the stakes chain). It holds no genome counts, so this change comes from the genome data alone.`;
-  } else {
-    graphLine = `The graph has no finding that bears on this. It has read ${countryInGraph.length} of the ${countryPapers.length} ${marker.mutation} papers that name ${country}, and it holds no genome counts.`;
-  }
-
-  /* WHO status and wording */
   const th = pack.thresholds;
-  const whoStatus = [th.marker?.who_classification_alone ? `${marker.mutation} alone: ${th.marker.who_classification_alone}.` : null, th.marker?.who_classification_haplotype ? `${th.marker.who_classification_haplotype}.` : null].filter(
-    (x): x is string => Boolean(x),
-  );
   const v = th.who_categories?.verbatim;
   const whoSource = th.who_categories?.sources?.[0] ?? { name: SOURCES.whoFallback.label, url: SOURCES.whoFallback.url };
   const esa = basis === "east_southern_africa";
-  const emailWho = esa && v?.continue_quote ? [...whoStatus, `WHO on SP in pregnancy: “${v.continue_quote}” (${v.continue_where})`] : whoStatus;
-
-  /* triggering-study context: scope, method, local prior, cutoff beside observed */
-  const ctx = useMemo(
-    () => genomeContext({ e, watch, basis, cells: p.cells, study: pack.studyContext, country, mutation: marker.mutation }),
-    [e, watch, basis, p.cells, pack.studyContext, country, marker.mutation],
-  );
-  const matched = ctx && e.cell ? matchingFigures(pack.literature.abstract_prevalence, watch.area, e.cell.year) : [];
-  const itemDetail = e.source === "papers" ? paperTierDetail(paper, figure) : e.source === "graph" ? (graphFinding ? graphTierDetail(graphFinding) : ["a paper the graph has read; what it extracted is listed below"]) : [];
-  const subject = ctx
-    ? genomeSubject({ e, ctx, country, mutation: marker.mutation, drugShort: marker.drugShort })
-    : itemSubject({
-        tier: e.source === "papers" ? `${EVIDENCE_TIER.papers}, machine-read abstract` : EVIDENCE_TIER.graph,
-        scope: itemDetail,
-        country,
-        mutation: marker.mutation,
-        drugShort: marker.drugShort,
-        title: copy.title,
-        fired: e.fired,
-      });
-  const weight = ctx
-    ? {
-        tier: `${ctx.tier} · ${ctx.tierDetail}`,
-        lines: [
-          ...ctx.flags.map((f) => ({ label: f.label, text: f.text, warn: f.tone === "warn" })),
-          ...(ctx.cell
-            ? [
-                { label: "Partner studies", text: ctx.cell.studies.map((s) => `${s.study_id} ${s.k}/${s.n} (${s.pct}%)`).join("; ") },
-                ...(ctx.geo && !ctx.geo.flag ? [{ label: "Geographic scope", text: ctx.geo.text }] : []),
-                {
-                  label: "DNA preparation",
-                  text: `all samples ${methodText(ctx.cell.dna_method_all)}${ctx.cell.k > 0 ? `; carrying ${marker.mutation} ${methodText(ctx.cell.dna_method_mutants)}` : ""}. ${ctx.measure?.note ?? ""} Genome callability: ${ctx.measure?.callable}.`,
-                },
-                { label: "Codon 540 calls", text: ctx.codon?.text ?? "" },
-              ]
-            : []),
-          { label: "Cutoff", text: ctx.cutoff.text },
-          { label: "Observed", text: `${ctx.observed}.${ctx.relation ? ` ${ctx.relation}` : ""}` },
-        ],
-        steps: ctx.prior.steps,
-        stepsNote: NEXT_STEPS_NOTE,
-      }
-    : { tier: e.source === "papers" ? EVIDENCE_TIER.papers : EVIDENCE_TIER.graph, lines: itemDetail.map((d) => ({ label: d.split(": ")[0], text: d.split(": ").slice(1).join(": ") || d })), steps: [], stepsNote: null };
-
-  const receipt = buildReceipt({
-    e,
-    watch,
-    basis,
-    marker,
-    country,
-    pack,
-    paper,
-    figure,
-    thresholdPublished: tb.published,
-    thresholdText: tb.text,
-    stakes,
-    extracted,
-    graphFinding,
-    ctx,
-    matched,
-    papers: p.papers,
-  });
-
-  const stakesIntro = `${marker.label} is a mutation in the parasite's ${marker.gene} gene associated with reduced susceptibility to sulfadoxine, one half of ${marker.drug}. What the System graph holds on ${marker.drugShort} and on haplotypes containing ${marker.mutation}:`;
-  const stakesCaveat = `This describes what ${marker.drugShort} achieves and what the haplotype has been associated with. It does not claim that ${marker.mutation} in ${country} will reverse those outcomes.`;
 
   const [link, setLink] = useState("");
   useEffect(() => setLink(window.location.href), [e.id]);
-  const email = buildEmail({
+  const email = composeEmail(composed, {
     e,
-    copy,
-    watchText: watchSentence(watch, marker.label, country),
-    marker: marker.label,
+    watch,
+    marker,
     country,
-    stakesIntro,
-    stakes: stakes.lead,
-    stakesCaveat,
-    graphLine,
-    whoStatus: emailWho,
-    receipt,
-    subject,
-    weight,
-    limits: lim,
     link,
     asOf: p.asOfLine,
+    extras: link ? { links: [{ label: "See this country on the Forecast map", url: new URL(p.links.forecast, link).toString() }] } : undefined,
   });
 
   return (
@@ -635,7 +533,7 @@ export function AlertDetail(p: Props) {
 type SendState = { s: "idle" } | { s: "sending" } | { s: "sent"; id: string; to: string } | { s: "error"; message: string };
 
 function EmailPanel({ subject, text, html, configured, from }: { subject: string; text: string; html: string; configured: boolean | null; from: string | null }) {
-  const [to, setTo] = useState("");
+  const [to, setTo] = useState(DEMO_EMAIL);
   const [state, setState] = useState<SendState>({ s: "idle" });
   const [view, setView] = useState<"none" | "html" | "text">("none");
 
@@ -708,7 +606,7 @@ function EmailPanel({ subject, text, html, configured, from }: { subject: string
           "No email key is configured on this server, so nothing can be sent. The preview is exactly what would go out, receipt included."
         ) : state.s === "sent" ? (
           <span className="text-drug">
-            Sent to {state.to}. Provider message id: <span className="font-mono">{state.id}</span>
+            ✓ Sent · Resend ID <span className="font-mono">{state.id}</span> · to {state.to}
           </span>
         ) : state.s === "error" ? (
           <span className="text-signal">Not sent. The provider said: “{state.message}”</span>

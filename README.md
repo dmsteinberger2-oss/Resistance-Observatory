@@ -295,6 +295,24 @@ What the viewer does and does not say (`components/learn/StructureViewer.tsx`):
   viewer says so on screen, and only 540 is highlighted.
 - Residue names, numbers and the charge note in the compare panel are read
   from what 3Dmol reports for the loaded structures, not hard-coded.
+- **Ligands are shown.** Every non-water HETATM group is drawn as sticks in
+  one colour and labelled with its PDB chemical component ID (6JWX: CKL, PH2,
+  AMP, MG, ACT, CA; 6KCL: PE0, PHB, ATP, GOL, MG, CA, ACT).
+- **One distance is measured and reported, not interpreted.** The compare
+  panel shows the shortest atom-to-atom distance from residue 540 to the
+  nearest ligand atom in each entry, computed in the browser from the loaded
+  coordinates: 9.0 Å to CKL in 6JWX and 10.7 Å to PHB in 6KCL.
+- **What the structures do not show:** residues 436-444 are unmodelled in
+  both, so A437G cannot be displayed; neither entry carries A581G (position
+  581 is alanine in both); the dhfr positions are not in these entries.
+- **DOI cross-check against the graph.** Both entries share the primary
+  citation doi:10.1111/febs.15196 (PMID 31883412). We found no graph findings
+  from that paper: the vetted Dataverse studies file (844,436 rows) has no row
+  with that DOI or PMID, the vetted associations file has none with that PMID,
+  and none of the findings pinned in this repo come from it. The API offers no
+  DOI or PMID lookup on studies (`search` on `/studies` reports no searchable
+  fields), so its unvetted records could not be searched. Learn states this as
+  a coverage observation under the viewer.
 - It makes no claim about binding geometry or mechanism.
 - If the CDN or RCSB is unreachable, each panel shows a short message with a
   link to the RCSB page.

@@ -26,6 +26,9 @@ const STRUCTURES = [
 const POSITIONS = [437, 540] as const;
 const CONTEXT_COLOR_VAR = "--quiet"; // 437
 const CARTOON_COLOR = "#6f8499"; // muted blue-grey
+const LIGAND_COLOR = "#c9a7ff"; // distinct from the residue colours; ligands are also labelled
+/** Checked in both entries to say what they do not carry. */
+const OTHER_PFDHPS_POSITION = 581;
 
 /** Side-chain charge at physiological pH, by residue name. Used only to word
  *  the one-line note from the names 3Dmol reports. */
@@ -42,7 +45,16 @@ function changeNote(wt: string, mut: string): string {
 }
 
 /* 3Dmol has no bundled types here; keep the surface we use explicit. */
-type Atom = { resn: string; resi: number; chain: string; label?: unknown };
+type Atom = { resn: string; resi: number; chain: string; x: number; y: number; z: number; label?: unknown };
+/** What a loaded structure reports about its ligands (non-water HETATM). */
+type LigandInfo = {
+  /** PDB chemical component IDs present, in file order. */
+  ids: string[];
+  /** Shortest atom-to-atom distance from the marker residue to any ligand atom. */
+  nearest: { resn: string; angstrom: number } | null;
+  /** Residue name at OTHER_PFDHPS_POSITION, if resolved. */
+  otherPosition: string | null;
+};
 type Viewer = {
   setStyle: (sel: object, style: object) => void;
   addStyle: (sel: object, style: object) => void;
@@ -65,6 +77,10 @@ declare global {
     $3Dmol?: ThreeDmol;
   }
 }
+
+/** The pulled-back view: one whole copy of the enzyme (the entries hold two),
+ *  so residue 540 and the ligands are large enough to find. */
+const FULL_VIEW = (v: Viewer): object => (v.selectedAtoms({ chain: "A" }).length ? { chain: "A" } : {});
 
 /** Loads the CDN script once; resolves with the global, rejects on failure. */
 function load3Dmol(): Promise<ThreeDmol> {
@@ -105,6 +121,7 @@ export function StructureViewer({
   const [sites, setSites] = useState<Site[]>([]);
   const [unresolved, setUnresolved] = useState<number[]>([]);
   const [picked, setPicked] = useState<number | null>(null);
+  const [ligands, setLigands] = useState<(LigandInfo | null)[]>([null, null]);
   const onPickRef = useRef(onPick);
   onPickRef.current = onPick;
   /** Site colours per viewer, kept so residues can be re-styled later. */
@@ -127,7 +144,7 @@ export function StructureViewer({
   }, []);
 
   const reset = useCallback(() => {
-    for (const v of viewers.current) v?.zoomTo({}, animMs());
+    for (const v of viewers.current) v?.zoomTo(FULL_VIEW(v), animMs());
     setPicked(null);
   }, []);
 
@@ -182,12 +199,47 @@ export function StructureViewer({
           setOne(i, v ? "ready" : "failed");
         });
 
-        // Base style: protein cartoon only.
-        for (const v of loaded) {
-          if (!v) continue;
+        // Base style: protein as cartoon; every non-water ligand as sticks, in
+        // one distinct colour, labelled with its PDB chemical component ID.
+        const ligandInfo: (LigandInfo | null)[] = loaded.map((v) => {
+          if (!v) return null;
           v.setStyle({}, {});
           v.setStyle({ hetflag: false }, { cartoon: { color: CARTOON_COLOR } });
-        }
+          const het = v.selectedAtoms({ hetflag: true }).filter((a) => a.resn !== "HOH" && a.resn !== "DOD");
+          const ids = [...new Set(het.map((a) => a.resn))];
+          if (ids.length) {
+            v.setStyle(
+              { hetflag: true, resn: ids },
+              { stick: { color: LIGAND_COLOR, radius: 0.24 }, sphere: { color: LIGAND_COLOR, scale: 0.28 } },
+            );
+            const seen = new Set<string>();
+            for (const a of het) {
+              const key = `${a.resn}|${a.chain}|${a.resi}`;
+              if (seen.has(key)) continue;
+              seen.add(key);
+              v.addLabel(a.resn, {
+                position: { x: a.x, y: a.y, z: a.z },
+                backgroundColor: "#06101b",
+                backgroundOpacity: 0.75,
+                fontColor: LIGAND_COLOR,
+                fontSize: 11,
+              });
+            }
+          }
+          // Shortest atom-to-atom distance from the marker residue to any ligand
+          // atom. Reported as measured; not interpreted here.
+          const markerResi = POSITIONS[POSITIONS.length - 1];
+          let nearest: LigandInfo["nearest"] = null;
+          for (const r of v.selectedAtoms({ resi: markerResi, hetflag: false })) {
+            for (const h of het) {
+              const d = Math.hypot(r.x - h.x, r.y - h.y, r.z - h.z);
+              if (!nearest || d < nearest.angstrom) nearest = { resn: h.resn, angstrom: d };
+            }
+          }
+          const other = v.selectedAtoms({ resi: OTHER_PFDHPS_POSITION, hetflag: false })[0];
+          return { ids, nearest, otherPosition: other ? other.resn : null };
+        });
+        setLigands(ligandInfo);
 
         // A position is a site only if both structures have coordinates there.
         const [wt, mut] = loaded;
@@ -233,7 +285,7 @@ export function StructureViewer({
             );
             v.setClickable(sel, true, (atom) => compare(atom.resi, atom.chain));
           }
-          v.zoomTo();
+          v.zoomTo(FULL_VIEW(v));
           v.render();
         });
         setSites(found);
@@ -390,6 +442,33 @@ export function StructureViewer({
                 </div>
               </dl>
               <p className="mt-3 text-base">{changeNote(pickedSite.wt, pickedSite.mut)}</p>
+              {pickedSite.resi === POSITIONS[POSITIONS.length - 1] ? (
+                <div className="mt-4 border-t border-line pt-3">
+                  <p className="text-sm text-muted">
+                    Shortest distance from residue {pickedSite.resi} to the nearest bound ligand
+                  </p>
+                  <dl className="mt-1 grid gap-x-10 gap-y-2 sm:grid-cols-2">
+                    {STRUCTURES.map((st, i) => {
+                      const n = ligands[i]?.nearest;
+                      return (
+                        <div key={st.pdb}>
+                          <dt className="sr-only">
+                            {st.label} (PDB {st.pdb})
+                          </dt>
+                          <dd className="font-mono text-xl font-semibold">
+                            {n ? `${n.angstrom.toFixed(1)} \u00c5` : "not measurable"}
+                            {n ? <span className="text-sm font-normal text-muted"> to {n.resn}</span> : null}
+                          </dd>
+                        </div>
+                      );
+                    })}
+                  </dl>
+                  <p className="mt-2 text-sm text-muted">
+                    Atom to atom, measured from the deposited coordinates across both copies in each entry. Reported
+                    as measured, without interpretation.
+                  </p>
+                </div>
+              ) : null}
             </div>
           ) : null}
         </div>
@@ -402,9 +481,28 @@ export function StructureViewer({
           </p>
         ) : null}
 
+        {ligands.some((l) => l?.ids.length) ? (
+          <p className="mt-4 text-sm text-muted">
+            Ligands are drawn as sticks and labelled with their PDB chemical component IDs.{" "}
+            {STRUCTURES.map((st, i) =>
+              ligands[i]?.ids.length ? `PDB ${st.pdb}: ${ligands[i]!.ids.join(", ")}.` : "",
+            )
+              .filter(Boolean)
+              .join(" ")}
+          </p>
+        ) : null}
+
         <figcaption className="mt-5 max-w-3xl text-sm text-muted">
           Published crystal structures, loaded live from RCSB PDB. Drag to rotate, click a highlighted residue to
           compare. Rendered with 3Dmol.js.
+          <span className="mt-2 block">
+            What these structures do not show: residues 436&ndash;444 are unmodelled in both, so A437G cannot be
+            displayed.{" "}
+            {ligands[0]?.otherPosition && ligands[1]?.otherPosition
+              ? `Neither entry carries A581G: position ${OTHER_PFDHPS_POSITION} is ${ligands[0].otherPosition} in the wild type and ${ligands[1].otherPosition} in the mutant. `
+              : ""}
+            The dhfr positions are not part of these entries at all.
+          </span>
         </figcaption>
       </figure>
     </section>

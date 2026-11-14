@@ -53,6 +53,22 @@ export function StructureEvidence({ marker }: { marker: Marker }) {
     <div className="space-y-6">
       <StructureViewer onPick={onPick} pulseResi={pulse} />
 
+      {/* DOI cross-check, done when this was built: see README. */}
+      <p className="max-w-3xl text-sm text-muted text-pretty">
+        A coverage observation: both structures come from one paper,{" "}
+        <a
+          href="https://doi.org/10.1111/febs.15196"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-mono text-drug underline decoration-drug/40 underline-offset-4"
+        >
+          doi:10.1111/febs.15196
+        </a>
+        , and we found no findings from it in the System Public Graph: none in its vetted release and none among the
+        findings we pulled. The graph&rsquo;s API cannot be searched by DOI, so this is as far as we could check. The
+        structural literature on this marker is not represented in the graph.
+      </p>
+
       <section
         aria-labelledby="struct-findings-h"
         className={`scroll-mt-24 rounded-[calc(var(--radius)+6px)] border bg-surface p-4 transition-colors sm:p-8 ${

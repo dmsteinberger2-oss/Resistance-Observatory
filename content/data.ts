@@ -3,20 +3,11 @@
  * - Biology comes only from docs/SCIENCE.md, and is `reviewed: false` (held in
  *   production) until the science lead signs it off.
  * - Project method / data-source facts come from CLAUDE.md and render.
- * - Every number comes from lib/stats.ts.
+ * - Every number comes from lib/stats.ts, which reads the pinned graph pull.
  * - History narrative has no sourced text yet. It is a sourcing slot, not
  *   prose written from memory.
  */
 import type { Reviewable } from "./review";
-import {
-  PLACEHOLDER_ARTEMISININ_INTRODUCED_YEAR,
-  PLACEHOLDER_ARTEMISININ_PARTIAL_RESISTANCE_YEAR,
-  PLACEHOLDER_CHLOROQUINE_INTRODUCED_YEAR,
-  PLACEHOLDER_CHLOROQUINE_RESISTANCE_YEAR,
-  PLACEHOLDER_SP_INTRODUCED_YEAR,
-  PLACEHOLDER_SP_RESISTANCE_YEAR,
-  type Stat,
-} from "@/lib/stats";
 
 const draft = <T,>(value: T): Reviewable<T> => ({ value, reviewed: false });
 
@@ -51,7 +42,7 @@ export const ANTIFOLATE = draft({
 export const HISTORY_SLOTS = [
   {
     heading: "Chloroquine",
-    needs: "When it came into wide use, when reduced efficacy was first reported, and the role of pfcrt — from the original papers or the WHO compendium of molecular markers.",
+    needs: "When it came into wide use, when reduced efficacy was first reported, and the role of pfcrt — from the original papers, with citations.",
   },
   {
     heading: "Sulfadoxine-pyrimethamine (SP)",
@@ -62,45 +53,6 @@ export const HISTORY_SLOTS = [
     needs: "When artemisinin-based treatment came into wide use, when partial resistance was first reported, and the role of kelch13 — with citations.",
   },
 ] as const;
-
-/* -------------------------------------------------------------- timeline --- */
-
-export type TimelineLane = {
-  drug: string;
-  introduced: { stat: Stat; name: string };
-  reported: { stat: Stat; name: string; label: string };
-};
-
-/** Alphabetical on purpose: until years are sourced, order must not imply chronology. */
-export const TIMELINE: TimelineLane[] = [
-  {
-    drug: "Artemisinin",
-    introduced: { stat: PLACEHOLDER_ARTEMISININ_INTRODUCED_YEAR, name: "PLACEHOLDER_ARTEMISININ_INTRODUCED_YEAR" },
-    reported: {
-      stat: PLACEHOLDER_ARTEMISININ_PARTIAL_RESISTANCE_YEAR,
-      name: "PLACEHOLDER_ARTEMISININ_PARTIAL_RESISTANCE_YEAR",
-      label: "partial resistance first reported",
-    },
-  },
-  {
-    drug: "Chloroquine",
-    introduced: { stat: PLACEHOLDER_CHLOROQUINE_INTRODUCED_YEAR, name: "PLACEHOLDER_CHLOROQUINE_INTRODUCED_YEAR" },
-    reported: {
-      stat: PLACEHOLDER_CHLOROQUINE_RESISTANCE_YEAR,
-      name: "PLACEHOLDER_CHLOROQUINE_RESISTANCE_YEAR",
-      label: "reduced efficacy first reported",
-    },
-  },
-  {
-    drug: "Sulfadoxine-pyrimethamine (SP)",
-    introduced: { stat: PLACEHOLDER_SP_INTRODUCED_YEAR, name: "PLACEHOLDER_SP_INTRODUCED_YEAR" },
-    reported: {
-      stat: PLACEHOLDER_SP_RESISTANCE_YEAR,
-      name: "PLACEHOLDER_SP_RESISTANCE_YEAR",
-      label: "reduced efficacy first reported",
-    },
-  },
-];
 
 /* -------------------------------------------------------------- glossary --- */
 /* From docs/SCIENCE.md "Vocabulary for the pitch". Project vocabulary renders;

@@ -6,25 +6,25 @@ import {
   GLOSSARY,
   HISTORY_SLOTS,
   ONE_PARAGRAPH,
-  TIMELINE,
 } from "@/content/data";
 import { canShow, isDraft } from "@/content/review";
 import { ALL_STATS } from "@/lib/stats";
 import { StatFigure } from "@/components/StatFigure";
 import { PullQuote } from "@/components/PullQuote";
-import { Timeline } from "@/components/data/Timeline";
+import { FindingsTimeline } from "@/components/data/FindingsTimeline";
+import { MARKER_FINDINGS } from "@/lib/findings";
 import { DraftTag, Held } from "@/components/learn/Gate";
 import { Reveal } from "@/components/Reveal";
 
 export const metadata: Metadata = {
   title: "Data",
-  description: "A long-form guide to antimalarial resistance evidence: history, timeline, key numbers and glossary.",
+  description: "A long-form guide to antimalarial resistance evidence: history, the marker's findings in publication order, key numbers and glossary.",
 };
 
 const TOC = [
   ["why", "Why markers are tracked"],
   ["history", "A history, being sourced"],
-  ["timeline", "Introduced vs. emerging"],
+  ["timeline", "The findings, by publication date"],
   ["markers", "Five markers"],
   ["antifolate", "How antifolate resistance stacks"],
   ["method", "How we read the evidence"],
@@ -44,7 +44,7 @@ export default function DataPage() {
         </h1>
         <p className="mt-8 max-w-2xl text-xl leading-relaxed text-muted text-pretty">
           A field guide to how antimalarial resistance is tracked, what the evidence can and cannot say, and
-          the vocabulary this project uses. Every figure on this page is held until a person sources it.
+          the vocabulary this project uses. Every figure on this page comes from the System Public Graph.
         </p>
       </header>
 
@@ -109,12 +109,27 @@ export default function DataPage() {
           </Section>
 
           {/* 3 */}
-          <Section id="timeline" n={3} title="Drugs introduced, resistance emerging" wide>
+          <Section id="timeline" n={3} title="pfdhps K540E and sulfadoxine: the findings, by publication date" wide>
             <p>
-              Each lane pairs the year a drug came into wide use with the year reduced efficacy — for
-              artemisinin, partial resistance — was first reported.
+              These are the {ALL_STATS.GRAPH_MARKER_FINDINGS.value} findings the graph holds for codon 540 of pfdhps,
+              the marker associated with reduced efficacy of sulfadoxine, from{" "}
+              {ALL_STATS.GRAPH_MARKER_STUDIES.value} studies. The graph has no variable for K540E itself: its
+              evidence is indexed at the pfdhps / codon-540 level, so some findings concern a named combination
+              that includes K540E. Each one links to its paper.
             </p>
-            <Timeline lanes={TIMELINE} />
+            <p className="mt-4">
+              The graph has no per-finding publication date. It records one only where a finding sits in a
+              concept-level relationship, which is the case for {ALL_STATS.GRAPH_MARKER_DATED_FINDINGS.value} of
+              these {ALL_STATS.GRAPH_MARKER_FINDINGS.value}. No date here comes from anywhere else. By
+              System&rsquo;s own documentation roughly {ALL_STATS.GRAPH_KNOWN_BAD_SHARE.value}
+              {ALL_STATS.GRAPH_KNOWN_BAD_SHARE.unit} of API extractions are known-bad, and these findings are not
+              yet cross-verified against the source papers.
+            </p>
+            <FindingsTimeline findings={MARKER_FINDINGS} />
+            <p className="font-mono text-xs text-muted">
+              Source: System Public Graph v{ALL_STATS.GRAPH_VERSION.value}, {ALL_STATS.GRAPH_SNAPSHOT_DATE.value}{" "}
+              snapshot, CC BY-NC 4.0.
+            </p>
           </Section>
 
           {/* 4 */}
@@ -167,24 +182,25 @@ export default function DataPage() {
           {/* 6 */}
           <Section id="method" n={6} title="How this project reads the evidence">
             <p>
-              The evidence comes from the System Public Graph, version {String(ALL_STATS.PLACEHOLDER_GRAPH_VERSION.value)},
-              a snapshot frozen on {String(ALL_STATS.PLACEHOLDER_GRAPH_SNAPSHOT_DATE.value)}. Its atomic unit is
+              The evidence comes from the System Public Graph, version {String(ALL_STATS.GRAPH_VERSION.value)},
+              a snapshot frozen on {String(ALL_STATS.GRAPH_SNAPSHOT_DATE.value)}. Its atomic unit is
               an <em>association</em>: two variables linked by a statistic. It holds statistical associations, not
               prevalence measurements, so this site shows no prevalence figures.
             </p>
             <p className="mt-4">
-              The graph has no geography field and no per-finding publication date. Publication dates are resolved
-              through OpenAlex from each finding&rsquo;s PubMed ID or DOI. Locations on the Forecast map come from a
-              separate source and are attributed to it, never to the graph.
+              The graph has no geography field and no per-finding publication date. The only dates shown on
+              this site are the last-published dates the graph records on its concept-level relationships.
+              Locations on the Forecast map come from a separate source and are attributed to it, never to the
+              graph.
             </p>
             <p className="mt-4">
               By System&rsquo;s own documentation, roughly{" "}
-              {String(ALL_STATS.PLACEHOLDER_GRAPH_KNOWN_BAD_SHARE.value)}
-              {ALL_STATS.PLACEHOLDER_GRAPH_KNOWN_BAD_SHARE.unit} of associations served by its API are known-bad
-              extractions, and {String(ALL_STATS.PLACEHOLDER_GRAPH_UNGROUNDED_REMOVED.value)} variables that failed
-              to ground to a Wikidata concept were removed from the public release. A codon-level mutation may
-              simply not be present. Findings shown in the demo are meant to be checked against the source paper;
-              what was checked is recorded in the project README.
+              {String(ALL_STATS.GRAPH_KNOWN_BAD_SHARE.value)}
+              {ALL_STATS.GRAPH_KNOWN_BAD_SHARE.unit} of associations served by its API are known-bad
+              extractions, and variables that failed to ground to a Wikidata concept were removed from the public
+              release. A codon-level mutation may simply not be present: the graph has no variable for K540E on
+              its own. The findings shown here are not yet cross-verified against the source papers; the project
+              README records this.
             </p>
             <PullQuote cite="How the alert demo works">
               The logic is tested on real history; the feed is a snapshot.
@@ -222,22 +238,22 @@ export default function DataPage() {
           {/* 8 */}
           <Section id="numbers" n={8} title="Key numbers" wide>
             <p>
-              Every number in this app lives in one file, <code className="font-mono text-base">lib/stats.ts</code>.
-              Until a person sources a figure, it renders as a dashed placeholder naming the constant to fill.
+              Every number in this app lives in one file, <code className="font-mono text-base">lib/stats.ts</code>,
+              and every one is read from a pinned pull of the System Public Graph API. Nothing is typed in by hand.
             </p>
             <div className="mt-10 grid gap-x-10 gap-y-12 sm:grid-cols-2">
               {(
                 [
-                  "PLACEHOLDER_ANNUAL_DEATHS",
-                  "PLACEHOLDER_ANNUAL_CASES",
-                  "PLACEHOLDER_SHARE_UNDER_5",
-                  "PLACEHOLDER_SHARE_AFRICA",
-                  "PLACEHOLDER_PAPERS_PER_YEAR",
-                  "PLACEHOLDER_GRAPH_KNOWN_BAD_SHARE",
+                  "GRAPH_MARKER_FINDINGS",
+                  "GRAPH_MARKER_STUDIES",
+                  "GRAPH_PFDHPS_FINDINGS",
+                  "GRAPH_PFDHPS_STUDIES",
+                  "GRAPH_MARKER_DATED_FINDINGS",
+                  "GRAPH_KNOWN_BAD_SHARE",
                 ] as const
               ).map((k, i) => (
                 <Reveal key={k} delay={(i % 2) * 100}>
-                  <StatFigure stat={ALL_STATS[k]} name={k} />
+                  <StatFigure stat={ALL_STATS[k]} size="md" />
                 </Reveal>
               ))}
             </div>

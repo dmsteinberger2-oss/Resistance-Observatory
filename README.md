@@ -248,22 +248,6 @@ What that check does and does not show for Overview and Data:
   (`scripts/graph-stats.ts`). Used for the "most recent" figure on Overview and
   the Data-tab timeline.
 
-### Structural figure on Learn
-
-A separate published source from the System Public Graph. Nothing about these
-structures comes from the graph.
-
-- **RCSB Protein Data Bank** — two crystal structures of *P. falciparum*
-  HPPK-DHPS, both from the same publication (doi:10.1111/febs.15196):
-  - [6JWX](https://www.rcsb.org/structure/6JWX) — wild type, sulfadoxine bound.
-  - [6KCL](https://www.rcsb.org/structure/6KCL) — A437G/K540E double mutant.
-- **UCSF ChimeraX** — used to render the two images
-  (`public/structures/dhps-wt.png`, `public/structures/dhps-mutant.png`).
-
-The figure states only what its captions say; it makes no claim about binding
-geometry or mechanism. `components/learn/StructureFigure.tsx` leaves the
-figure out entirely if either image file is missing.
-
 ### Alert sources (David)
 
 Taken from David's spec for the Alert tab. Items marked _to be added_ are his

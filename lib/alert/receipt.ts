@@ -391,61 +391,61 @@ export function buildEmail(a: EmailParts): { subject: string; text: string; html
     `${a.asOf} A replay of the historical record: not live surveillance, not clinical guidance.`,
   ].join("\n");
 
-  const h = (t: string) => `<h3 style="font:600 11px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#5a5f6b;margin:22px 0 6px">${esc(t)}</h3>`;
+  const h = (t: string) => `<h3 style="font:600 11px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#b0bdcb;margin:22px 0 6px">${esc(t)}</h3>`;
   const para = (t: string) => `<p style="margin:0 0 8px">${esc(t)}</p>`;
-  const link = (l: ReceiptLink) => `<a href="${esc(l.url)}" style="color:#0d6b66">${esc(l.label)}</a>`;
-  const html = `<div style="font:15px/1.55 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#15171c;max-width:640px;margin:0 auto;padding:8px">
-<p style="font:12px ui-monospace,Menlo,monospace;color:#5a5f6b;margin:0 0 4px">${esc(a.watchText)}</p>
-<p style="font:11px ui-monospace,Menlo,monospace;color:#0d6b66;margin:6px 0 0">${esc(a.subject.match(/^\[[^\]]*\]/)?.[0] ?? "")}</p>
-<h2 style="font:600 22px/1.25 Georgia,serif;margin:6px 0 4px">${esc(`${a.marker}, ${a.country}: ${copy.title}`)}</h2>
-<p style="font:12px ui-monospace,Menlo,monospace;color:#b3341d;margin:0">${esc(meta)}</p>
+  const link = (l: ReceiptLink) => `<a href="${esc(l.url)}" style="color:#70e0ca">${esc(l.label)}</a>`;
+  const html = `<div style="font:15px/1.55 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#f5f4ef;background:#0d2233;max-width:640px;margin:0 auto;padding:18px;border-radius:9px">
+<p style="font:12px ui-monospace,Menlo,monospace;color:#b0bdcb;margin:0 0 4px">${esc(a.watchText)}</p>
+<p style="font:11px ui-monospace,Menlo,monospace;color:#70e0ca;margin:6px 0 0">${esc(a.subject.match(/^\[[^\]]*\]/)?.[0] ?? "")}</p>
+<h2 style="font:600 22px/1.25 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;margin:6px 0 4px">${esc(`${a.marker}, ${a.country}: ${copy.title}`)}</h2>
+<p style="font:12px ui-monospace,Menlo,monospace;color:#f2bd76;margin:0">${esc(meta)}</p>
 ${h("Why it matters, according to the System graph")}
 ${para(a.stakesIntro)}
 <ul style="margin:0 0 8px;padding-left:18px">${a.stakes
     .map(
       (f) =>
-        `<li style="margin-bottom:6px"><span style="border:1px solid #a9a08c;border-radius:9px;padding:0 6px;font-size:11px;white-space:nowrap">${esc(f.study_type ?? NO_STUDY_TYPE)}</span> ${esc(pairText(f))}. <strong>${esc(statText(f) ?? "")}</strong><br><span style="color:#5a5f6b">Population: ${esc(f.population ?? "not given by the graph")}</span><br><span style="font:11px ui-monospace,Menlo,monospace;color:#5a5f6b">system_id ${esc(f.system_id)} · ${esc(f.source_checked ? TIER.checked : TIER.unverified)}${
+        `<li style="margin-bottom:6px"><span style="border:1px solid #5b7183;border-radius:9px;padding:0 6px;font-size:11px;white-space:nowrap">${esc(f.study_type ?? NO_STUDY_TYPE)}</span> ${esc(pairText(f))}. <strong>${esc(statText(f) ?? "")}</strong><br><span style="color:#b0bdcb">Population: ${esc(f.population ?? "not given by the graph")}</span><br><span style="font:11px ui-monospace,Menlo,monospace;color:#b0bdcb">system_id ${esc(f.system_id)} · ${esc(f.source_checked ? TIER.checked : TIER.unverified)}${
           f.pubmed_id ? ` · ${link({ label: `PMID ${f.pubmed_id}`, url: f.pubmed_url ?? pubmedUrl(pmidStr(f.pubmed_id)) })}` : ""
         }</span></li>`,
     )
     .join("")}</ul>
-<p style="margin:0 0 8px;color:#5a5f6b;font-size:13px">${esc(a.stakesCaveat)}</p>
+<p style="margin:0 0 8px;color:#b0bdcb;font-size:13px">${esc(a.stakesCaveat)}</p>
 ${h("What changed")}
 ${para(e.quote ? copy.statement.split(" Its abstract says:")[0] : copy.statement)}
-${e.quote ? `<blockquote style="margin:0 0 8px;padding:2px 0 2px 12px;border-left:3px solid #8a6400;font-family:Georgia,serif">“${esc(e.quote)}”</blockquote>` : ""}
-<p style="margin:0 0 8px;color:#5a5f6b;font-size:13px"><strong style="color:#15171c">Comparison basis.</strong> ${esc(copy.basis)}</p>
+${e.quote ? `<blockquote style="margin:0 0 8px;padding:2px 0 2px 12px;border-left:3px solid #b0bdcb;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif">“${esc(e.quote)}”</blockquote>` : ""}
+<p style="margin:0 0 8px;color:#b0bdcb;font-size:13px"><strong style="color:#f5f4ef">Comparison basis.</strong> ${esc(copy.basis)}</p>
 ${h("How much weight to give this: the triggering study")}
-<p style="margin:0 0 8px"><span style="border:1px solid #0d6b66;color:#0d6b66;border-radius:9px;padding:1px 8px;font-size:12px">${esc(a.weight.tier)}</span></p>
+<p style="margin:0 0 8px"><span style="border:1px solid #70e0ca;color:#70e0ca;border-radius:9px;padding:1px 8px;font-size:12px">${esc(a.weight.tier)}</span></p>
 ${a.weight.lines
     .map(
       (l) =>
-        `<p style="margin:0 0 6px;font-size:13.5px;${l.warn ? "border-left:3px solid #b3341d;padding-left:9px" : ""}"><strong>${esc(l.label)}.</strong> ${esc(l.text)}</p>`,
+        `<p style="margin:0 0 6px;font-size:13.5px;${l.warn ? "border-left:3px solid #f2bd76;padding-left:9px" : ""}"><strong>${esc(l.label)}.</strong> ${esc(l.text)}</p>`,
     )
     .join("")}
-${a.weight.steps.length ? `<p style="margin:8px 0 4px;font-size:13px"><strong>Next steps a reviewer would look for</strong></p><ol style="margin:0 0 6px;padding-left:20px;font-size:13px">${a.weight.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol><p style="margin:0 0 8px;color:#5a5f6b;font-size:12px">${esc(a.weight.stepsNote ?? "")}</p>` : ""}
+${a.weight.steps.length ? `<p style="margin:8px 0 4px;font-size:13px"><strong>Next steps a reviewer would look for</strong></p><ol style="margin:0 0 6px;padding-left:20px;font-size:13px">${a.weight.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol><p style="margin:0 0 8px;color:#b0bdcb;font-size:12px">${esc(a.weight.stepsNote ?? "")}</p>` : ""}
 ${h("What the System graph has on it")}
 ${para(a.graphLine)}
 ${h("WHO status of the marker")}
 ${a.whoStatus.map(para).join("")}
 ${h("Decision receipt")}
-<table style="border-collapse:collapse;width:100%;font-size:12.5px;border:1px solid #d6cfbf">${a.receipt
+<table style="border-collapse:collapse;width:100%;font-size:12.5px;border:1px solid #2a4558">${a.receipt
     .map(
       (s) =>
-        `<tr><td colspan="2" style="background:#ece7dc;padding:5px 8px;font:600 11px ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase">${esc(s.title)}</td></tr>` +
+        `<tr><td colspan="2" style="background:#16344a;padding:5px 8px;font:600 11px ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase">${esc(s.title)}</td></tr>` +
         s.rows
           .map(
             (r) =>
-              `<tr><td style="padding:5px 8px;border-top:1px solid #d6cfbf;color:#5a5f6b;white-space:nowrap;vertical-align:top">${esc(r.label)}</td><td style="padding:5px 8px;border-top:1px solid #d6cfbf">${esc(r.text)}${
-                r.badge ? ` <span style="border:1px solid #a9a08c;border-radius:9px;padding:0 6px;font-size:11px;white-space:nowrap">${esc(r.badge.text)}</span>` : ""
+              `<tr><td style="padding:5px 8px;border-top:1px solid #2a4558;color:#b0bdcb;white-space:nowrap;vertical-align:top">${esc(r.label)}</td><td style="padding:5px 8px;border-top:1px solid #2a4558">${esc(r.text)}${
+                r.badge ? ` <span style="border:1px solid #5b7183;border-radius:9px;padding:0 6px;font-size:11px;white-space:nowrap">${esc(r.badge.text)}</span>` : ""
               }${r.links?.length ? ` ${r.links.map(link).join(" · ")}` : ""}</td></tr>`,
           )
           .join(""),
     )
     .join("")}</table>
 ${h("What this alert cannot tell you")}
-<ul style="margin:0 0 8px;padding-left:18px;color:#5a5f6b;font-size:13px">${a.limits.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>
-<p style="margin:18px 0 6px"><a href="${esc(a.link)}" style="color:#0d6b66">Open this alert</a></p>
-<p style="font-size:12px;color:#5a5f6b;margin:0">${esc(a.asOf)} A replay of the historical record: not live surveillance, not clinical guidance.</p>
+<ul style="margin:0 0 8px;padding-left:18px;color:#b0bdcb;font-size:13px">${a.limits.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>
+<p style="margin:18px 0 6px"><a href="${esc(a.link)}" style="color:#70e0ca">Open this alert</a></p>
+<p style="font-size:12px;color:#b0bdcb;margin:0">${esc(a.asOf)} A replay of the historical record: not live surveillance, not clinical guidance.</p>
 </div>`;
 
   return { subject, text, html };

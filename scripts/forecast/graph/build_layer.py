@@ -4,7 +4,7 @@ Usage (from the repo root):
   # 1. (once, network) resolve publication metadata through OpenAlex; raw responses cached
   python3 -I scripts/forecast/graph/build_layer.py openalex data/forecast/raw/graph/sp_findings.json data/forecast/raw/openalex
   # 2. (offline) build the pinned layer
-  python3 -I scripts/forecast/graph/build_layer.py build data/forecast/raw/graph/sp_findings.json data/forecast/raw/openalex data/forecast/graph-findings.json
+  python3 -I scripts/forecast/graph/build_layer.py build data/forecast/raw/graph/sp_findings.json data/forecast/raw/openalex data/forecast/graph-findings.json data/forecast/graph-vetted.json
   # 3. (offline, needs the full Dataverse studies file) extract the study rows used
   python3 -I scripts/forecast/graph/build_layer.py subset data/forecast/raw/graph/sp_findings.json <studies.tsv> data/forecast/raw/graph/dataverse-studies-subset.tsv
 
@@ -20,6 +20,8 @@ import urllib.parse
 import urllib.request
 
 KIND = {"sp_outcome": "sp", "k540e_haplotype": "codon540"}
+# The Alert tab data pack's 3 haplotype_findings (commit a1cc503); in our pull they are other_dhps records.
+HAPLOTYPE_IDS = {"o23pQ-icgn", "gD0V6goixf", "489sn1mPQa"}
 FIELD = {"study.population": "study.population",
          "association.variable_1_name": "variable_name",
          "association.variable_2_name": "variable_name"}
@@ -56,9 +58,15 @@ def num(x):
         return None
 
 
+def kind_of(r):
+    if r["system_id"] in HAPLOTYPE_IDS:
+        return "haplotype"
+    return KIND.get(r["kind"])
+
+
 def load(path):
     recs = json.load(open(path, encoding="utf-8"))
-    return [r for r in recs if r["kind"] in KIND]
+    return [r for r in recs if kind_of(r)]
 
 
 def graph_countries(r):
@@ -74,11 +82,18 @@ def graph_countries(r):
     return out
 
 
+def displayed(r):
+    """Country-naming findings, plus the global haplotype findings (shown as not country-specific)."""
+    return bool(graph_countries(r)) or kind_of(r) == "haplotype"
+
+
 def fetch_openalex(recs, outdir):
-    kept = [r for r in recs if graph_countries(r)]
-    pmids = sorted({s(r["pubmed_id"]) for r in kept if s(r["pubmed_id"])})
-    dois = sorted({s(r["doi"]).lower() for r in kept if not s(r["pubmed_id"]) and s(r["doi"])})
+    kept = [r for r in recs if displayed(r)]
+    have_pmid, have_doi = load_openalex(outdir)  # only fetch ids not already cached
+    pmids = sorted({s(r["pubmed_id"]) for r in kept if s(r["pubmed_id"])} - set(have_pmid))
+    dois = sorted({s(r["doi"]).lower() for r in kept if not s(r["pubmed_id"]) and s(r["doi"])} - set(have_doi))
     os.makedirs(outdir, exist_ok=True)
+    start = len([f for f in os.listdir(outdir) if f.endswith(".json")])
     jobs = [("pmid", pmids[i:i + 50]) for i in range(0, len(pmids), 50)]
     jobs += [("doi", dois[i:i + 50]) for i in range(0, len(dois), 50)]
     for n, (key, ids) in enumerate(jobs):
@@ -87,7 +102,7 @@ def fetch_openalex(recs, outdir):
         req = urllib.request.Request(url, headers={"User-Agent": UA})
         with urllib.request.urlopen(req, timeout=30) as resp:
             body = json.load(resp)
-        with open(os.path.join(outdir, f"works_{key}_{n:02d}.json"), "w", encoding="utf-8") as fh:
+        with open(os.path.join(outdir, f"works_{key}_{start + n:02d}.json"), "w", encoding="utf-8") as fh:
             json.dump({"_request": "GET " + url, "_retrieved": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                        "response": body}, fh, ensure_ascii=False, indent=1)
         print(key, len(ids), "->", len(body.get("results", [])))
@@ -119,10 +134,12 @@ def paper(r, by_pmid, by_doi):
             "year": w.get("publication_year"), "source": "openalex"}
 
 
-def build(recs, oa_dir, out_path):
+def build(recs, oa_dir, out_path, vetted_path=None):
     by_pmid, by_doi = load_openalex(oa_dir)
-    sp = [r for r in recs if KIND[r["kind"]] == "sp"]
-    c5 = [r for r in recs if KIND[r["kind"]] == "codon540"]
+    vetted = json.load(open(vetted_path, encoding="utf-8"))["ids"] if vetted_path and os.path.exists(vetted_path) else {}
+    sp = [r for r in recs if kind_of(r) == "sp"]
+    c5 = [r for r in recs if kind_of(r) == "codon540"]
+    hp = [r for r in recs if kind_of(r) == "haplotype"]
     totals = {
         "sp": len(sp),
         "spNamingCountry": sum(1 for r in sp if graph_countries(r)),
@@ -130,15 +147,20 @@ def build(recs, oa_dir, out_path):
         "codon540": len(c5),
         "codon540NamingCountry": sum(1 for r in c5 if graph_countries(r)),
         "papersBehindCodon540": len({s(r["pubmed_id"]) or s(r["doi"]) for r in c5}),
+        "haplotype": len(hp),
+        "haplotypeNamingCountry": sum(1 for r in hp if graph_countries(r)),
     }
+    for r in hp:
+        if not graph_countries(r):
+            print("haplotype finding names no country (shown as not country-specific):", r["system_id"])
     findings = []
     for r in recs:
         cs = graph_countries(r)
-        if not cs:
+        if not displayed(r):
             continue
         st = r.get("study") or {}
         findings.append({
-            "systemId": r["system_id"], "kind": KIND[r["kind"]],
+            "systemId": r["system_id"], "kind": kind_of(r),
             "spLooksLikeUptake": bool(r.get("sp_variable_looks_like_uptake_measure")),
             "variable1": (r.get("variable_1") or {}).get("name") or "",
             "variable2": (r.get("variable_2") or {}).get("name") or "",
@@ -147,13 +169,14 @@ def build(recs, oa_dir, out_path):
             "ciUpper": num(r.get("ci_upper")), "pValue": num(r.get("p_value")),
             "studyId": s(r.get("study_id")), "pubmedId": s(r.get("pubmed_id")), "doi": s(r.get("doi")),
             "population": st.get("population") or None, "countries": cs, "paper": paper(r, by_pmid, by_doi),
+            "inVettedCsv": vetted.get(r["system_id"]),
         })
     findings.sort(key=lambda f: (f["kind"], f["systemId"]))
     notes = [n.format(n=totals["spWithoutStudyRecord"]) for n in NOTES_TEMPLATE]
     out = {
         "source": {
             "id": "system-public-graph", "label": "System Public Graph", "licence": "CC BY-NC 4.0",
-            "citation": "System Public Graph v2.1 (snapshot July 1, 2026), CC BY-NC 4.0. Harvard Dataverse, DOI 10.7910/DVN/7V6JDO.",
+            "citation": "System, Inc. (2026). System Public Graph (Version 2.1) [Data set]. DOI: https://doi.org/10.7910/DVN/7V6JDO",  # verbatim, as in the Alert tab data pack README
             "url": "https://public-api.system.com/v1/", "retrievedAt": RETRIEVED_AT, "notes": notes,
         },
         "version": "2.1", "snapshot": "2026-07-01", "selectionRule": SELECTION_RULE,
@@ -186,7 +209,7 @@ if __name__ == "__main__":
     if mode == "openalex":
         fetch_openalex(recs, sys.argv[3])
     elif mode == "build":
-        build(recs, sys.argv[3], sys.argv[4])
+        build(recs, sys.argv[3], sys.argv[4], sys.argv[5] if len(sys.argv) > 5 else None)
     elif mode == "subset":
         subset(recs, sys.argv[3], sys.argv[4])
     else:

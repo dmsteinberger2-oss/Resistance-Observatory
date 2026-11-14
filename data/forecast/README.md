@@ -6,6 +6,9 @@ Pinned evidence layers for one marker: K540E in the parasite gene pfdhps (*Plasm
 |---|---|---|
 | `genome-k540e.json` | MalariaGEN Pf8 calls at pfdhps codon 540, by country and sample collection year | `GenomeDataset` |
 | `graph-findings.json` | System Public Graph findings about SP or explicit 540E that name a country | `GraphDataset` |
+| `papers.json` | 372 PubMed papers that mention K540E, from the Alert tab's data pack (publication clock) | `PapersDataset` |
+| `graph-vetted.json` | For each of our 498 pulled Graph records: is it in System's vetted associations CSV (true) or served by the API only (false) | `{source, file, checksum, method, checkedAt, ids}` |
+| `policy-milestones.json` | WHO policy milestones copied verbatim from the Alert tab's pack (`k540e-thresholds.json` `history`, commit a1cc503). No thresholds, categories or presets are copied | `{source, items: PolicyMilestone[]}` |
 | `alerts.placeholder.json` | Two badged placeholder alerts for layout only, used until `data/alerts.json` (the Alert tab) exists | `AlertRecord[]` |
 | `raw/graph/` | 284 cached System API responses (checked: none contains the API key), `work/` stage outputs, `sp_findings.json` (recon output), `dataverse-studies-subset.tsv` | |
 | `raw/openalex/` | Raw OpenAlex responses used for publication dates and titles | |
@@ -35,6 +38,8 @@ Pinned evidence layers for one marker: K540E in the parasite gene pfdhps (*Plasm
 
 33 countries have genotyped samples (1966 to 2022). The ISO3 lookup in the script lists 34 names: Honduras is in the Pf8 metadata (8 samples) but has no row in the genotype file, so it has no data here.
 
+Reconciliation: identical to the Alert tab's data pack at commit a1cc503 for all 222 country-years (pack `observations.dhps_K540E` numerator/denominator = our `withE`/`tested`).
+
 ### Known limits
 - Samples come from partner studies, not national surveys: counts are not national prevalence.
 - Country is where the sample was collected; the clock is collection year, not publication year.
@@ -46,7 +51,7 @@ python3 -I scripts/forecast/pf8_k540e.py <Pf8_drug_resistance_marker_genotypes.t
 
 ## Source 2: System Public Graph (graph layer)
 
-- System Public Graph v2.1, snapshot 2026-07-01, CC BY-NC 4.0. Harvard Dataverse DOI 10.7910/DVN/7V6JDO. API v1.0, https://public-api.system.com/v1/. Responses retrieved 2026-11-14 between 16:02 and 16:05 UTC (file times of `raw/graph/`).
+- System Public Graph v2.1, snapshot 2026-07-01, CC BY-NC 4.0. Citation (verbatim, as in the Alert tab's data pack): "System, Inc. (2026). System Public Graph (Version 2.1) [Data set]. DOI: https://doi.org/10.7910/DVN/7V6JDO". API v1.0, https://public-api.system.com/v1/. Responses retrieved 2026-11-14 between 16:02 and 16:05 UTC (file times of `raw/graph/`).
 - Work deriving from the Graph inherits CC BY-NC 4.0.
 - Selection rule: see `selectionRule` in `graph-findings.json` (from the recon summary). Kinds: `sp` = a variable name refers to SP; `codon540` = a variable name explicitly includes 540E. Other dhps findings (44) are dropped.
 - Totals, computed from all 454 SP and 540E records: SP 443 (139 name a country, 255 have no study record); codon540 11 (11 name a country, 8 papers). `findings` lists the 150 that name a country.
@@ -74,6 +79,27 @@ python3 -I scripts/forecast/graph/build_layer.py subset data/forecast/raw/graph/
 ## Source 3: OpenAlex (publication metadata)
 
 - https://api.openalex.org/works, filtered by PubMed ID, 2 requests, 69 distinct PMIDs, all 69 resolved, so all 150 findings have a title, publication date and year (1994 to 2023). Titles are verbatim from OpenAlex, including its spacing artefacts. OpenAlex data is CC0.
+
+## Source 4: PubMed papers that mention K540E (papers layer)
+
+- From the Alert tab's data pack, `k540e-data-pack/k540e-literature.json` on branch `david/alert-tab`, commit a1cc503. Its `_meta`: source "PubMed (NCBI E-utilities), searched 2026-11-14"; licence "Bibliographic metadata from PubMed; quotes are short excerpts from abstracts, shown with attribution and a link to the source."; the query and method are copied verbatim into `source.notes`.
+- 372 papers (1997 to 2026), every one kept. 334 name at least one country; 38 name none. 10 are read by the Graph (pack field `in_graph`: the paper's PubMed ID is in the Graph's CSV snapshot). 41 have no publication month (`month: null`).
+- Countries were machine-read from abstracts by the pack's pipeline and have not been checked by a human. Abstracts only; definitions differ between papers.
+- The clock is publication date, unlike the genome layer (collection year). `MIN_YEAR`/`MAX_YEAR` in `lib/forecast/data.ts` span every clock (currently 1966 to 2026: genome 1966-2022, papers 1997-2026, Graph papers 1994-2023); `GENOME_MIN_YEAR`/`GENOME_MAX_YEAR` keep the genome range. After 2022 the genome layer simply has no newer samples; 88 papers were published after 2022.
+- Regenerate (after the branch merges): `python3 -I scripts/forecast/build_papers.py k540e-data-pack/k540e-literature.json data/forecast/papers.json a1cc503`
+
+## Vetted release membership (`inVettedCsv`)
+
+System publishes a vetted bulk snapshot of the Graph on Harvard Dataverse (doi:10.7910/DVN/7V6JDO, version 2.1, released 2026-07-22). Its associations file is `system-public-graph-v1-associations.csv` (442,463,948 bytes, 1,999,877 rows per the dataset MANIFEST; SHA-256 `a9c8ba3db760efec0d08c65c17c36f0066073062d8e1ff8ea40cc71679daddf9`, MD5 `c884dd1132957f69ffea45404f29db61`; id column `system_id`). The live API serves more associations than that file; System's documentation says about 20% of API associations are known-bad extractions.
+
+- `inVettedCsv: true`: the finding's `system_id` is in the vetted associations file. `false`: served by the API only. `null`: not determined.
+- Source used for the current flags: the PRIMARY file. Downloaded from https://dataverse.harvard.edu/api/access/datafile/14061020 on 2026-11-14 (16:58:43Z to 17:03:11Z), complete: 442,463,948 bytes, SHA-256 equal to the MANIFEST value above, 1,999,877 data rows scanned. Not committed. 107 of our 498 pulled records are in it.
+- Cross-check with the Alert tab pack's `vetted_association_ids` (4,912 ids, commit a1cc503): it agrees on 496 of our 498 records. Two records are in the CSV but missing from the pack's list: `CJSUyFiyCF` (SP, Burkina Faso, displayed) and `8H-_xZF5xZ` (other dhps, not displayed). All 26 ids the pack lists as `haplotype_findings` and `stakes_sp` are in the CSV.
+- None of the 11 `codon540` findings is in the vetted list.
+
+### The three haplotype findings are shown as not country-specific
+The Alert tab's pack treats `o23pQ-icgn`, `gD0V6goixf` and `489sn1mPQa` as the marker's own Graph findings (K540E-containing quintuple or sextuple haplotypes), and all three are in System's vetted CSV. By our country rule (a country only from the Graph's population text or a variable name) none of them names a country, so they carry `countries: []`. To keep both tabs consistent without breaking that rule, they are listed in every country panel (`graphFindingsFor(...).haplotype`, `globalHaplotypeFindings()`) and labelled as not country-specific. They are left out of every per-country and headline count (`graphCountsByCountry`, `GRAPH_VETTED.counts`, `GRAPH_VERIFICATION.counts`, `totals.spNamingCountry`); `GRAPH_VETTED.globalHaplotype` counts them separately. Their papers were resolved through OpenAlex like the others (`raw/openalex/works_pmid_02.json`).
+- Regenerate from the primary file: `python3 -I scripts/forecast/graph/vetted_membership.py csv <associations.csv> <checkedAt> data/forecast/raw/graph/sp_findings.json data/forecast/graph-vetted.json`, then rerun `build_layer.py build ... data/forecast/graph-vetted.json`. Fallback: same command with `pack <k540e-graph.json>`.
 
 ## Spot-check against the papers
 

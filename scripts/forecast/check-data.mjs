@@ -30,9 +30,10 @@ if (Math.min(...allYears) !== genome.minYear || Math.max(...allYears) !== genome
 for (const f of graph.findings) {
   if (!f.systemId) fail("finding without systemId");
   if (!f.pubmedId && !f.doi) fail(`${f.systemId} has neither pubmedId nor doi`);
-  if (!f.countries?.length) fail(`${f.systemId} has no countries`);
+  if (f.kind !== "haplotype" && !f.countries?.length) fail(`${f.systemId} has no countries`);
+  if (f.kind === "haplotype" && f.countries?.length) fail(`${f.systemId} haplotype finding unexpectedly names a country`);
   for (const c of f.countries ?? []) if (!ISO.test(c.iso3)) fail(`${f.systemId} bad iso3 ${c.iso3}`);
-  if (f.kind !== "sp" && f.kind !== "codon540") fail(`${f.systemId} bad kind`);
+  if (!["sp", "codon540", "haplotype"].includes(f.kind)) fail(`${f.systemId} bad kind`);
 }
 if (!Array.isArray(alerts) || alerts.length !== 2) fail("placeholder alerts must be an array of 2");
 
@@ -79,9 +80,102 @@ for (const r of verification.records ?? []) {
 }
 const notDisplayed = (verification.records ?? []).filter((r) => !pinnedIds.has(r.systemId)).map((r) => r.systemId);
 const vc = { supported: 0, partly_supported: 0, contradicted: 0, not_verifiable: 0, unchecked: 0 };
-for (const f of graph.findings) vc[byId.get(f.systemId)?.status ?? "unchecked"] += 1;
+const countryFindings = graph.findings.filter((f) => f.countries.length > 0);
+for (const f of countryFindings) vc[byId.get(f.systemId)?.status ?? "unchecked"] += 1;
 console.log("Verification records", (verification.records ?? []).length, "| not among displayed findings:", notDisplayed.length ? notDisplayed.join(", ") : "none");
-console.log("Verification over displayed findings", JSON.stringify(vc));
+console.log("Verification over country-naming findings", countryFindings.length, JSON.stringify(vc));
+console.log("Global haplotype findings (shown in every panel as not country-specific):");
+for (const f of graph.findings.filter((x) => x.kind === "haplotype"))
+  console.log(`  ${f.systemId} | paper ${f.paper.year} | PMID ${f.pubmedId} | vetted ${f.inVettedCsv} | status ${byId.get(f.systemId)?.status ?? "unchecked"} | ${f.paper.title}`);
+
+// Papers layer
+const papers = load("data/forecast/papers.json");
+if (papers.papers.length !== 372) fail(`papers: expected 372, got ${papers.papers.length}`);
+if (papers.total !== papers.papers.length) fail("papers.total mismatch");
+if (papers.readByGraph !== papers.papers.filter((p) => p.readByGraph).length) fail("papers.readByGraph mismatch");
+const pmids = new Set();
+for (const p of papers.papers) {
+  if (!/^\d+$/.test(p.pmid)) fail(`paper bad pmid ${p.pmid}`);
+  if (pmids.has(p.pmid)) fail(`paper duplicate pmid ${p.pmid}`);
+  pmids.add(p.pmid);
+  if (!Number.isInteger(p.year)) fail(`paper ${p.pmid} without year`);
+  if (p.month !== null && !(Number.isInteger(p.month) && p.month >= 1 && p.month <= 12)) fail(`paper ${p.pmid} bad month`);
+  if (!p.title || !p.url) fail(`paper ${p.pmid} without title or url`);
+  for (const c of p.countries) if (!ISO.test(c)) fail(`paper ${p.pmid} bad iso3 ${c}`);
+}
+const pc = {};
+for (const p of papers.papers) for (const c of new Set(p.countries)) {
+  pc[c] ??= { n: 0, first: Infinity };
+  pc[c].n += 1;
+  pc[c].first = Math.min(pc[c].first, p.year);
+}
+const yrs = papers.papers.map((p) => p.year);
+console.log(
+  "Papers",
+  papers.total,
+  "| readByGraph",
+  papers.readByGraph,
+  "| with >=1 country",
+  papers.papers.filter((p) => p.countries.length).length,
+  "| years",
+  Math.min(...yrs),
+  "-",
+  Math.max(...yrs),
+  "| month missing",
+  papers.papers.filter((p) => p.month === null).length,
+);
+console.log(
+  "  top countries",
+  Object.entries(pc)
+    .sort((a, b) => b[1].n - a[1].n || a[0].localeCompare(b[0]))
+    .slice(0, 8)
+    .map(([c, v]) => `${c}:${v.n}`)
+    .join(" "),
+);
+for (const c of ["NGA", "KEN", "GMB"]) console.log(`  ${c}`, pc[c] ? `${pc[c].n} papers, earliest ${pc[c].first}` : "no papers");
+
+// Vetted-release membership
+const vetted = load("data/forecast/graph-vetted.json");
+console.log("Vetted source:", vetted.source, "| file", vetted.file, "| checksum", vetted.checksum, "| checkedAt", vetted.checkedAt);
+for (const [id, v] of Object.entries(vetted.ids)) {
+  if (typeof v !== "boolean") fail(`vetted ${id} not boolean`);
+  if (!reconIds.has(id)) fail(`vetted ${id} not among the pulled records`);
+}
+for (const f of graph.findings) {
+  if (f.inVettedCsv !== (vetted.ids[f.systemId] ?? null)) fail(`${f.systemId} inVettedCsv disagrees with graph-vetted.json`);
+}
+const label = (v) => (v === true ? "vetted" : v === false ? "apiOnly" : "unknown");
+const xt = {};
+for (const f of countryFindings) {
+  const k = `${f.kind} ${label(f.inVettedCsv)}`;
+  xt[k] ??= { supported: 0, partly_supported: 0, contradicted: 0, not_verifiable: 0, unchecked: 0, total: 0 };
+  xt[k][byId.get(f.systemId)?.status ?? "unchecked"] += 1;
+  xt[k].total += 1;
+}
+console.log("Vetted x spot-check over country-naming findings:");
+for (const k of Object.keys(xt).sort()) console.log(`  ${k.padEnd(18)}`, JSON.stringify(xt[k]));
+for (const c of ["NGA", "KEN", "GMB"]) {
+  const sp = graph.findings.filter((f) => f.kind === "sp" && f.countries.some((x) => x.iso3 === c));
+  console.log(`  ${c} SP findings`, sp.length, "| vetted", sp.filter((f) => f.inVettedCsv === true).length, "| API only", sp.filter((f) => f.inVettedCsv === false).length);
+}
+
+// Policy milestones (verbatim from the Alert tab pack)
+const policy = load("data/forecast/policy-milestones.json");
+for (const m of policy.items) {
+  if (!Number.isInteger(m.year) || !m.text || !/^https:\/\//.test(m.url)) fail(`policy milestone bad item ${JSON.stringify(m)}`);
+}
+console.log("Policy milestones", policy.items.map((m) => m.year).join(", "));
+
+// Year ranges (two clocks)
+const gpy = graph.findings.map((f) => f.paper.year).filter((y) => y !== null);
+const all = [genome.minYear, genome.maxYear, ...papers.papers.map((p) => p.year), ...gpy];
+console.log(
+  "Year ranges: genome (collection)", genome.minYear, "-", genome.maxYear,
+  "| papers (publication)", Math.min(...yrs), "-", Math.max(...yrs),
+  "| Graph papers (publication)", Math.min(...gpy), "-", Math.max(...gpy),
+  "| MIN_YEAR/MAX_YEAR", Math.min(...all), "-", Math.max(...all),
+  "| papers after genome max", papers.papers.filter((p) => p.year > genome.maxYear).length,
+);
 
 console.log(failures ? `${failures} FAILURE(S)` : "All invariants hold.");
 process.exit(failures ? 1 : 0);

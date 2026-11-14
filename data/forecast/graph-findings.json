@@ -3,7 +3,7 @@
   "id": "system-public-graph",
   "label": "System Public Graph",
   "licence": "CC BY-NC 4.0",
-  "citation": "System Public Graph v2.1 (snapshot July 1, 2026), CC BY-NC 4.0. Harvard Dataverse, DOI 10.7910/DVN/7V6JDO.",
+  "citation": "System, Inc. (2026). System Public Graph (Version 2.1) [Data set]. DOI: https://doi.org/10.7910/DVN/7V6JDO",
   "url": "https://public-api.system.com/v1/",
   "retrievedAt": "2026-11-14T16:05:21Z",
   "notes": [
@@ -22,7 +22,9 @@
   "spWithoutStudyRecord": 255,
   "codon540": 11,
   "codon540NamingCountry": 11,
-  "papersBehindCodon540": 8
+  "papersBehindCodon540": 8,
+  "haplotype": 3,
+  "haplotypeNamingCountry": 0
  },
  "findings": [
   {
@@ -52,7 +54,8 @@
     "publishedDate": "2015-01-13",
     "year": 2015,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "AeI-laBxXr",
@@ -81,7 +84,8 @@
     "publishedDate": "2015-01-06",
     "year": 2015,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "KL67h5A5Ml",
@@ -110,7 +114,8 @@
     "publishedDate": "2023-01-21",
     "year": 2023,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "NEpELzpWh9",
@@ -139,7 +144,8 @@
     "publishedDate": "2013-09-18",
     "year": 2013,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "QIrkddNp_j",
@@ -168,7 +174,8 @@
     "publishedDate": "2005-07-18",
     "year": 2005,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "ZPGDdrkvVI",
@@ -197,7 +204,8 @@
     "publishedDate": "2015-01-13",
     "year": 2015,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "iD_4aq3uIs",
@@ -226,7 +234,8 @@
     "publishedDate": "2018-05-02",
     "year": 2018,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "o81I-56Mt5",
@@ -255,7 +264,8 @@
     "publishedDate": "2008-07-01",
     "year": 2008,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "paFNq6MPX5",
@@ -284,7 +294,8 @@
     "publishedDate": "2015-01-06",
     "year": 2015,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "rgO2bc-iSN",
@@ -313,7 +324,8 @@
     "publishedDate": "2015-01-13",
     "year": 2015,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "umNpTiumH4",
@@ -342,7 +354,80 @@
     "publishedDate": "2019-03-21",
     "year": 2019,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
+  },
+  {
+   "systemId": "489sn1mPQa",
+   "kind": "haplotype",
+   "spLooksLikeUptake": false,
+   "variable1": "Mutations in the Plasmodium falciparum genes Pfdhfr and Pfdhps, particularly the sextuple mutant haplotype",
+   "variable2": "birth weight",
+   "statisticType": "mean_difference_unstandardized",
+   "statisticValue": -461.0,
+   "ciLower": -877.0,
+   "ciUpper": -44.0,
+   "pValue": 0.03,
+   "studyId": "Cxsr7UsKD_",
+   "pubmedId": "33684211",
+   "doi": "10.1093/infdis/jiab117",
+   "population": "Pregnant women in malaria-endemic areas who were monitored from before conception or from the first trimester until delivery.",
+   "countries": [],
+   "paper": {
+    "title": "Reduced Birth Weight Caused by Sextuple Drug-Resistant Plasmodium falciparum Infection in Early Second Trimester",
+    "publishedDate": "2021-02-26",
+    "year": 2021,
+    "source": "openalex"
+   },
+   "inVettedCsv": true
+  },
+  {
+   "systemId": "gD0V6goixf",
+   "kind": "haplotype",
+   "spLooksLikeUptake": false,
+   "variable1": "Mutations in the Plasmodium falciparum genes Pfdhfr and Pfdhps, particularly the sextuple mutant haplotype",
+   "variable2": "birth weight",
+   "statisticType": "mean_difference_unstandardized",
+   "statisticValue": -267.0,
+   "ciLower": -454.0,
+   "ciUpper": -59.0,
+   "pValue": 0.01,
+   "studyId": "Cxsr7UsKD_",
+   "pubmedId": "33684211",
+   "doi": "10.1093/infdis/jiab117",
+   "population": "Pregnant women in malaria-endemic areas who were monitored from before conception or from the first trimester until delivery.",
+   "countries": [],
+   "paper": {
+    "title": "Reduced Birth Weight Caused by Sextuple Drug-Resistant Plasmodium falciparum Infection in Early Second Trimester",
+    "publishedDate": "2021-02-26",
+    "year": 2021,
+    "source": "openalex"
+   },
+   "inVettedCsv": true
+  },
+  {
+   "systemId": "o23pQ-icgn",
+   "kind": "haplotype",
+   "spLooksLikeUptake": false,
+   "variable1": "Patients who cleared the infection (quintuple resistant P. falciparum parasites) vs. Patients who did not clear the infection (quintuple resistant P. falciparum parasites)",
+   "variable2": "blood pyrimethamine concentrations",
+   "statisticType": "mean_difference_unstandardized",
+   "statisticValue": 77.0,
+   "ciLower": null,
+   "ciUpper": null,
+   "pValue": 0.037,
+   "studyId": "SGWeh5J0Ya",
+   "pubmedId": "16127028",
+   "doi": "10.1128/aac.49.9.3601-3606.2005",
+   "population": "Adults infected with Plasmodium falciparum malaria in an unspecified location.",
+   "countries": [],
+   "paper": {
+    "title": "Association between the Pharmacokinetics and In Vivo Therapeutic Efficacy of Sulfadoxine-Pyrimethamine in Malawian Children",
+    "publishedDate": "2005-08-26",
+    "year": 2005,
+    "source": "openalex"
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "-uHF8PKJLb",
@@ -371,7 +456,8 @@
     "publishedDate": "2006-08-21",
     "year": 2006,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "00yvzW-jqZ",
@@ -400,7 +486,8 @@
     "publishedDate": "2021-04-23",
     "year": 2021,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "3Ovoo_BH6y",
@@ -429,7 +516,8 @@
     "publishedDate": "2006-08-21",
     "year": 2006,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "3R6ZB-jdEP",
@@ -458,7 +546,8 @@
     "publishedDate": "1998-11-01",
     "year": 1998,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "4143oeVqof",
@@ -487,7 +576,8 @@
     "publishedDate": "2003-05-01",
     "year": 2003,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "4avf24yKnZ",
@@ -516,7 +606,8 @@
     "publishedDate": "2015-10-02",
     "year": 2015,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "4x1gKKV5d-",
@@ -545,7 +636,8 @@
     "publishedDate": "2000-01-01",
     "year": 2000,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "69RRr6Xqmm",
@@ -574,7 +666,8 @@
     "publishedDate": "2013-08-03",
     "year": 2013,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "6MNSCw6DyE",
@@ -613,7 +706,8 @@
     "publishedDate": "2014-09-23",
     "year": 2014,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "6OErRHgw0M",
@@ -642,7 +736,8 @@
     "publishedDate": "2019-02-07",
     "year": 2019,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "6gHNBtEMhm",
@@ -671,7 +766,8 @@
     "publishedDate": "2022-03-21",
     "year": 2022,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "6jrbBRbjQa",
@@ -720,7 +816,8 @@
     "publishedDate": "2014-11-20",
     "year": 2014,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "7PQthtqs1C",
@@ -749,7 +846,8 @@
     "publishedDate": "2021-04-23",
     "year": 2021,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "7n328tg7ya",
@@ -778,7 +876,8 @@
     "publishedDate": "2017-08-10",
     "year": 2017,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "7qCFuum7Dn",
@@ -807,7 +906,8 @@
     "publishedDate": "2022-12-16",
     "year": 2022,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "81FqRY42e3",
@@ -836,7 +936,8 @@
     "publishedDate": "1999-01-01",
     "year": 1999,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "86O0UaES4j",
@@ -865,7 +966,8 @@
     "publishedDate": "2020-03-02",
     "year": 2020,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "8ncIXfhgBL",
@@ -894,7 +996,8 @@
     "publishedDate": "2001-10-01",
     "year": 2001,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "8oPkmv2v9d",
@@ -923,7 +1026,8 @@
     "publishedDate": "2000-01-01",
     "year": 2000,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "9T0l_vRSku",
@@ -952,7 +1056,8 @@
     "publishedDate": "2021-02-02",
     "year": 2021,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "9XvUKVIkqj",
@@ -981,7 +1086,8 @@
     "publishedDate": "2009-08-05",
     "year": 2009,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "9piJI0SwqK",
@@ -1010,7 +1116,8 @@
     "publishedDate": "2002-11-01",
     "year": 2002,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "AByodmg7lO",
@@ -1039,7 +1146,8 @@
     "publishedDate": "2011-07-01",
     "year": 2011,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "AVy5IwHSXY",
@@ -1068,7 +1176,8 @@
     "publishedDate": "2021-07-18",
     "year": 2021,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "Az5UNR8eRQ",
@@ -1097,7 +1206,8 @@
     "publishedDate": "2014-05-16",
     "year": 2014,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "B0A-37BHbL",
@@ -1126,7 +1236,8 @@
     "publishedDate": "2008-09-18",
     "year": 2008,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "BjibpF14KF",
@@ -1160,7 +1271,8 @@
     "publishedDate": "2015-01-15",
     "year": 2015,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "BqWUlpk0T-",
@@ -1189,7 +1301,8 @@
     "publishedDate": "2021-04-23",
     "year": 2021,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "BtUBIXcl50",
@@ -1218,7 +1331,8 @@
     "publishedDate": "2020-03-31",
     "year": 2020,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "CD0AQR65Tu",
@@ -1247,7 +1361,8 @@
     "publishedDate": "2021-10-18",
     "year": 2021,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "CJSUyFiyCF",
@@ -1276,7 +1391,8 @@
     "publishedDate": "2008-09-18",
     "year": 2008,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "CMOfXcWEuE",
@@ -1305,7 +1421,8 @@
     "publishedDate": "2021-02-02",
     "year": 2021,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "DsOi7V9ddR",
@@ -1334,7 +1451,8 @@
     "publishedDate": "2020-03-02",
     "year": 2020,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "FgmMdDMoBa",
@@ -1363,7 +1481,8 @@
     "publishedDate": "2019-01-30",
     "year": 2019,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "GQdmfW4vfl",
@@ -1392,7 +1511,8 @@
     "publishedDate": "2013-08-03",
     "year": 2013,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "IOisiiGe1-",
@@ -1421,7 +1541,8 @@
     "publishedDate": "2008-09-18",
     "year": 2008,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "InzmYiFg9h",
@@ -1450,7 +1571,8 @@
     "publishedDate": "2019-03-01",
     "year": 2019,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "Izko_Z_Vtg",
@@ -1479,7 +1601,8 @@
     "publishedDate": "2021-04-23",
     "year": 2021,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "J12vcO4bWf",
@@ -1508,7 +1631,8 @@
     "publishedDate": "2019-06-02",
     "year": 2019,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "JxGdIpiL-2",
@@ -1537,7 +1661,8 @@
     "publishedDate": "2021-10-18",
     "year": 2021,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "KEVHhFekgC",
@@ -1566,7 +1691,8 @@
     "publishedDate": "2015-01-15",
     "year": 2015,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "KIdxCM0c10",
@@ -1595,7 +1721,8 @@
     "publishedDate": "2021-04-23",
     "year": 2021,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "KJJ1_-918z",
@@ -1624,7 +1751,8 @@
     "publishedDate": "2008-09-18",
     "year": 2008,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "KKWaC2-WfW",
@@ -1653,7 +1781,8 @@
     "publishedDate": "2003-05-01",
     "year": 2003,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "KYksS9zGnS",
@@ -1682,7 +1811,8 @@
     "publishedDate": "2021-10-18",
     "year": 2021,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "KxIowna7vl",
@@ -1721,7 +1851,8 @@
     "publishedDate": "2014-09-23",
     "year": 2014,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "LNFDV9P2Tp",
@@ -1755,7 +1886,8 @@
     "publishedDate": "2007-09-26",
     "year": 2007,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "LSD7Md0Trm",
@@ -1784,7 +1916,8 @@
     "publishedDate": "2020-03-02",
     "year": 2020,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "M0l4hyI4Ba",
@@ -1813,7 +1946,8 @@
     "publishedDate": "2012-09-14",
     "year": 2012,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "MmaXLItoVu",
@@ -1842,7 +1976,8 @@
     "publishedDate": "2008-07-08",
     "year": 2008,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "Mn7GZdBJdt",
@@ -1871,7 +2006,8 @@
     "publishedDate": "2019-02-07",
     "year": 2019,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "MvEou2SNbR",
@@ -1900,7 +2036,8 @@
     "publishedDate": "2021-10-18",
     "year": 2021,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "Ou4VegsPqi",
@@ -1929,7 +2066,8 @@
     "publishedDate": "2006-10-18",
     "year": 2006,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "PEyo2A8Ol0",
@@ -1958,7 +2096,8 @@
     "publishedDate": "2015-09-30",
     "year": 2015,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "PKT5B744Ke",
@@ -1987,7 +2126,8 @@
     "publishedDate": "2019-02-07",
     "year": 2019,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "PiTLrKJcFa",
@@ -2016,7 +2156,8 @@
     "publishedDate": "2020-03-31",
     "year": 2020,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "QgWBfT_0ML",
@@ -2045,7 +2186,8 @@
     "publishedDate": "2006-08-21",
     "year": 2006,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "R2Mph097KA",
@@ -2074,7 +2216,8 @@
     "publishedDate": "2001-10-01",
     "year": 2001,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "ROOSEY1saH",
@@ -2103,7 +2246,8 @@
     "publishedDate": "2021-10-18",
     "year": 2021,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "RewkycI8iY",
@@ -2132,7 +2276,8 @@
     "publishedDate": "2016-01-01",
     "year": 2016,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "RyvRdnGPms",
@@ -2161,7 +2306,8 @@
     "publishedDate": "2006-10-18",
     "year": 2006,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "SUG_7UNL-c",
@@ -2190,7 +2336,8 @@
     "publishedDate": "2005-07-01",
     "year": 2005,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "SuLGummy5v",
@@ -2219,7 +2366,8 @@
     "publishedDate": "2018-09-05",
     "year": 2018,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "Sxh3dlzg36",
@@ -2248,7 +2396,8 @@
     "publishedDate": "2010-11-30",
     "year": 2010,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "TfYjsMghYK",
@@ -2277,7 +2426,8 @@
     "publishedDate": "2001-10-01",
     "year": 2001,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "Tyepvjq9OL",
@@ -2306,7 +2456,8 @@
     "publishedDate": "2005-07-01",
     "year": 2005,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "Ub2Foedzmh",
@@ -2335,7 +2486,8 @@
     "publishedDate": "2019-02-07",
     "year": 2019,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "Ujt6TKl5qi",
@@ -2364,7 +2516,8 @@
     "publishedDate": "2021-09-06",
     "year": 2021,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "VIzFShj6ZW",
@@ -2393,7 +2546,8 @@
     "publishedDate": "2001-10-01",
     "year": 2001,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "VpuMUNTcq7",
@@ -2422,7 +2576,8 @@
     "publishedDate": "2007-12-01",
     "year": 2007,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "Vst1aaXCPP",
@@ -2451,7 +2606,8 @@
     "publishedDate": "2020-03-02",
     "year": 2020,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "Vy7uovqyAH",
@@ -2480,7 +2636,8 @@
     "publishedDate": "2020-03-31",
     "year": 2020,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "WBoM8e21Av",
@@ -2509,7 +2666,8 @@
     "publishedDate": "2007-02-01",
     "year": 2007,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "WGAVhdcfWo",
@@ -2538,7 +2696,8 @@
     "publishedDate": "2009-10-19",
     "year": 2009,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "WVZpbcR8Zj",
@@ -2567,7 +2726,8 @@
     "publishedDate": "2019-02-07",
     "year": 2019,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "YUIOeR4oVQ",
@@ -2596,7 +2756,8 @@
     "publishedDate": "1998-01-01",
     "year": 1998,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "Z-11enSJrn",
@@ -2625,7 +2786,8 @@
     "publishedDate": "2021-07-18",
     "year": 2021,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "ZjfOB6Cxmi",
@@ -2654,7 +2816,8 @@
     "publishedDate": "2015-01-01",
     "year": 2015,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "Zz4Nixw_nR",
@@ -2683,7 +2846,8 @@
     "publishedDate": "2003-02-15",
     "year": 2003,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "a1qUmm-oDY",
@@ -2712,7 +2876,8 @@
     "publishedDate": "2010-12-01",
     "year": 2010,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "aJoqjO4SG0",
@@ -2741,7 +2906,8 @@
     "publishedDate": "2005-07-01",
     "year": 2005,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "bDeL09OfvL",
@@ -2770,7 +2936,8 @@
     "publishedDate": "2005-07-01",
     "year": 2005,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "ba0hoWPwPT",
@@ -2799,7 +2966,8 @@
     "publishedDate": "2013-08-03",
     "year": 2013,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "buluZNubAZ",
@@ -2828,7 +2996,8 @@
     "publishedDate": "2019-11-06",
     "year": 2019,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "cKQXWTLQCv",
@@ -2857,7 +3026,8 @@
     "publishedDate": "2019-11-06",
     "year": 2019,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "d3YMyvlqFA",
@@ -2886,7 +3056,8 @@
     "publishedDate": "2007-02-01",
     "year": 2007,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "e3iCjefJp8",
@@ -2915,7 +3086,8 @@
     "publishedDate": "2013-08-03",
     "year": 2013,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "eR4TzvOwEN",
@@ -2944,7 +3116,8 @@
     "publishedDate": "2019-06-02",
     "year": 2019,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "ehh5xAnLgz",
@@ -2983,7 +3156,8 @@
     "publishedDate": "2014-09-23",
     "year": 2014,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "elZpOkRpBE",
@@ -3012,7 +3186,8 @@
     "publishedDate": "2019-02-07",
     "year": 2019,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "eonsZV8DCd",
@@ -3041,7 +3216,8 @@
     "publishedDate": "2015-01-15",
     "year": 2015,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "ezb25BhDOa",
@@ -3070,7 +3246,8 @@
     "publishedDate": "2022-07-25",
     "year": 2022,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "f2Rz2kHhpc",
@@ -3099,7 +3276,8 @@
     "publishedDate": "1994-03-01",
     "year": 1994,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "fuHJcBpdI5",
@@ -3128,7 +3306,8 @@
     "publishedDate": "2021-07-18",
     "year": 2021,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "gTFfySGynp",
@@ -3157,7 +3336,8 @@
     "publishedDate": "1999-01-01",
     "year": 1999,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "gVseJ5wKr4",
@@ -3186,7 +3366,8 @@
     "publishedDate": "2017-08-10",
     "year": 2017,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "gzkLn-xJT2",
@@ -3215,7 +3396,8 @@
     "publishedDate": "2018-03-12",
     "year": 2018,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "hCIhBeea_p",
@@ -3244,7 +3426,8 @@
     "publishedDate": "2019-02-07",
     "year": 2019,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "ha2Jy6rI5b",
@@ -3273,7 +3456,8 @@
     "publishedDate": "2015-09-30",
     "year": 2015,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "i4oO2Y9Q-5",
@@ -3302,7 +3486,8 @@
     "publishedDate": "2020-03-02",
     "year": 2020,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "iAgGo5krDd",
@@ -3331,7 +3516,8 @@
     "publishedDate": "2022-03-21",
     "year": 2022,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "iBbDRVayGM",
@@ -3360,7 +3546,8 @@
     "publishedDate": "2003-02-15",
     "year": 2003,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "iLTVCyCMR6",
@@ -3389,7 +3576,8 @@
     "publishedDate": "2015-01-01",
     "year": 2015,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "jfo7MXsJ1Z",
@@ -3418,7 +3606,8 @@
     "publishedDate": "2015-09-26",
     "year": 2015,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "jzyOYn5Zfe",
@@ -3447,7 +3636,8 @@
     "publishedDate": "2019-02-07",
     "year": 2019,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "kRSYc6u8D6",
@@ -3476,7 +3666,8 @@
     "publishedDate": "2000-01-01",
     "year": 2000,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "kt15jCcicD",
@@ -3505,7 +3696,8 @@
     "publishedDate": "2013-09-18",
     "year": 2013,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "kwJ8LM3Tod",
@@ -3534,7 +3726,8 @@
     "publishedDate": "2020-11-10",
     "year": 2020,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "l1AcCnDzSE",
@@ -3563,7 +3756,8 @@
     "publishedDate": "2015-01-01",
     "year": 2015,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "l5J-ceSD7x",
@@ -3592,7 +3786,8 @@
     "publishedDate": "2022-12-15",
     "year": 2022,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "lD2D2PmgQV",
@@ -3626,7 +3821,8 @@
     "publishedDate": "2020-06-17",
     "year": 2020,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "lZ8VcldX6u",
@@ -3655,7 +3851,8 @@
     "publishedDate": "2019-02-07",
     "year": 2019,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "lz2GF4sdfw",
@@ -3684,7 +3881,8 @@
     "publishedDate": "2015-01-15",
     "year": 2015,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "mKVHpdIFh8",
@@ -3713,7 +3911,8 @@
     "publishedDate": "2009-08-05",
     "year": 2009,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "mkviSixbGf",
@@ -3742,7 +3941,8 @@
     "publishedDate": "2011-07-01",
     "year": 2011,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "nLJUHL1ClC",
@@ -3771,7 +3971,8 @@
     "publishedDate": "2020-03-31",
     "year": 2020,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "nWfK8dbKWo",
@@ -3800,7 +4001,8 @@
     "publishedDate": "2015-09-30",
     "year": 2015,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "nqaVeVzLAI",
@@ -3829,7 +4031,8 @@
     "publishedDate": "2011-07-01",
     "year": 2011,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "oAd3DaXG22",
@@ -3858,7 +4061,8 @@
     "publishedDate": "1998-11-01",
     "year": 1998,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "oVT7sqoa0N",
@@ -3887,7 +4091,8 @@
     "publishedDate": "2011-07-01",
     "year": 2011,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "qmc-EG2mgi",
@@ -3916,7 +4121,8 @@
     "publishedDate": "2013-08-03",
     "year": 2013,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "qr_TZ4ez4z",
@@ -3945,7 +4151,8 @@
     "publishedDate": "2003-05-01",
     "year": 2003,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "rbtDfPyqzM",
@@ -3974,7 +4181,8 @@
     "publishedDate": "2002-12-01",
     "year": 2002,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "rgFohwq5fY",
@@ -4003,7 +4211,8 @@
     "publishedDate": "2015-09-30",
     "year": 2015,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "rxABsNdMRw",
@@ -4032,7 +4241,8 @@
     "publishedDate": "2010-11-30",
     "year": 2010,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "sJ8weDgXxL",
@@ -4061,7 +4271,8 @@
     "publishedDate": "2016-09-13",
     "year": 2016,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "sNX-tQt1UC",
@@ -4090,7 +4301,8 @@
     "publishedDate": "2015-01-15",
     "year": 2015,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "tFwW0FIDTv",
@@ -4119,7 +4331,8 @@
     "publishedDate": "2020-03-31",
     "year": 2020,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "tlBlNXCmbD",
@@ -4148,7 +4361,8 @@
     "publishedDate": "2011-07-01",
     "year": 2011,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "u6JH5M1nb1",
@@ -4177,7 +4391,8 @@
     "publishedDate": "2016-01-01",
     "year": 2016,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "ugB2j1GaRm",
@@ -4206,7 +4421,8 @@
     "publishedDate": "2013-08-03",
     "year": 2013,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "ujExLYLnMX",
@@ -4235,7 +4451,8 @@
     "publishedDate": "2009-08-05",
     "year": 2009,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "ulmpXPLSZd",
@@ -4264,7 +4481,8 @@
     "publishedDate": "2006-08-21",
     "year": 2006,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "v__MXRVBex",
@@ -4293,7 +4511,8 @@
     "publishedDate": "2003-03-01",
     "year": 2003,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "vfDmtZ63Mx",
@@ -4322,7 +4541,8 @@
     "publishedDate": "2011-07-01",
     "year": 2011,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   },
   {
    "systemId": "wUSJPWJQ-z",
@@ -4351,7 +4571,8 @@
     "publishedDate": "2016-11-01",
     "year": 2016,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "x0OfmslxMd",
@@ -4380,7 +4601,8 @@
     "publishedDate": "2011-05-21",
     "year": 2011,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "x5gC0i-3QZ",
@@ -4409,7 +4631,8 @@
     "publishedDate": "2021-04-23",
     "year": 2021,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": false
   },
   {
    "systemId": "xaYvH4d3id",
@@ -4438,7 +4661,8 @@
     "publishedDate": "2019-02-07",
     "year": 2019,
     "source": "openalex"
-   }
+   },
+   "inVettedCsv": true
   }
  ]
 }

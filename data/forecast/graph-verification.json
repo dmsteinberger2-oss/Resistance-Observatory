@@ -1,8 +1,8 @@
 {
   "method": "For each finding, the System Public Graph's variables, statistic, interval and study population were compared by reading the paper's PubMed abstract (NCBI E-utilities) and, where Europe PMC served open-access full text, the full text. Statuses reflect only text fetched in this run; no background knowledge of the papers was used.",
   "checkedBy": "AI-assisted spot-check (Claude subagent); not reviewed by a human",
-  "checkedAt": "2026-11-14T16:49:08Z",
-  "scope": "Pass 1: all 11 K540E-haplotype findings, then every sp_outcome finding tagged Nigeria (9), Kenya (23) and The Gambia (5): 48 findings from 25 papers. Pass 2: every remaining sp_outcome or k540e_haplotype finding with a graph_record country, in country order TZA, GHA, BFA, MWI, MOZ, UGA, COD, SLE, CMR, MLI, SEN, BEN, ZMB, SDN, ETH, then the rest: 102 findings from 45 papers. Together 150 findings, every country-naming finding the app shows. Most were checked against the PubMed abstract only; Europe PMC open-access full text was used where available. The Graph p value on l5J-ceSD7x could not be found in the accessible text and remains unchecked.",
+  "checkedAt": "2026-11-14T17:06:02Z",
+  "scope": "Pass 1: all 11 K540E-haplotype findings, then every sp_outcome finding tagged Nigeria (9), Kenya (23) and The Gambia (5): 48 findings from 25 papers. Pass 2: every remaining sp_outcome or k540e_haplotype finding with a graph_record country, in country order TZA, GHA, BFA, MWI, MOZ, UGA, COD, SLE, CMR, MLI, SEN, BEN, ZMB, SDN, ETH, then the rest: 102 findings from 45 papers. Together 150 findings, every country-naming finding the app shows. Most were checked against the PubMed abstract only; Europe PMC open-access full text was used where available. The Graph p value on l5J-ceSD7x could not be found in the accessible text and remains unchecked. Pass 3: the three not-country-specific haplotype findings shown on the Alert tab (o23pQ-icgn, gD0V6goixf, 489sn1mPQa; kind other_dhps), checked against abstracts only; neither paper had open-access full text, so whether their quintuple/sextuple definitions include dhps K540E is unverified. Total 153 findings.",
   "records": [
     {
       "systemId": "5cnJAspBYN",
@@ -1353,6 +1353,33 @@
       "quote": "IPTp had no significant influence on the presence of P. falciparum infection (13.8 vs. 9.6 %, P = 0.31)",
       "note": "Full-text Table 3 shows 9.6% (53/552) with IPTp vs 13.8% (8/58) with no chemoprophylaxis, so -4.2 points matches.",
       "countryAgrees": true
+    },
+    {
+      "systemId": "o23pQ-icgn",
+      "pubmedId": "16127028",
+      "status": "partly_supported",
+      "where": "abstract",
+      "quote": "day 3 blood pyrimethamine concentrations were higher in those who cleared the infection than in those who did not (305 +/- 35.4 versus 228 +/- 21.7 ng/ml; P = 0.037)",
+      "note": "Value matches (305 minus 228 = 77 ng/ml, day 3), but the paper studied Malawian children (per its title), not adults in an unspecified location; the abstract does not define the quintuple haplotype or mention dhps K540E, and no open-access full text was available, so K540E inclusion is unverified.",
+      "countryAgrees": null
+    },
+    {
+      "systemId": "gD0V6goixf",
+      "pubmedId": "33684211",
+      "status": "partly_supported",
+      "where": "abstract",
+      "quote": "delivered newborns with a lower birth weight compared with women who did not have malaria during pregnancy (difference, -267 g; 95% confidence interval, -454 to -59; P = .01)",
+      "note": "Value, interval (-454 to -59) and P = .01 match, but the Graph label is a sentence fragment that omits the early-second-trimester timing and the comparator (no malaria in pregnancy); the abstract does not define the sextuple haplotype, mention dhps K540E or name a country (it describes women followed from before conception or the first trimester to delivery), and no open-access full text was available.",
+      "countryAgrees": null
+    },
+    {
+      "systemId": "489sn1mPQa",
+      "pubmedId": "33684211",
+      "status": "partly_supported",
+      "where": "abstract",
+      "quote": "and women infected with less SP-resistant haplotypes (-461 g; -877 to -44; P = .03)",
+      "note": "Value, interval and P match, but the Graph label omits that this compares early-second-trimester sextuple infections with infections by less SP-resistant haplotypes; the abstract does not define the sextuple haplotype, mention dhps K540E or name a country, and no open-access full text was available.",
+      "countryAgrees": null
     }
   ]
 }

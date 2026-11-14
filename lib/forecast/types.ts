@@ -37,7 +37,7 @@ export interface GenomeDataset {
 }
 
 /* ===== PUBLIC GRAPH — System Public Graph findings. ===== */
-export type GraphKind = "sp" | "codon540";
+export type GraphKind = "sp" | "codon540" | "haplotype"; // "haplotype": the Alert tab pack's K540E-containing haplotype findings
 export interface GraphCountryMatch {
   iso3: Iso3;
   matchedText: string; // the exact text that matched
@@ -68,6 +68,7 @@ export interface GraphFinding {
   countries: GraphCountryMatch[];
   paper: GraphPaperMeta;
   verification?: GraphVerification | null; // null or absent = not checked against the paper
+  inVettedCsv?: boolean | null; // true = in System's vetted associations CSV; false = served by the API only; null = not determined
 }
 
 /* ===== PAPER SPOT-CHECK — data/forecast/graph-verification.json (AI-assisted, not human-reviewed). ===== */
@@ -105,8 +106,29 @@ export interface GraphDataset {
     codon540: number;
     codon540NamingCountry: number;
     papersBehindCodon540: number;
+    haplotype: number; // the Alert tab pack's haplotype findings (3)
+    haplotypeNamingCountry: number;
   };
   findings: GraphFinding[]; // only findings that name at least one country
+}
+
+/* ===== PAPERS — K540E papers from PubMed, via the Alert tab's data pack. Clock: PUBLICATION date. ===== */
+export interface PaperRecord {
+  pmid: string;
+  doi: string | null;
+  title: string;
+  journal: string | null;
+  year: number; // publication year
+  month: number | null; // publication month 1-12 when the pack has it
+  countries: Iso3[]; // countries the paper concerns, as given in the pack (machine-read from abstracts)
+  readByGraph: boolean; // the System Public Graph holds findings from this paper (pack field `in_graph`)
+  url: string;
+}
+export interface PapersDataset {
+  source: SourceInfo;
+  total: number;
+  readByGraph: number;
+  papers: PaperRecord[];
 }
 
 /* ===== ALERTS — produced by the Alert tab (David). Field names are the team contract: do not rename. ===== */
@@ -142,4 +164,11 @@ export interface GenomeChange {
   year: number;
   kind: "first_tested" | "first_detection";
   counts: GenomeYear;
+}
+
+/* ===== POLICY MILESTONES — WHO documents as listed in the Alert tab's data pack (verbatim). ===== */
+export interface PolicyMilestone {
+  year: number;
+  text: string;
+  url: string;
 }

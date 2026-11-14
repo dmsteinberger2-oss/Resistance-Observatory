@@ -294,8 +294,8 @@ live surveillance and not clinical guidance.
 **URL convention for the other tabs:** `?marker=pfdhps-K540E&area=<ISO3>`
 (the shell's existing `marker` id plus an ISO3 country). The current watch
 adds `trig`, `level`, `pts`, `n`; the open alert uses the shell's `finding`
-parameter. Saved, named watches live in `localStorage` in the user's browser
-only; the link always holds the current watch.
+parameter. Named watches are kept in memory for the visit only (no browser
+storage); "Copy watch URL" copies a link that restores the watch.
 
 ### Data sources (all in `k540e-data-pack/`)
 

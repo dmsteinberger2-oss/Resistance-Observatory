@@ -61,7 +61,6 @@ const EXAMPLES: Example[] = [
   { label: "Vietnam · falling", note: "a marker in retreat", qs: { area: "VNM", trig: "fall", level: "50" } },
 ];
 
-const STORE_KEY = "ro.alert.savedWatches.v1";
 type Saved = { name: string; qs: string };
 
 const WATCH_PARAMS = ["area", "trig", "level", "pts", "n"] as const;
@@ -358,22 +357,19 @@ export function AlertTab({ pack }: { pack: ClientPack }) {
       .catch(() => setEmailStatus({ configured: false, from: "" }));
   }, []);
 
-  /* saved watches: localStorage, per browser. The current watch lives in the URL. */
+  /* saved watches: in memory for this visit only (no browser storage). The URL always holds the current watch. */
   const [saved, setSaved] = useState<Saved[]>([]);
-  useEffect(() => {
+  const persist = (next: Saved[]) => setSaved(next);
+  const [urlCopied, setUrlCopied] = useState(false);
+  const copyWatchUrl = async () => {
+    const q = new URLSearchParams(currentQs());
+    q.set("marker", marker.urlId);
     try {
-      const raw = window.localStorage.getItem(STORE_KEY);
-      if (raw) setSaved(JSON.parse(raw) as Saved[]);
+      await navigator.clipboard.writeText(`${window.location.origin}${pathname}?${q.toString()}`);
+      setUrlCopied(true);
+      setTimeout(() => setUrlCopied(false), 1800);
     } catch {
-      /* storage unavailable: saved watches are simply not offered */
-    }
-  }, []);
-  const persist = (next: Saved[]) => {
-    setSaved(next);
-    try {
-      window.localStorage.setItem(STORE_KEY, JSON.stringify(next));
-    } catch {
-      /* ignore */
+      /* clipboard unavailable: the address bar holds the same link */
     }
   };
   const currentQs = () => {
@@ -559,6 +555,9 @@ export function AlertTab({ pack }: { pack: ClientPack }) {
               <button type="button" onClick={saveWatch} className="rounded-full border border-line-strong px-3 py-1 text-xs font-medium hover:bg-surface-2">
                 + Save this watch
               </button>
+              <button type="button" onClick={copyWatchUrl} className="rounded-full border border-line-strong px-3 py-1 text-xs font-medium hover:bg-surface-2">
+                <span aria-live="polite">{urlCopied ? "Copied" : "Copy watch URL"}</span>
+              </button>
               {saved.map((s) => (
                 <span key={s.qs} className="inline-flex items-center rounded-full border border-line text-xs">
                   <button type="button" className="rounded-l-full py-1 pl-3 pr-1.5 hover:text-signal" onClick={() => applyQs(Object.fromEntries(new URLSearchParams(s.qs)))}>
@@ -569,7 +568,7 @@ export function AlertTab({ pack }: { pack: ClientPack }) {
                   </button>
                 </span>
               ))}
-              <span className="text-[0.7rem] text-muted">Saved in this browser only. The link above always holds the current watch.</span>
+              <span className="text-[0.7rem] text-muted">Kept for this visit only; nothing is stored in the browser. The watch URL restores it anywhere.</span>
             </div>
           </div>
         </div>

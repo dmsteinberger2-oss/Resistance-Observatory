@@ -680,7 +680,7 @@ function EmailPanel({ subject, text, html, configured, from }: { subject: string
         {subject}
       </p>
       {view === "html" ? (
-        <iframe title="Email preview" sandbox="" srcDoc={`<body style="margin:0;background:#fbf9f4">${html}</body>`} className="mt-2 h-[26rem] w-full rounded border border-line bg-white" />
+        <iframe title="Email preview" sandbox="" srcDoc={`<body style="margin:0;background:#050d17">${html}</body>`} className="mt-2 h-[26rem] w-full rounded border border-line bg-bg" />
       ) : view === "text" ? (
         <pre className="mt-2 max-h-[26rem] overflow-auto whitespace-pre-wrap rounded border border-line bg-surface p-3 font-mono text-[0.72rem] leading-relaxed">{text}</pre>
       ) : null}

@@ -3,7 +3,8 @@
 When does new evidence change the picture for a malaria drug-resistance marker?
 
 A hackathon prototype (System Public Challenge, Build Challenge 3). Next.js App
-Router + Tailwind, deployed on Vercel.
+Router + Tailwind, deployed on Vercel (import this repo at vercel.com/new —
+framework auto-detects as Next.js, no env vars needed).
 
 **Honesty note.** The evidence graph is a frozen snapshot. The alert demo
 replays real publication history: findings are played forward in the order
@@ -49,6 +50,26 @@ Design tokens (light + dark) are CSS variables on `:root` in
 
 `EvidenceLink` takes `systemId`, `pubmedId`, `doi` and always shows all three;
 it links to doi.org first, PubMed second.
+
+## Content and the science-review gate
+
+- `content/markers.ts` — typed marker content for Learn. **Swap the demo
+  marker by editing `DEMO_MARKER_ID`.** It is provisionally `pfdhps-K540E`
+  (chosen only because the dhfr/dhps ladder is fully specified in
+  `docs/SCIENCE.md`); freeze it from the coverage check. Learn diagrams are
+  built from the `diagram` config (ladder or before/after), labels are real
+  `<text>`.
+- `content/data.ts` — Data tab content.
+- `content/review.ts` — every science field carries `reviewed: boolean`.
+  Unreviewed content is **held** in production (a visible "awaiting
+  science-lead review" panel renders in its place), per `docs/LEARN.md`.
+  To review it in context, run with `NEXT_PUBLIC_SHOW_UNREVIEWED=1` (locally or
+  on a Vercel *preview* env only); it then renders with a DRAFT tag. Flip
+  `reviewed: true` once the science lead signs off.
+
+Still to be written by the science lead (left `null`, not generated): the
+three mechanism paragraphs per marker, the ladder rung "effect on drug"
+labels, the pfmdr1 one-sentence answer, the Data-tab history chapters.
 
 ## Development
 

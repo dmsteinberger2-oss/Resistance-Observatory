@@ -2554,7 +2554,8 @@
         "relationship": null,
         "in_vetted_csv": false,
         "vetted": false,
-        "vetting_note": "Mis-extraction (PMID 25564249). Checked against the source abstract: the prevalence ratio recorded here belongs to the A581G sextuple mutant, not to K540E; K540E appears in that sentence only as a proxy definition. Not in System's vetted Dataverse CSV."
+        "vetting_note": "Mis-extraction (PMID 25564249). Checked against the source abstract: the prevalence ratio recorded here belongs to the A581G sextuple mutant, not to K540E; K540E appears in that sentence only as a proxy definition. Not in System's vetted Dataverse CSV.",
+        "vetting_method": "source_abstract_check_and_vetted_csv"
       },
       {
         "system_id": "AeI-laBxXr",
@@ -2594,7 +2595,8 @@
         },
         "in_vetted_csv": false,
         "vetted": false,
-        "vetting_note": "Mis-extraction (PMID 25564249). Checked against the source abstract: the prevalence ratio recorded here belongs to the A581G sextuple mutant, not to K540E; K540E appears in that sentence only as a proxy definition. Not in System's vetted Dataverse CSV."
+        "vetting_note": "Mis-extraction (PMID 25564249). Checked against the source abstract: the prevalence ratio recorded here belongs to the A581G sextuple mutant, not to K540E; K540E appears in that sentence only as a proxy definition. Not in System's vetted Dataverse CSV.",
+        "vetting_method": "source_abstract_check_and_vetted_csv"
       },
       {
         "system_id": "KL67h5A5Ml",
@@ -2628,7 +2630,10 @@
         "system_statistic_type": "mean_difference_unstandardized",
         "marker_variable_id": "5bJrK_wJcx",
         "relationship": null,
-        "in_vetted_csv": false
+        "in_vetted_csv": false,
+        "vetted": false,
+        "vetting_note": "Mis-extraction (PMID 29854394). Found by an AI-assisted spot-check against the PubMed abstract (data/forecast/graph-verification.json), not reviewed by a human; the abstract was re-read when this flag was set. The abstract reports no difference in the antifolate SNPs 51I, 59R, 108N or 540E (P > 0.05). The -41.3 recorded here equals the drop the abstract gives for a different, non-antifolate marker (97.3% to 56.0%).",
+        "vetting_method": "ai_assisted_spot_check"
       },
       {
         "system_id": "ZPGDdrkvVI",
@@ -2706,7 +2711,10 @@
             "wikidata_id": "Q421072"
           }
         },
-        "in_vetted_csv": false
+        "in_vetted_csv": false,
+        "vetted": false,
+        "vetting_note": "Mis-extraction (PMID 16023986). Found by an AI-assisted spot-check against the PubMed abstract (data/forecast/graph-verification.json), not reviewed by a human; the abstract was re-read when this flag was set. The abstract gives OR 24.72 (95% CI 8.24-74.15) for the dhfr+dhps quintuple mutant in both younger and older children, not for the triple-or-double mutants in children under 5 that this finding names.",
+        "vetting_method": "ai_assisted_spot_check"
       },
       {
         "system_id": "rgO2bc-iSN",
@@ -3257,7 +3265,8 @@
         "statistic_type": "prevalence_ratio",
         "in_vetted_csv": false,
         "vetted": false,
-        "vetting_note": "Mis-extraction (PMID 25564249). Checked against the source abstract: the prevalence ratio recorded here belongs to the A581G sextuple mutant, not to K540E; K540E appears in that sentence only as a proxy definition. Not in System's vetted Dataverse CSV."
+        "vetting_note": "Mis-extraction (PMID 25564249). Checked against the source abstract: the prevalence ratio recorded here belongs to the A581G sextuple mutant, not to K540E; K540E appears in that sentence only as a proxy definition. Not in System's vetted Dataverse CSV.",
+        "vetting_method": "source_abstract_check_and_vetted_csv"
       },
       {
         "system_id": "AeI-laBxXr",
@@ -3268,7 +3277,8 @@
         "statistic_type": "prevalence_ratio",
         "in_vetted_csv": false,
         "vetted": false,
-        "vetting_note": "Mis-extraction (PMID 25564249). Checked against the source abstract: the prevalence ratio recorded here belongs to the A581G sextuple mutant, not to K540E; K540E appears in that sentence only as a proxy definition. Not in System's vetted Dataverse CSV."
+        "vetting_note": "Mis-extraction (PMID 25564249). Checked against the source abstract: the prevalence ratio recorded here belongs to the A581G sextuple mutant, not to K540E; K540E appears in that sentence only as a proxy definition. Not in System's vetted Dataverse CSV.",
+        "vetting_method": "source_abstract_check_and_vetted_csv"
       },
       {
         "system_id": "y5nghPrl5_",
@@ -3313,7 +3323,10 @@
         "study_id": "qYX21-LU0d",
         "pubmed_id": 29854394,
         "statistic_type": "mean_difference_unstandardized",
-        "in_vetted_csv": false
+        "in_vetted_csv": false,
+        "vetted": false,
+        "vetting_note": "Mis-extraction (PMID 29854394). Found by an AI-assisted spot-check against the PubMed abstract (data/forecast/graph-verification.json), not reviewed by a human; the abstract was re-read when this flag was set. The abstract reports no difference in the antifolate SNPs 51I, 59R, 108N or 540E (P > 0.05). The -41.3 recorded here equals the drop the abstract gives for a different, non-antifolate marker (97.3% to 56.0%).",
+        "vetting_method": "ai_assisted_spot_check"
       },
       {
         "system_id": "ZPGDdrkvVI",
@@ -3412,7 +3425,10 @@
         "study_id": "wC3yE3mRbl",
         "pubmed_id": 16023986,
         "statistic_type": "odds_ratio",
-        "in_vetted_csv": false
+        "in_vetted_csv": false,
+        "vetted": false,
+        "vetting_note": "Mis-extraction (PMID 16023986). Found by an AI-assisted spot-check against the PubMed abstract (data/forecast/graph-verification.json), not reviewed by a human; the abstract was re-read when this flag was set. The abstract gives OR 24.72 (95% CI 8.24-74.15) for the dhfr+dhps quintuple mutant in both younger and older children, not for the triple-or-double mutants in children under 5 that this finding names.",
+        "vetting_method": "ai_assisted_spot_check"
       },
       {
         "system_id": "rgO2bc-iSN",
@@ -3485,7 +3501,7 @@
       "url": "https://dataverse.harvard.edu/api/access/datafile/14061020"
     },
     "vetted_csv_checked": true,
-    "verified_at": "2026-11-14T16:26:34.346Z",
+    "verified_at": "2026-11-14T18:14:46.293Z",
     "note": "in_vetted_csv says whether a finding's system_id is a row in the vetted associations CSV. That CSV holds only associations whose two variables are both grounded to a concept, so false is conclusive only for those. vetted: false marks a finding a person checked against its source paper and found mis-extracted; see vetting_note."
   }
 }

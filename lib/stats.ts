@@ -11,8 +11,8 @@
  *
  * "Finding" = one association in the graph (two variables linked by a
  * statistic). Per System's own documentation roughly 20% of API associations
- * are known-bad extractions; the findings counted here have not yet been
- * cross-verified against the Dataverse CSV or the source papers.
+ * are known-bad extractions. Findings found to be mis-extracted are flagged
+ * in the pinned file and left out of every count here.
  */
 import graph from "@/data/graph-stats.json";
 
@@ -30,7 +30,7 @@ export type Stat = {
 
 const SOURCE = `System Public Graph v${graph.source.version}`;
 
-/* A finding a person checked against its paper and found mis-extracted is
+/* A finding compared with its paper and found mis-extracted is
  * flagged `vetted: false` in graph-stats.json. It stays in the file but is not
  * evidence: every count and list below leaves it out. */
 type Pinned = {
@@ -156,7 +156,7 @@ export const GRAPH_MARKER_TYPED_FINDINGS = {
 // (same query as GRAPH_MARKER_FINDINGS; flagged after a check against the paper).
 export const GRAPH_MARKER_EXCLUDED_FINDINGS = {
   value: ALL_MARKER.length - MARKER.length,
-  label: "Findings the live API returned for codon 540 that review found mis-extracted, and that are excluded",
+  label: "Findings the live API returned for codon 540 that were found mis-extracted and are excluded",
   source: SOURCE,
   query: "GET /variables/{id}/associations?limit=50&offset=<n>&include_total=true, per marker variable; vetted = false",
 } satisfies Stat;

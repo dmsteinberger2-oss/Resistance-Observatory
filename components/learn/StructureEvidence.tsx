@@ -14,7 +14,7 @@
  */
 import { useCallback, useMemo, useRef, useState } from "react";
 import type { Marker } from "@/content/markers";
-import { MARKER_FINDINGS } from "@/lib/findings";
+import { MARKER_FINDINGS, spotStatusLabel } from "@/lib/findings";
 import { formatGraphDate } from "@/lib/stats";
 import { EvidenceLink } from "@/components/EvidenceLink";
 import { StudyTypeChip } from "@/components/data/StudyTypeChip";
@@ -82,7 +82,8 @@ export function StructureEvidence({ marker }: { marker: Marker }) {
         ) : (
           <>
             <p className="mt-2 text-sm text-muted">
-              Statistics are shown as the graph records them and have not been checked against the papers. Point at
+              Statistics are shown as the graph records them. Each finding was compared with its paper in an
+              AI-assisted spot-check that no person has reviewed; its result is shown beside the statistic. Point at
               or focus a finding to mark the residue in both structures.
             </p>
             <ol className="mt-5 divide-y divide-line border-y border-line">
@@ -107,6 +108,9 @@ export function StructureEvidence({ marker }: { marker: Marker }) {
                         {f.statisticValue !== null ? `: ${f.statisticValue}` : ": value not recorded"}
                       </span>
                       <StudyTypeChip studyType={f.studyType} />
+                      <span className="text-muted">
+                        spot-check: {f.spotCheck ? spotStatusLabel(f.spotCheck.status) : "not covered"}
+                      </span>
                     </p>
                   </div>
                   <div className="min-w-0">

@@ -169,15 +169,15 @@ different counts. That is expected.
 
 | Constant | Value | How it is derived |
 | --- | --- | --- |
-| `GRAPH_MARKER_VARIABLES` | 7 | variables that **name codon 540 directly**: hits of `GET /variables?search=name:<term>` whose name mentions codon 540 of pfdhps |
-| `GRAPH_MARKER_FINDINGS` | 6 | findings that **name codon 540 directly**: associations of those variables, `GET /variables/{id}/associations`, de-duplicated |
+| `GRAPH_MARKER_VARIABLES` | 5 | variables that **name codon 540 directly**: hits of `GET /variables?search=name:<term>` whose name mentions codon 540 of pfdhps, and that still have a finding after exclusions |
+| `GRAPH_MARKER_FINDINGS` | 4 | findings that **name codon 540 directly**: associations of those variables, `GET /variables/{id}/associations`, de-duplicated, minus excluded findings |
 | `GRAPH_MARKER_K540E_ALONE_FINDINGS` | 0 | of those, findings whose variable names K540E on its own, with no other codon or combination |
-| `GRAPH_MARKER_STUDIES` | 4 | studies that **name codon 540 directly**: distinct `study_id` over those associations |
-| `GRAPH_MARKER_TYPED_FINDINGS` | 0 | of the 6, findings whose study has a `study_type` in the graph (`GET /studies/{study_id}`); the Data timeline shows each as a chip, or "type not recorded" |
-| `GRAPH_MARKER_EXCLUDED_FINDINGS` | 2 | codon-540 findings the live API returned that were checked against their paper, found mis-extracted, and excluded from every other count |
-| `GRAPH_PFDHPS_FINDINGS` | 30 | findings that **cover pfdhps overall**: associations of every variable whose name identifies P. falciparum dhps (includes the 6 above) |
-| `GRAPH_PFDHPS_STUDIES` | 23 | studies that **cover pfdhps overall**: distinct `study_id` over those associations |
-| `OPENALEX_MARKER_DATED_FINDINGS` | 6 | codon-540 findings whose paper's publication date resolved in OpenAlex, matched on `pubmed_id` |
+| `GRAPH_MARKER_STUDIES` | 2 | studies that **name codon 540 directly**: distinct `study_id` over those associations |
+| `GRAPH_MARKER_TYPED_FINDINGS` | 0 | of the 4, findings whose study has a `study_type` in the graph (`GET /studies/{study_id}`); the Data timeline shows each as a chip, or "type not recorded" |
+| `GRAPH_MARKER_EXCLUDED_FINDINGS` | 4 | codon-540 findings the live API returned that were found mis-extracted and excluded from every other count: 2 by checking the abstract and the vetted release, 2 by an AI-assisted spot-check |
+| `GRAPH_PFDHPS_FINDINGS` | 28 | findings that **cover pfdhps overall**: associations of every variable whose name identifies P. falciparum dhps (includes the 4 above) |
+| `GRAPH_PFDHPS_STUDIES` | 21 | studies that **cover pfdhps overall**: distinct `study_id` over those associations |
+| `OPENALEX_MARKER_DATED_FINDINGS` | 4 | codon-540 findings whose paper's publication date resolved in OpenAlex, matched on `pubmed_id` |
 | `OPENALEX_MARKER_LAST_PUBLISHED` | January 21, 2023 | latest of those publication dates |
 | `GRAPH_VERSION`, `GRAPH_SNAPSHOT_DATE` | 2.1, July 1, 2026 | release metadata, not an API field |
 | `GRAPH_KNOWN_BAD_SHARE` | ~20% | System's API documentation, not an API field |
@@ -185,23 +185,30 @@ different counts. That is expected.
 Coverage limitations, stated on screen as well:
 
 - **The graph indexes K540E only lightly.** After review, no finding names
-  K540E on its own. The 6 codon-540 findings sit at the pfdhps level: their
-  variables name codon 540 inside a combination or a list (for example the
-  A437G/K540E double mutant), or compare how common it is between two groups.
-  No graph finding gives a prevalence figure for K540E. `search=name:K540E`
-  returns nothing because of how names are written, so the script matches on
-  name text; the selection rules are recorded in `data/graph-stats.json`
+  K540E on its own. The 4 codon-540 findings sit at the pfdhps level: their
+  variables name codon 540 inside a combination (for example the A437G/K540E
+  double mutant), or compare how common it is between two groups. No graph
+  finding gives a prevalence figure for K540E. `search=name:K540E` returns
+  nothing because of how names are written, so the script matches on name
+  text; the selection rules are recorded in `data/graph-stats.json`
   (`marker.selection_rule`, `pfdhps_context.selection_rule`).
-- **Two findings were caught in review and excluded.** `paFNq6MPX5` and
-  `AeI-laBxXr` (variable "Presence of K540 E: in dihydropteroate synthase",
-  PMID 25564249) were returned by the live API. Checked against the source
-  abstract, their numbers belong to the A581G sextuple mutant, not K540E. They
-  stay in `data/graph-stats.json` flagged `vetted: false` with a note, and are
-  left out of every count and list. The Data tab shows them under "Caught in
-  review".
+- **Four findings were caught in review and excluded, by two methods.** All
+  four stay in `data/graph-stats.json` flagged `vetted: false`, with a
+  `vetting_note` and a `vetting_method`, and are left out of every count and
+  list. The Data tab shows them under "Caught in review".
+  - *Abstract check plus vetted release:* `paFNq6MPX5` and `AeI-laBxXr`
+    (PMID 25564249). Their numbers belong to the A581G sextuple mutant, not
+    K540E.
+  - *AI-assisted spot-check against the source papers* (not reviewed by a
+    human; results in `data/forecast/graph-verification.json`): `iD_4aq3uIs`
+    (PMID 29854394), where the abstract reports no difference in 540E and the
+    recorded value matches a different marker's drop; and `QIrkddNp_j`
+    (PMID 16023986), where the odds ratio belongs to the quintuple mutant, not
+    to the genotypes and age group the finding names. Both abstracts were read
+    again, also with AI assistance, before the flags were set.
 - **The graph has no per-finding publication date.** Dates on Overview and on the
   Data-tab timeline are each paper's publication date from OpenAlex, matched
-  on the finding's `pubmed_id`. All 6 resolved. A finding whose date does not
+  on the finding's `pubmed_id`. All 4 resolved. A finding whose date does not
   resolve is shown as "Date unknown", outside the timeline.
 - The search terms and filters are name-text matches, so a relevant variable
   with an unusual name can be missed.
@@ -241,13 +248,15 @@ What that check does and does not show for Overview and Data:
   to a concept. Most findings the API returns for this marker have one
   unmatched variable, so they cannot appear in it. Of the 32 findings pinned,
   2 are in the vetted CSV (both in the wider pfdhps set).
-- Two codon-540 findings were then checked by hand against the source
-  abstract, found mis-extracted, and excluded (see Figures).
-- The remaining 6 codon-540 findings have **not** been checked against their
-  papers. One of them, `QIrkddNp_j` (PMID 16023986), has both variables
-  matched to a concept and is still absent from the vetted CSV, the same
-  pattern as an excluded finding. It is still shown; it should be checked
-  next.
+- Two codon-540 findings were checked against the source abstract, found
+  mis-extracted, and excluded (see Figures).
+- **All of the codon-540 findings were then compared with their papers in an
+  AI-assisted spot-check** (PubMed abstract, plus open-access full text where
+  there was any). No person has reviewed that check. It contradicted two more
+  findings, which are now excluded too. Of the 4 that remain on screen it
+  marked 2 supported and 2 partly supported: the value matches the paper, but
+  the graph's label or population does not fully. Each finding shows its
+  result on the Data timeline and in Learn's findings panel.
 
 ### Publication dates
 

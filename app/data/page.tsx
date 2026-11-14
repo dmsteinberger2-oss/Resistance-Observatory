@@ -11,7 +11,7 @@ import { StatFigure } from "@/components/StatFigure";
 import { PullQuote } from "@/components/PullQuote";
 import { FindingsTimeline } from "@/components/data/FindingsTimeline";
 import { StudyTypeChip } from "@/components/data/StudyTypeChip";
-import { EXCLUDED_FINDINGS, MARKER_FINDINGS } from "@/lib/findings";
+import { EXCLUDED_FINDINGS, MARKER_FINDINGS, SPOT_CHECK_COUNTS } from "@/lib/findings";
 import { Reveal } from "@/components/Reveal";
 
 export const metadata: Metadata = {
@@ -29,6 +29,20 @@ const TOC = [
   ["limits", "What evidence can’t tell you"],
   ["numbers", "Key numbers"],
   ["glossary", "Glossary"],
+] as const;
+
+/** The two ways mis-extracted findings were found. */
+const REVIEW_GROUPS = [
+  {
+    method: "source_abstract_check_and_vetted_csv",
+    title: "Found by checking the abstract and the vetted release",
+    how: "Checked against the abstract of the paper they cite, and absent from System\u2019s vetted release of the graph.",
+  },
+  {
+    method: "ai_assisted_spot_check",
+    title: "Found by an AI-assisted spot-check against the source papers",
+    how: "An AI model compared each finding with its paper\u2019s abstract. No person has reviewed this check. Both abstracts were read again, also with AI assistance, before these were excluded.",
+  },
 ] as const;
 
 export default function DataPage() {
@@ -105,8 +119,16 @@ export default function DataPage() {
               Other tabs ask the graph different questions about this marker and show different counts; that is
               expected. By
               System&rsquo;s own documentation roughly {ALL_STATS.GRAPH_KNOWN_BAD_SHARE.value}
-              {ALL_STATS.GRAPH_KNOWN_BAD_SHARE.unit} of API extractions are known-bad, and these findings are not
-              yet cross-verified against the source papers.
+              {ALL_STATS.GRAPH_KNOWN_BAD_SHARE.unit} of API extractions are known-bad.
+            </p>
+            <p className="mt-4">
+              What was checked, and how: every finding here was compared with its paper&rsquo;s PubMed abstract,
+              and with open-access full text where there was any, in an AI-assisted spot-check. No person has
+              reviewed that check. Of the {SPOT_CHECK_COUNTS.shown} findings shown, it marked{" "}
+              {SPOT_CHECK_COUNTS.supported} supported and {SPOT_CHECK_COUNTS.partlySupported} partly supported,
+              meaning the value matches the paper but the graph&rsquo;s label or population does not fully. Each
+              entry carries its result. Findings the check contradicted are listed under &ldquo;Caught in
+              review&rdquo;, not here.
             </p>
             <p className="mt-4">
               Evidence carries different weight depending on how it was produced: a therapeutic efficacy study
@@ -133,52 +155,60 @@ export default function DataPage() {
               The live API returned {ALL_STATS.GRAPH_MARKER_EXCLUDED_FINDINGS.value} more findings for this
               marker. They are not on the timeline above, and they are in none of the counts on this site.
             </p>
-            <ul className="mt-6 space-y-5 border-l-2 border-dashed border-line-strong pl-6">
-              {EXCLUDED_FINDINGS.map((f) => (
-                <li key={f.systemId}>
-                  <p className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-sm font-semibold">
-                    Excluded · mis-extracted
-                    <StudyTypeChip studyType={f.studyType} />
-                  </p>
-                  <p className="mt-1 text-base leading-snug">
-                    <span className="font-semibold">{f.variable1}</span>
-                    <span className="text-muted"> — recorded against — </span>
-                    <span className="font-semibold">{f.variable2}</span>
-                  </p>
-                  <p className="mt-1 font-mono text-[0.72rem] text-muted">
-                    system_id {f.systemId} · statistic recorded: {f.statisticType}
-                  </p>
-                  {f.pubmedId ? (
-                    <a
-                      href={`https://pubmed.ncbi.nlm.nih.gov/${f.pubmedId}/`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-1 inline-flex items-center gap-1 text-base font-medium text-drug underline decoration-drug/40 underline-offset-4 hover:decoration-drug"
-                    >
-                      PubMed record, PMID {f.pubmedId} <span aria-hidden>↗</span>
-                      <span className="sr-only">(opens in a new tab)</span>
-                    </a>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-            <p className="mt-6">
-              We checked both against the abstract of the paper they cite. The numbers they carry belong to a
-              different mutation, the A581G sextuple mutant. K540E appears in that sentence only as a proxy
-              definition, and the extraction attached the numbers to it. System&rsquo;s vetted release of the
-              graph does not include either finding.
-            </p>
-            <p className="mt-4">
+            <p className="mt-4">They were found by two different methods.</p>
+            {REVIEW_GROUPS.map((g) => {
+              const group = EXCLUDED_FINDINGS.filter((f) => f.vettingMethod === g.method);
+              if (!group.length) return null;
+              return (
+                <div key={g.method} className="mt-8">
+                  <h3 className="font-display text-xl font-semibold">
+                    {g.title} <span className="font-mono text-sm font-normal text-muted">({group.length})</span>
+                  </h3>
+                  <p className="mt-1 text-base text-muted">{g.how}</p>
+                  <ul className="mt-5 space-y-6 border-l-2 border-dashed border-line-strong pl-6">
+                    {group.map((f) => (
+                      <li key={f.systemId}>
+                        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-sm font-semibold">
+                          Excluded · mis-extracted
+                          <StudyTypeChip studyType={f.studyType} />
+                        </p>
+                        <p className="mt-1 text-base leading-snug">
+                          <span className="font-semibold">{f.variable1}</span>
+                          <span className="text-muted"> — recorded against — </span>
+                          <span className="font-semibold">{f.variable2}</span>
+                        </p>
+                        {f.vettingNote ? <p className="mt-2 text-base">{f.vettingNote}</p> : null}
+                        <p className="mt-1 font-mono text-[0.72rem] text-muted">
+                          system_id {f.systemId} · statistic recorded: {f.statisticType}
+                        </p>
+                        {f.pubmedId ? (
+                          <a
+                            href={`https://pubmed.ncbi.nlm.nih.gov/${f.pubmedId}/`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-1 inline-flex items-center gap-1 text-base font-medium text-drug underline decoration-drug/40 underline-offset-4 hover:decoration-drug"
+                          >
+                            PubMed record, PMID {f.pubmedId} <span aria-hidden>↗</span>
+                            <span className="sr-only">(opens in a new tab)</span>
+                          </a>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
+            <p className="mt-8">
               This is not a criticism of the graph. System&rsquo;s API documentation says roughly{" "}
               {ALL_STATS.GRAPH_KNOWN_BAD_SHARE.value}
               {ALL_STATS.GRAPH_KNOWN_BAD_SHARE.unit} of the associations it serves are known-bad extractions.
               This is that rate, found in our own data, and it is why every finding here links to its paper.
-              Both findings stay in our pinned data file, flagged with the reason.
+              All of them stay in our pinned data file, flagged with the reason and the method.
             </p>
             <p className="mt-4 text-base text-muted">
               The vetted release holds only findings whose two variables are both matched to a concept, so it
-              cannot confirm most of the findings on the timeline. Those have not been checked against their
-              papers.
+              cannot confirm most of the findings on the timeline. Those were compared with their papers in
+              the AI-assisted spot-check instead, which no person has reviewed.
             </p>
           </Section>
 
@@ -234,8 +264,9 @@ export default function DataPage() {
               {String(ALL_STATS.GRAPH_KNOWN_BAD_SHARE.value)}
               {ALL_STATS.GRAPH_KNOWN_BAD_SHARE.unit} of associations served by its API are known-bad
               extractions, and variables that failed to ground to a Wikidata concept were removed from the public
-              release. A codon-level mutation may be missing or only lightly indexed, as K540E is. Two findings were checked against their paper and excluded; the rest are not yet verified
-              against theirs. The project README records what was checked.
+              release. A codon-level mutation may be missing or only lightly indexed, as K540E is. {ALL_STATS.GRAPH_MARKER_EXCLUDED_FINDINGS.value}{" "}
+              findings were found to be mis-extracted and excluded. The rest were compared with their papers in
+              an AI-assisted spot-check that no person has reviewed. The project README records what was checked.
             </p>
             <PullQuote cite="How the alert demo works">
               The logic is tested on real history; the feed is a snapshot.

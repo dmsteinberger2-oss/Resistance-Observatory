@@ -79,15 +79,28 @@ const VETTED_CSV = {
 };
 
 /**
- * Findings checked by a person against the source paper and found to be
- * mis-extracted. They stay in the output, flagged `vetted: false`, and the app
+ * Findings checked against the source paper and found to be mis-extracted,
+ * with the method that found each one. They stay in the output, flagged `vetted: false`, and the app
  * excludes them from every count and list presented as evidence.
  */
-const MIS_EXTRACTED: Record<string, string> = {
-  paFNq6MPX5:
-    "Mis-extraction (PMID 25564249). Checked against the source abstract: the prevalence ratio recorded here belongs to the A581G sextuple mutant, not to K540E; K540E appears in that sentence only as a proxy definition. Not in System's vetted Dataverse CSV.",
-  "AeI-laBxXr":
-    "Mis-extraction (PMID 25564249). Checked against the source abstract: the prevalence ratio recorded here belongs to the A581G sextuple mutant, not to K540E; K540E appears in that sentence only as a proxy definition. Not in System's vetted Dataverse CSV.",
+type Flag = {
+  note: string;
+  /** How the mis-extraction was found. */
+  method: "source_abstract_check_and_vetted_csv" | "ai_assisted_spot_check";
+};
+const TAYLOR_NOTE =
+  "Mis-extraction (PMID 25564249). Checked against the source abstract: the prevalence ratio recorded here belongs to the A581G sextuple mutant, not to K540E; K540E appears in that sentence only as a proxy definition. Not in System's vetted Dataverse CSV.";
+const MIS_EXTRACTED: Record<string, Flag> = {
+  paFNq6MPX5: { note: TAYLOR_NOTE, method: "source_abstract_check_and_vetted_csv" },
+  "AeI-laBxXr": { note: TAYLOR_NOTE, method: "source_abstract_check_and_vetted_csv" },
+  iD_4aq3uIs: {
+    note: "Mis-extraction (PMID 29854394). Found by an AI-assisted spot-check against the PubMed abstract (data/forecast/graph-verification.json), not reviewed by a human; the abstract was re-read when this flag was set. The abstract reports no difference in the antifolate SNPs 51I, 59R, 108N or 540E (P > 0.05). The -41.3 recorded here equals the drop the abstract gives for a different, non-antifolate marker (97.3% to 56.0%).",
+    method: "ai_assisted_spot_check",
+  },
+  QIrkddNp_j: {
+    note: "Mis-extraction (PMID 16023986). Found by an AI-assisted spot-check against the PubMed abstract (data/forecast/graph-verification.json), not reviewed by a human; the abstract was re-read when this flag was set. The abstract gives OR 24.72 (95% CI 8.24-74.15) for the dhfr+dhps quintuple mutant in both younger and older children, not for the triple-or-double mutants in children under 5 that this finding names.",
+    method: "ai_assisted_spot_check",
+  },
 };
 
 /** Streams the vetted CSV and returns which of `ids` appear as a row's system_id. */
@@ -172,7 +185,8 @@ async function verify(pinned: Json[]) {
     a.in_vetted_csv = inCsv ? inCsv.has(id) : null;
     if (MIS_EXTRACTED[id]) {
       a.vetted = false;
-      a.vetting_note = MIS_EXTRACTED[id];
+      a.vetting_note = MIS_EXTRACTED[id].note;
+      a.vetting_method = MIS_EXTRACTED[id].method;
     }
   }
   if (inCsv) console.log(`vetted CSV: ${inCsv.size} of ${ids.size} pinned findings present`);

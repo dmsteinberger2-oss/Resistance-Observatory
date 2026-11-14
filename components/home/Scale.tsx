@@ -111,7 +111,8 @@ export function Scale() {
             doi:{GRAPH_DOI}. A finding is one association in the graph: two variables linked by a statistic. By
             System&rsquo;s own documentation roughly {GRAPH_KNOWN_BAD_SHARE.value}
             {GRAPH_KNOWN_BAD_SHARE.unit} of API associations are known-bad extractions; the findings counted
-            here are not yet cross-verified. Publication dates: OpenAlex.
+            here were compared with their papers in an AI-assisted spot-check that no person has reviewed.
+            Publication dates: OpenAlex.
           </p>
           <p className="mt-4 max-w-3xl text-sm text-muted text-pretty">
             Each count answers the question written beside it. Other tabs ask the graph different questions

@@ -1,7 +1,7 @@
 import { EvidenceLink } from "@/components/EvidenceLink";
 import { StudyTypeChip } from "@/components/data/StudyTypeChip";
 import { formatGraphDate } from "@/lib/stats";
-import type { MarkerFinding } from "@/lib/findings";
+import { spotStatusLabel, type MarkerFinding } from "@/lib/findings";
 
 /**
  * Publication-date timeline of the demo marker's findings, oldest to newest.
@@ -52,6 +52,15 @@ function Group({ title, note, findings }: { title: string; note: string; finding
             <p className="mt-1 text-sm text-muted">
               Statistic reported: {f.statisticType}.
             </p>
+            {f.spotCheck ? (
+              <p className="mt-1 text-sm text-muted">
+                AI-assisted spot-check, not human-reviewed:{" "}
+                <span className="font-semibold text-fg">{spotStatusLabel(f.spotCheck.status)}</span>.{" "}
+                {f.spotCheck.note}
+              </p>
+            ) : (
+              <p className="mt-1 text-sm text-muted">Not covered by the spot-check.</p>
+            )}
             <EvidenceLink systemId={f.systemId} pubmedId={f.pubmedId} doi={f.doi} className="mt-2" />
           </li>
         ))}

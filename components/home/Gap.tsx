@@ -47,7 +47,7 @@ export function Gap() {
         <Reveal className="mt-24">
           <p className="max-w-3xl font-display text-2xl leading-snug sm:text-3xl text-pretty">
             Resistance Observatory asks one question, marker by marker:{" "}
-            <span className="text-signal">does this new finding change the picture?</span>
+            <span className="text-drug">does this new finding change the picture?</span>
           </p>
           <p className="mt-4 max-w-2xl text-sm text-muted">
             The demo replays real publication history from a frozen evidence snapshot, in the

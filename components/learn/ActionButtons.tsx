@@ -17,7 +17,7 @@ export function ActionButtons({ marker }: { marker: Marker }) {
     <div className="flex flex-col gap-3">
       <Link
         href={hrefWithSelection("/forecast", withMarker)}
-        className="group flex items-center justify-between gap-4 rounded-[var(--radius)] bg-fg px-5 py-4 text-bg transition-transform hover:-translate-y-0.5"
+        className="group flex items-center justify-between gap-4 rounded-[var(--radius)] bg-drug px-5 py-4 text-bg transition-transform hover:-translate-y-0.5"
       >
         <span>
           <span className="block text-lg font-semibold">See where it&rsquo;s been observed</span>

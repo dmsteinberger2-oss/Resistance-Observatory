@@ -52,7 +52,7 @@ export default function DataPage() {
             {TOC.map(([id, label], i) => (
               <li key={id}>
                 <a href={`#${id}`} className="group flex gap-2 text-muted hover:text-fg">
-                  <span className="font-mono text-xs tabular-nums text-line-strong group-hover:text-signal">
+                  <span className="font-mono text-xs tabular-nums text-line-strong group-hover:text-drug">
                     {String(i + 1).padStart(2, "0")}
                   </span>
                   {label}
@@ -71,7 +71,7 @@ export default function DataPage() {
                     key={i}
                     className={
                       i === 0
-                        ? "mt-4 first-letter:float-left first-letter:mr-3 first-letter:font-display first-letter:text-7xl first-letter:font-semibold first-letter:leading-[0.8] first-letter:text-signal"
+                        ? "mt-4 first-letter:float-left first-letter:mr-3 first-letter:font-display first-letter:text-7xl first-letter:font-semibold first-letter:leading-[0.8] first-letter:text-drug"
                         : "mt-4"
                     }
                   >
@@ -310,7 +310,7 @@ function Section({
 }) {
   return (
     <section id={id} aria-labelledby={`${id}-h`} className={`scroll-mt-24 pb-16 ${wide ? "" : "max-w-[44rem]"}`}>
-      <p className="font-mono text-xs tabular-nums text-signal">{String(n).padStart(2, "0")}</p>
+      <p className="font-mono text-xs tabular-nums text-drug">{String(n).padStart(2, "0")}</p>
       <h2 id={`${id}-h`} className="mb-5 mt-1 font-display text-3xl font-semibold tracking-tight sm:text-4xl text-balance">
         {title}
       </h2>

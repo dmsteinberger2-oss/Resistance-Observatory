@@ -17,12 +17,12 @@ export function Hero({ learnHref }: { learnHref: string }) {
           className="max-w-5xl font-display text-[clamp(2.6rem,7vw,6.2rem)] font-semibold leading-[0.98] tracking-tight text-balance"
         >
           A researcher tracking a resistance marker has no simple way to know when the
-          evidence has <em className="not-italic text-signal">shifted enough to matter.</em>
+          evidence has <em className="not-italic text-drug">shifted enough to matter.</em>
         </h1>
         <div className="mt-12 flex flex-wrap items-center gap-4">
           <Link
             href={learnHref}
-            className="rounded-full bg-fg px-6 py-3 font-medium text-bg transition-transform hover:-translate-y-0.5"
+            className="rounded-[5px] bg-drug px-6 py-3 font-bold text-bg transition-transform hover:-translate-y-0.5"
           >
             Start with one marker →
           </Link>
@@ -46,8 +46,8 @@ function Backdrop() {
       >
         <defs>
           <radialGradient id="ro-glow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="var(--signal)" stopOpacity="0.14" />
-            <stop offset="70%" stopColor="var(--signal)" stopOpacity="0" />
+            <stop offset="0%" stopColor="var(--drug)" stopOpacity="0.14" />
+            <stop offset="70%" stopColor="var(--drug)" stopOpacity="0" />
           </radialGradient>
           <linearGradient id="ro-sweep-g" x1="0" x2="1">
             <stop offset="0" stopColor="var(--drug)" stopOpacity="0" />
@@ -65,7 +65,7 @@ function Backdrop() {
         </g>
         <path className="ro-sweep" d="M600 600 L1120 600 A520 520 0 0 0 1050 340 Z" fill="url(#ro-sweep-g)" />
         <path d="M600 60v120M600 1020v120M60 600h120M1020 600h120" stroke="var(--line-strong)" strokeWidth="1" />
-        <circle cx="600" cy="600" r="6" fill="var(--signal)" />
+        <circle cx="600" cy="600" r="6" fill="var(--drug)" />
       </svg>
       <div className="absolute inset-0 bg-gradient-to-r from-bg via-bg/80 to-transparent" />
     </div>

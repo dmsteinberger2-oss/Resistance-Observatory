@@ -61,7 +61,7 @@ export function TabCards() {
 
 function Glyph({ kind }: { kind: "lens" | "map" | "bell" }) {
   return (
-    <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.8" className="text-signal">
+    <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.8" className="text-drug">
       {kind === "lens" && (
         <>
           <circle cx="20" cy="20" r="15" />

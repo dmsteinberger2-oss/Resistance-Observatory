@@ -73,11 +73,11 @@ function Ladder({ d }: { d: LadderDiagram }) {
                   height="72"
                   rx="10"
                   fill="var(--surface-2)"
-                  stroke={rung.highlight ? "var(--fg)" : "var(--line-strong)"}
+                  stroke={rung.highlight ? "var(--signal)" : "var(--line-strong)"}
                   strokeWidth={rung.highlight ? 5 : 2}
                 />
                 {rung.highlight ? (
-                  <text x="72" y={y + 46} fontSize="17" fontWeight="700" fontFamily={FONT} fill="var(--fg)">
+                  <text x="72" y={y + 46} fontSize="17" fontWeight="700" fontFamily={FONT} fill="var(--signal)">
                     ▶ this marker
                   </text>
                 ) : null}
@@ -102,8 +102,8 @@ function Ladder({ d }: { d: LadderDiagram }) {
                         width={w}
                         height="44"
                         rx="22"
-                        fill={a.isNew ? "var(--signal)" : "var(--bg)"}
-                        stroke={a.isNew ? "var(--signal)" : "var(--line-strong)"}
+                        fill={a.isNew ? "var(--drug)" : "var(--bg)"}
+                        stroke={a.isNew ? "var(--drug)" : "var(--line-strong)"}
                         strokeWidth="2"
                         strokeDasharray={a.isNew ? undefined : "5 5"}
                       />
@@ -177,7 +177,7 @@ function Ladder({ d }: { d: LadderDiagram }) {
 
           {/* legend */}
           <g transform={`translate(${barX} 26)`} fontFamily={FONT} fontSize="16" fill="var(--muted)">
-            <rect x="0" y="-14" width="44" height="22" rx="11" fill="var(--signal)" />
+            <rect x="0" y="-14" width="44" height="22" rx="11" fill="var(--drug)" />
             <text x="22" y="2" textAnchor="middle" fontSize="13" fontWeight="700" fill="var(--bg)">+</text>
             <text x="54" y="2">new at this rung</text>
             {hasCarried ? (

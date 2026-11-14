@@ -99,7 +99,7 @@ export function Scale() {
         {/* The turn */}
         <Reveal className="mt-20">
           <p className="max-w-4xl font-display text-4xl font-semibold tracking-tight sm:text-5xl text-balance">
-            When the total is this small, <span className="text-signal">one new finding changes the picture.</span>
+            When the total is this small, <span className="text-drug">one new finding changes the picture.</span>
           </p>
         </Reveal>
 

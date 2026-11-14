@@ -1,0 +1,356 @@
+/**
+ * Pulls the pinned figures for the demo marker (pfdhps K540E / sulfadoxine)
+ * from the System Public Graph API and writes data/graph-stats.json.
+ *
+ * Server-side only. Never import this from app code.
+ *
+ *   node --env-file=.env.local scripts/graph-stats.ts
+ *
+ * (Node >= 22.18 runs .ts directly; `npx tsx --env-file=.env.local ...` also
+ * works.) The key is read from SYSTEM_API_KEY and is never logged or written.
+ *
+ * API: https://public-api.system.com/v1, header x-api-key. `limit` is always
+ * set explicitly (the default is 10). Pipes in relationship_id are sent as %7C.
+ */
+import { mkdirSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+
+const BASE = "https://public-api.system.com/v1";
+const KEY = process.env.SYSTEM_API_KEY;
+if (!KEY) {
+  console.error("SYSTEM_API_KEY is not set. Run with --env-file=.env.local");
+  process.exit(1);
+}
+
+const SEARCH_TERMS = [
+  "dhps",
+  "pfdhps",
+  "dihydropteroate",
+  "K540E",
+  "540E",
+  "sulfadoxine",
+  "sulfadoxine-pyrimethamine",
+];
+const PAGE = 50;
+/** Cap on search hits kept per term (each hit costs one count request). */
+const MAX_HITS_PER_TERM = 200;
+const MAX_ASSOCIATIONS = 200;
+const MAX_RELATIONSHIPS = 200;
+/**
+ * The demo marker is codon 540 of pfdhps. `search=name:K540E` returns nothing
+ * (names are written "A437G/K540E", "K540 E:", "540K/E", "Glu-540"), so the
+ * marker's variables are picked from all search hits by variable NAME TEXT,
+ * as docs/SCIENCE.md instructs ("match on variable name text as well as
+ * concept ID").
+ */
+const MARKER_NAME_PATTERN = /540\s*E|540\s*K\/E|Glu-540/i;
+/**
+ * Wider context set: variables whose NAME explicitly identifies the
+ * P. falciparum dhps gene. Either it says "pfdhps", or it says dhps /
+ * dihydropteroate together with "falciparum" or a pfdhps codon (437, 540,
+ * 581). This deliberately drops everything the name does not tie to malaria:
+ * the 16-DHPS steroid, dihydropyridines ("DHPs"), dental health professionals,
+ * Pneumocystis / P. carinii DHPS, and bare "DHPS mutations" variables.
+ */
+const isPfdhpsName = (name: string) =>
+  /pfdhps/i.test(name) ||
+  (/dhps|dihydropteroate/i.test(name) && /falciparum|437|540|581/i.test(name) && !/carinii|pneumocystis/i.test(name));
+const OUT = resolve(import.meta.dirname, "..", "data", "graph-stats.json");
+
+type Json = Record<string, unknown>;
+let requests = 0;
+
+async function get(path: string): Promise<Json> {
+  for (let attempt = 0; ; attempt++) {
+    requests++;
+    const res = await fetch(BASE + path, { headers: { "x-api-key": KEY as string } });
+    if (res.ok) return (await res.json()) as Json;
+    if ((res.status === 429 || res.status >= 500) && attempt < 4) {
+      await new Promise((r) => setTimeout(r, 1000 * 2 ** attempt));
+      continue;
+    }
+    throw new Error(`GET ${path} -> ${res.status} ${(await res.text()).slice(0, 200)}`);
+  }
+}
+
+/** Offset pagination; stops at `max`, on a short page, or if a page repeats. */
+async function paged(path: string, max: number): Promise<{ rows: Json[]; total: number | null; truncated: boolean }> {
+  const rows: Json[] = [];
+  const seen = new Set<string>();
+  let total: number | null = null;
+  const sep = path.includes("?") ? "&" : "?";
+  for (let offset = 0; offset < max; offset += PAGE) {
+    const page = await get(`${path}${sep}limit=${PAGE}&offset=${offset}&include_total=true`);
+    const data = (page.data as Json[]) ?? [];
+    if (typeof page.total === "number") total = page.total;
+    const fresh = data.filter((d) => {
+      const id = String(d.system_id ?? d.relationship_id ?? d.study_id ?? JSON.stringify(d));
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+    rows.push(...fresh);
+    if (data.length < PAGE || fresh.length === 0) return { rows, total, truncated: false };
+  }
+  return { rows: rows.slice(0, max), total, truncated: true };
+}
+
+async function pool<T, R>(items: T[], size: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const out: R[] = new Array(items.length);
+  let next = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(size, items.length) }, async () => {
+      while (next < items.length) {
+        const i = next++;
+        out[i] = await fn(items[i]);
+      }
+    }),
+  );
+  return out;
+}
+
+async function main() {
+  /* 1 — variable search, one term at a time (only `name` is searchable). */
+  const searches: Json[] = [];
+  const variables = new Map<string, { system_id: string; name: string; concept_id: string | null; matched_terms: string[] }>();
+  for (const term of SEARCH_TERMS) {
+    const path = `/variables?search=name:${encodeURIComponent(term)}`;
+    const { rows, truncated } = await paged(path, MAX_HITS_PER_TERM);
+    searches.push({
+      term,
+      query: `GET ${path}&limit=${PAGE}&offset=<n>&include_total=true`,
+      hits: rows.length,
+      truncated_at_cap: truncated,
+    });
+    for (const r of rows) {
+      const id = String(r.system_id);
+      const v = variables.get(id) ?? {
+        system_id: id,
+        name: String(r.name),
+        concept_id: (r.concept_id as string | undefined) ?? null,
+        matched_terms: [],
+      };
+      v.matched_terms.push(term);
+      variables.set(id, v);
+    }
+    console.log(`search ${term}: ${rows.length} hits${truncated ? " (capped)" : ""}`);
+  }
+
+  /* 2 — association count per hit. */
+  const counted = await pool([...variables.values()], 6, async (v) => {
+    const r = await get(`/variables/${encodeURIComponent(v.system_id)}/associations?limit=1&include_total=true`);
+    return { ...v, association_count: typeof r.total === "number" ? r.total : 0 };
+  });
+  counted.sort((a, b) => b.association_count - a.association_count || a.system_id.localeCompare(b.system_id));
+
+  /* 3 — highest-count pfdhps variable, and its associations. */
+  const pfdhps = counted.filter((v) => /pfdhps/i.test(v.name));
+  const top = pfdhps[0];
+  if (!top) throw new Error("No variable with 'pfdhps' in its name was returned.");
+  console.log(`top pfdhps variable: ${top.system_id} "${top.name}" (${top.association_count} associations)`);
+
+  const assocPath = `/variables/${encodeURIComponent(top.system_id)}/associations`;
+  const assoc = await paged(assocPath, MAX_ASSOCIATIONS);
+
+  /* 4 — concept relationships (num_findings, num_studies, last_published_date). */
+  let concept: Json | null = null;
+  let relationships: Json[] = [];
+  let relationshipsTruncated = false;
+  let relationshipsTotal: number | null = null;
+  if (top.concept_id) {
+    const cid = encodeURIComponent(top.concept_id);
+    concept = await get(`/concepts/${cid}`);
+    const rel = await paged(`/concepts/${cid}/relationships`, MAX_RELATIONSHIPS);
+    relationshipsTruncated = rel.truncated;
+    relationshipsTotal = rel.total;
+    relationships = rel.rows.map((r) => ({
+      relationship_id: r.relationship_id,
+      // Path-safe form: pipes must be sent as %7C.
+      relationship_path: `/relationships/${String(r.relationship_id).replaceAll("|", "%7C")}`,
+      num_findings: r.num_findings,
+      num_studies: r.num_studies,
+      last_published_date: r.last_published_date,
+      last_updated: r.last_updated,
+      source_concept: pickConcept(r.source_concept as Json),
+      target_concept: pickConcept(r.target_concept as Json),
+    }));
+  }
+
+  /* 5 — linked studies: doi, pubmed_id, study_type. */
+  const studyIds = [...new Set(assoc.rows.map((a) => a.study_id).filter(Boolean).map(String))];
+  const studies = await pool(studyIds, 6, async (id) => {
+    const s = await get(`/studies/${encodeURIComponent(id)}`);
+    return {
+      study_id: String(s.study_id ?? id),
+      doi: (s.doi as string | null) ?? null,
+      pubmed_id: s.pubmed_id ?? null,
+      study_type: (s.study_type as string | null) ?? null,
+      population: (s.population as string | null) ?? null,
+    };
+  });
+
+  /* 6 — the marker itself: every hit whose name text names codon 540. */
+  const markerVars = counted.filter((v) => MARKER_NAME_PATTERN.test(v.name));
+  const markerAssoc: Json[] = [];
+  for (const v of markerVars) {
+    const a = await paged(`/variables/${encodeURIComponent(v.system_id)}/associations`, MAX_ASSOCIATIONS);
+    for (const row of a.rows) {
+      if (!markerAssoc.some((m) => m.system_id === row.system_id)) {
+        markerAssoc.push({ ...row, marker_variable_id: v.system_id });
+      }
+    }
+  }
+  // The graph dates findings only at relationship level (last_published_date).
+  // A relationship exists when both variables of an association are grounded.
+  const relCache = new Map<string, Json | null>();
+  for (const a of markerAssoc) {
+    const c1 = a.variable_1_concept_id as string | undefined;
+    const c2 = a.variable_2_concept_id as string | undefined;
+    a.relationship = null;
+    if (!c1 || !c2) continue;
+    for (const id of [`${c1}|${c2}`, `${c2}|${c1}`]) {
+      if (!relCache.has(id)) {
+        try {
+          const r = await get(`/relationships/${id.replaceAll("|", "%7C")}`);
+          relCache.set(id, {
+            relationship_id: r.relationship_id,
+            query: `GET /relationships/${id.replaceAll("|", "%7C")}`,
+            num_findings: r.num_findings,
+            num_studies: r.num_studies,
+            last_published_date: r.last_published_date,
+            source_concept: pickConcept(r.source_concept as Json),
+            target_concept: pickConcept(r.target_concept as Json),
+          });
+        } catch {
+          relCache.set(id, null);
+        }
+      }
+      if (relCache.get(id)) {
+        a.relationship = relCache.get(id);
+        break;
+      }
+    }
+  }
+  const markerStudyIds = [...new Set(markerAssoc.map((a) => a.study_id).filter(Boolean).map(String))];
+  const markerStudies = await pool(markerStudyIds, 6, async (id) => {
+    const s = await get(`/studies/${encodeURIComponent(id)}`);
+    return {
+      study_id: String(s.study_id ?? id),
+      doi: (s.doi as string | null) ?? null,
+      pubmed_id: s.pubmed_id ?? null,
+      study_type: (s.study_type as string | null) ?? null,
+      population: (s.population as string | null) ?? null,
+    };
+  });
+  // Concept-level rollup for the marker variable with the most associations
+  // that is grounded to a concept.
+  const groundedMarker = markerVars.find((v) => v.concept_id);
+  let markerConcept: Json | null = null;
+  let markerConceptRels: Json[] = [];
+  if (groundedMarker?.concept_id) {
+    const cid = encodeURIComponent(groundedMarker.concept_id);
+    markerConcept = await get(`/concepts/${cid}`);
+    const rel = await paged(`/concepts/${cid}/relationships`, MAX_RELATIONSHIPS);
+    markerConceptRels = rel.rows.map((r) => ({
+      relationship_id: r.relationship_id,
+      num_findings: r.num_findings,
+      num_studies: r.num_studies,
+      last_published_date: r.last_published_date,
+      source_concept: pickConcept(r.source_concept as Json),
+      target_concept: pickConcept(r.target_concept as Json),
+    }));
+  }
+  /* 7 — wider pfdhps context set (includes the marker set). */
+  const contextVars = counted.filter((v) => isPfdhpsName(v.name) || MARKER_NAME_PATTERN.test(v.name));
+  const contextAssoc = new Map<string, Json>();
+  for (const v of contextVars) {
+    const a = await paged(`/variables/${encodeURIComponent(v.system_id)}/associations`, MAX_ASSOCIATIONS);
+    for (const row of a.rows) {
+      contextAssoc.set(String(row.system_id), {
+        system_id: row.system_id,
+        variable_1_name: row.variable_1_name,
+        variable_2_name: row.variable_2_name,
+        study_id: row.study_id,
+        pubmed_id: row.pubmed_id ?? null,
+        statistic_type: row.statistic_type,
+      });
+    }
+  }
+  const contextStudyIds = [...new Set([...contextAssoc.values()].map((a) => a.study_id).filter(Boolean).map(String))];
+  console.log(`pfdhps context: ${contextVars.length} variables, ${contextAssoc.size} associations, ${contextStudyIds.length} studies`);
+  console.log(`marker: ${markerVars.length} variables, ${markerAssoc.length} associations, ${markerStudies.length} studies`);
+
+  const out = {
+    source: {
+      name: "System Public Graph",
+      version: "2.1",
+      snapshot: "2026-07-01",
+      license: "CC BY-NC 4.0",
+      doi: "10.7910/DVN/7V6JDO",
+      api_base: BASE,
+      // From System's API documentation, not from an API response.
+      documented_known_bad_extraction_share_percent: 20,
+      // From System's API documentation, not from an API response.
+      documented_known_bad_extraction_share_percent: 20,
+    },
+    generated_at: new Date().toISOString(),
+    generated_by: "scripts/graph-stats.ts",
+    requests_made: 0,
+    searches,
+    variables: counted,
+    top_pfdhps_variable: {
+      ...top,
+      selection_rule: "highest association_count among search hits whose name contains 'pfdhps' (case-insensitive); ties broken by system_id",
+      associations_query: `GET ${assocPath}?limit=${PAGE}&offset=<n>&include_total=true`,
+      associations_total: assoc.total,
+      associations_truncated: assoc.truncated,
+    },
+    associations: assoc.rows,
+    concept,
+    concept_relationships_query: top.concept_id
+      ? `GET /concepts/${top.concept_id}/relationships?limit=${PAGE}&offset=<n>&include_total=true`
+      : null,
+    concept_relationships_total: relationshipsTotal,
+    concept_relationships_truncated: relationshipsTruncated,
+    concept_relationships: relationships,
+    studies_query: "GET /studies/{study_id}",
+    studies,
+    marker: {
+      id: "pfdhps-K540E",
+      drug: "sulfadoxine (with pyrimethamine, as SP)",
+      name_pattern: MARKER_NAME_PATTERN.source,
+      selection_rule:
+        "every variable returned by the searches above whose name matches name_pattern (case-insensitive); associations fetched per variable with GET /variables/{id}/associations?limit=50&offset=<n>&include_total=true and de-duplicated by system_id",
+      variables: markerVars,
+      associations: markerAssoc,
+      studies: markerStudies,
+      grounded_variable_id: groundedMarker?.system_id ?? null,
+      concept: markerConcept,
+      concept_relationships_query: groundedMarker?.concept_id
+        ? `GET /concepts/${groundedMarker.concept_id}/relationships?limit=${PAGE}&offset=<n>&include_total=true`
+        : null,
+      concept_relationships: markerConceptRels,
+    },
+    pfdhps_context: {
+      selection_rule:
+        "every variable returned by the searches above whose name contains 'pfdhps', or contains dhps/dihydropteroate together with 'falciparum' or a pfdhps codon (437, 540, 581) and not carinii/pneumocystis; plus the marker variables. Associations fetched per variable with GET /variables/{id}/associations?limit=50&offset=<n>&include_total=true and de-duplicated by system_id; studies are distinct study_id values.",
+      variables: contextVars,
+      associations: [...contextAssoc.values()],
+      study_ids: contextStudyIds,
+    },
+  };
+  out.requests_made = requests;
+
+  mkdirSync(dirname(OUT), { recursive: true });
+  writeFileSync(OUT, JSON.stringify(out, null, 2) + "\n");
+  console.log(`wrote ${OUT} (${requests} requests)`);
+}
+
+function pickConcept(c: Json | undefined) {
+  return c ? { system_id: c.system_id, wikidata_label: c.wikidata_label, wikidata_id: c.wikidata_id } : null;
+}
+
+main().catch((e) => {
+  console.error(e instanceof Error ? e.message : e);
+  process.exit(1);
+});

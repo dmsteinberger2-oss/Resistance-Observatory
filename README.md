@@ -305,9 +305,57 @@ to fill in.
 
 ### Map sources (Benjamin)
 
-- Map data source — name, version, licence and link _to be added by
-  Benjamin_. Any location on the map is attributed to that source, never to
-  the System graph.
+The Map tab (`/forecast`) is a country-level map of observed history for
+PfDHPS K540E and sulfadoxine-pyrimethamine (SP). It shows no projections.
+Three sources stay apart on screen, each with its own clock. Everything is
+pinned under `data/forecast/` (checksums and regeneration commands in
+`data/forecast/README.md`); the browser makes no API calls.
+
+- **MalariaGEN Pf8** (genome data, by sample collection year): samples
+  carrying K540E at pfdhps codon 540 for 33 countries, 1966–2022, 24,409
+  QC-pass samples. <https://www.malariagen.net/resource/36/>. Licence: CC BY
+  4.0. Cite: MalariaGEN et al., "Pf8: An open dataset of Plasmodium falciparum
+  genome variation in 33,325 worldwide samples", Wellcome Open Research 2025;
+  10: 325, doi:10.12688/wellcomeopenres.24031.1. Counts match the Alert tab's
+  data pack for all 222 country-years. The default layer's colours come only
+  from this source.
+- **PubMed papers** (by publication date): the 372 K540E papers from the Alert
+  tab's data pack. Countries were machine-read from abstracts and not
+  hand-checked. The "Papers and the Graph" layer takes its countries from
+  these papers.
+- **System Public Graph v2.1**: snapshot 1 July 2026, CC BY-NC 4.0,
+  doi:10.7910/DVN/7V6JDO. 443 findings whose variable names refer to SP, of
+  which 139 name a country in the study's population text; 9 API-only records
+  that mention codon 540 (two more are hidden as mis-extracted, as on the Data
+  and Alert tabs); and the 3 vetted haplotype findings, shown as not
+  country-specific. The graph has no geography field: a finding is tied to a
+  country only by a text match on that population text, and no location on the
+  map is attributed to the System graph. Raw API responses are in
+  `data/forecast/raw/graph/`.
+- **Vetted-release check**: each displayed finding was looked up by
+  `system_id` in `system-public-graph-v1-associations.csv` (Harvard Dataverse,
+  doi:10.7910/DVN/7V6JDO, checksum verified). 72 of the 148 country-naming
+  findings are in the vetted release.
+- **Spot-check against the papers**: every displayed finding was compared with
+  its paper's abstract or open full text (PubMed, Europe PMC). Of the 148
+  country-naming findings, 86 match, 35 partly match, 24 differ and 3 could
+  not be checked. AI-assisted and **not reviewed by a human**
+  (`data/forecast/graph-verification.json`).
+- **OpenAlex**: publication dates and titles for the Graph findings' papers.
+  CC0.
+- **Natural Earth**: country shapes and city names, bundled. Public domain.
+  <https://www.naturalearthdata.com/>. No map tiles and no geocoding service.
+- **Alerts and WHO document summaries** come from the Alert tab
+  (`data/alerts.json`, `k540e-data-pack/`). The Map tab defines no alert rule
+  and no threshold.
+
+Limits: genome samples come from partner studies, not national surveys; a year
+without samples is not sampled, not zero; "first detection in our data" is the
+first sampled year with a carrier, not when the mutation appeared; the view is
+country-level only.
+
+AI disclosure: the Map tab's code, data scripts and the spot-check were
+produced with Claude Code (Anthropic) under Benjamin's direction.
 
 ## AI coding tool disclosure
 

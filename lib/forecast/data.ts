@@ -76,9 +76,13 @@ const vettedFlag = (id: string): boolean | null =>
   typeof VETTED_IDS[id] === "boolean" ? (VETTED_IDS[id] as boolean) : null;
 
 const graphBase = graphJson as GraphDataset;
+/** Findings checked against their source paper and found mis-extracted: the numbers belong to the
+ *  A581G sextuple mutant, not K540E. Same exclusion as the Data and Alert tabs
+ *  (data/graph-stats.json, marker.associations with vetted: false, see vetting_note). Hidden on the map. */
+export const MIS_EXTRACTED_IDS: ReadonlySet<string> = new Set(["paFNq6MPX5", "AeI-laBxXr"]);
 export const GRAPH: GraphDataset = {
   ...graphBase,
-  findings: graphBase.findings.map((f) => ({
+  findings: graphBase.findings.filter((f) => !MIS_EXTRACTED_IDS.has(f.systemId)).map((f) => ({
     ...f,
     verification: VERIFICATION_BY_ID.get(f.systemId) ?? null,
     inVettedCsv: vettedFlag(f.systemId),

@@ -44,6 +44,8 @@ export function ForecastApp({ alertFeed }: { alertFeed: AlertFeed }) {
   const [stageW, setStageW] = useState(1440);
   const [flyKey, setFlyKey] = useState(0);
   const stripRef = useRef<HTMLDivElement>(null);
+  const headRef = useRef<HTMLDivElement>(null);
+  const [headH, setHeadH] = useState(260);
   const [stripH, setStripH] = useState(110);
   // City name from a city search: UI state only, valid while that country stays selected.
   const [city, setCity] = useState<{ iso3: string; name: string } | null>(null);
@@ -55,6 +57,18 @@ export function ForecastApp({ alertFeed }: { alertFeed: AlertFeed }) {
     measure();
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
+  }, []);
+
+  // The header card's height: WHAT MOVED starts right under it. (The two are
+  // separate in the DOM so the tab order runs search -> date -> what moved.)
+  useLayoutEffect(() => {
+    const el = headRef.current;
+    if (!el) return;
+    const measure = () => setHeadH(Math.round(el.getBoundingClientRect().height));
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
   }, []);
 
   // The legend strip's height: the fly-to keeps the selected country above it.
@@ -122,68 +136,29 @@ export function ForecastApp({ alertFeed }: { alertFeed: AlertFeed }) {
         <h1 className="sr-only">
           Forecast: K540E (pfdhps, sulfadoxine-pyrimethamine) in genome data by country, as of {asOfYear}
         </h1>
-        <WorldMap
-          asOfYear={asOfYear}
-          selected={country}
-          flyKey={flyKey}
-          panelPx={panelPx}
-          leftPx={leftPx}
-          alertFeed={alertFeed}
-          layer={layer}
-          topPx={TOP_PX}
-          bottomPx={stripH + 28}
-          onSelect={onMapSelect}
-        />
-
-        <div className="fc-leftcol" data-fc-avoid>
-          <div className="fc-card fc-search-card p-3.5">
-            <p className="fc-label">Forecast · Observed history</p>
-            <p className="mt-1 text-[12px] text-muted">
-              Observed history only. No projections or future scenarios.
+        <div ref={headRef} className="fc-card fc-search-card fc-head p-3.5" data-fc-avoid>
+          <p className="fc-label">Map · Observed history</p>
+          <p className="mt-1 text-[12px] text-muted">
+            Observed history only. No projections or future scenarios.
+          </p>
+          <p className="mt-1.5 text-[13px] leading-snug">
+            <span className="font-semibold text-drug">K540E</span> · parasite gene{" "}
+            <i>pfdhps</i> · drug: sulfadoxine-pyrimethamine (SP)
+          </p>
+          <div className="mt-2.5 border-t border-line pt-2">
+            <p className="fc-label">Public Graph coverage</p>
+            <p className="mt-1 text-[12px] leading-snug tabular-nums">
+              The Graph has read {totals.readByGraph} of {totals.total} K540E papers published
+              through {asOfYear}.
             </p>
-            <p className="mt-1.5 text-[13px] leading-snug">
-              <span className="font-semibold text-drug">K540E</span> · parasite gene{" "}
-              <i>pfdhps</i> · drug: sulfadoxine-pyrimethamine (SP)
-            </p>
-            <div className="mt-2.5 border-t border-line pt-2">
-              <p className="fc-label">Public Graph coverage</p>
-              <p className="mt-1 text-[12px] leading-snug tabular-nums">
-                The Graph has read {totals.readByGraph} of {totals.total} K540E papers published
-                through {asOfYear}.
-              </p>
-              <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-surface-2" aria-hidden>
-                <div
-                  className="h-full rounded-full bg-fg"
-                  style={{ width: `${totals.total > 0 ? (100 * totals.readByGraph) / totals.total : 0}%` }}
-                />
-              </div>
+            <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-surface-2" aria-hidden>
+              <div
+                className="h-full rounded-full bg-fg"
+                style={{ width: `${totals.total > 0 ? (100 * totals.readByGraph) / totals.total : 0}%` }}
+              />
             </div>
-            <SearchBox onSelect={onSearch} className="mt-2.5" />
           </div>
-
-          <WhatMoved
-            year={asOfYear}
-            alertFeed={alertFeed}
-            onSelectCountry={onMovedSelect}
-            className="fc-card fc-moved"
-          />
-
-        </div>
-
-        <div
-          ref={stripRef}
-          className="fc-strip"
-          data-fc-avoid
-          style={{ left: leftPx ? leftPx + 12 : 16, right: panelPx + ZOOM_COL_PX }}
-        >
-          <LegendStrip
-            layer={layer}
-            asOfYear={asOfYear}
-            placeholder={alertFeed.placeholder}
-            paperMax={paperMax}
-            wide={stageW - (leftPx ? leftPx + 12 : 16) - panelPx - ZOOM_COL_PX > 900}
-            onLayerChange={setLayer}
-          />
+          <SearchBox onSelect={onSearch} className="mt-2.5" />
         </div>
 
         <div
@@ -205,6 +180,44 @@ export function ForecastApp({ alertFeed }: { alertFeed: AlertFeed }) {
             markedYears={markedYears}
           />
         </div>
+
+        <div className="fc-leftcol" data-fc-avoid style={{ top: 16 + headH + 10 }}>
+          <WhatMoved
+            year={asOfYear}
+            alertFeed={alertFeed}
+            onSelectCountry={onMovedSelect}
+            className="fc-card fc-moved"
+          />
+        </div>
+
+        <div
+          ref={stripRef}
+          className="fc-strip"
+          data-fc-avoid
+          style={{ left: leftPx ? leftPx + 12 : 16, right: panelPx + ZOOM_COL_PX }}
+        >
+          <LegendStrip
+            layer={layer}
+            asOfYear={asOfYear}
+            placeholder={alertFeed.placeholder}
+            paperMax={paperMax}
+            wide={stageW - (leftPx ? leftPx + 12 : 16) - panelPx - ZOOM_COL_PX > 900}
+            onLayerChange={setLayer}
+          />
+        </div>
+
+        <WorldMap
+          asOfYear={asOfYear}
+          selected={country}
+          flyKey={flyKey}
+          panelPx={panelPx}
+          leftPx={leftPx}
+          alertFeed={alertFeed}
+          layer={layer}
+          topPx={TOP_PX}
+          bottomPx={stripH + 28}
+          onSelect={onMapSelect}
+        />
 
         {country ? (
           <aside className="fc-panel" aria-label="Country evidence" data-fc-avoid>

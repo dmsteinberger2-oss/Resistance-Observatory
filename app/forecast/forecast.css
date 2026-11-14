@@ -216,3 +216,17 @@
 .fc-root .overflow-y-auto,
 .fc-root .overflow-auto { overscroll-behavior: contain; }
 .fc-root .fc-stage { overscroll-behavior: contain; }
+
+/* Header card: its own absolutely positioned block (tab order), above every
+ * other card so the search results list stays on top. */
+.fc-root .fc-head {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  width: 360px;
+  max-width: calc(100% - 32px);
+  z-index: 26;
+}
+/* Visible keyboard focus on flags and country markers. */
+.fc-root .fc-flag:focus-visible rect { stroke: var(--focus); stroke-width: 1.5; }
+.fc-root .fc-country:focus-visible { stroke: #70e0ca; stroke-width: 2.5; }

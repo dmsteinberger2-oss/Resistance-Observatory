@@ -1,0 +1,116 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
+const BTN =
+  "inline-flex h-9 w-9 items-center justify-center rounded-[5px] border border-line-strong bg-surface-2 text-fg hover:border-drug focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-drug disabled:cursor-not-allowed disabled:opacity-40";
+
+export function TimeControl(props: {
+  year: number;
+  minYear: number;
+  maxYear: number;
+  onChange: (year: number) => void;
+  markedYears?: number[];
+  className?: string;
+}): React.JSX.Element {
+  const { year, minYear, maxYear, onChange, markedYears, className } = props;
+  const [playing, setPlaying] = useState(false);
+  const [reduced, setReduced] = useState(false);
+  const yearRef = useRef(year);
+  yearRef.current = year;
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduced(mq.matches);
+    const h = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mq.addEventListener("change", h);
+    return () => mq.removeEventListener("change", h);
+  }, []);
+
+  useEffect(() => {
+    if (!playing) return;
+    const id = window.setInterval(() => {
+      const next = yearRef.current + 1;
+      if (next >= maxYear) setPlaying(false);
+      if (next <= maxYear) onChangeRef.current(next);
+    }, reduced ? 1200 : 700);
+    return () => window.clearInterval(id);
+  }, [playing, reduced, maxYear]);
+
+  const manual = (y: number) => {
+    setPlaying(false);
+    onChange(Math.min(maxYear, Math.max(minYear, y)));
+  };
+
+  const togglePlay = () => {
+    if (playing) {
+      setPlaying(false);
+      return;
+    }
+    if (year >= maxYear) onChange(minYear);
+    setPlaying(true);
+  };
+
+  const span = Math.max(1, maxYear - minYear);
+  const ticks = (markedYears ?? []).filter((y) => y >= minYear && y <= maxYear);
+
+  return (
+    <div className={`fc-card w-full max-w-[520px] px-4 py-3 ${className ?? ""}`}>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-baseline gap-2">
+          <span className="text-[0.68rem] uppercase tracking-[0.18em] text-muted">As of</span>
+          <span className="text-4xl font-semibold leading-none tabular-nums text-fg">{year}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button type="button" className={BTN} aria-label="Previous year" disabled={year <= minYear} onClick={() => manual(year - 1)}>
+            <span aria-hidden>◀</span>
+          </button>
+          <button type="button" className={BTN} aria-label={playing ? "Pause" : "Play through the years"} onClick={togglePlay}>
+            <span aria-hidden>{playing ? "❚❚" : "▶"}</span>
+          </button>
+          <button type="button" className={BTN} aria-label="Next year" disabled={year >= maxYear} onClick={() => manual(year + 1)}>
+            <span aria-hidden>▶▏</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-2">
+        <label htmlFor="fc-asof-year" className="text-[0.68rem] uppercase tracking-[0.18em] text-muted">
+          As-of year
+        </label>
+        <div className="relative">
+          <input
+            id="fc-asof-year"
+            type="range"
+            min={minYear}
+            max={maxYear}
+            step={1}
+            value={year}
+            aria-valuetext={`As of ${year}`}
+            onChange={(e) => manual(Number(e.target.value))}
+            className="block h-6 w-full cursor-pointer accent-drug focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-drug"
+          />
+          <div aria-hidden className="pointer-events-none relative mx-[8px] h-2">
+            {ticks.map((y) => (
+              <span
+                key={y}
+                className="absolute top-0 h-2 w-px bg-signal"
+                style={{ left: `${((y - minYear) / span) * 100}%` }}
+              />
+            ))}
+          </div>
+        </div>
+        <div className="flex justify-between text-[0.7rem] tabular-nums text-muted">
+          <span>{minYear}</span>
+          <span>{maxYear}</span>
+        </div>
+      </div>
+
+      <p className="mt-1 text-[0.7rem] leading-snug text-muted">
+        Genomes: collected through {year} · Papers, Graph findings and alerts: published through {year}
+      </p>
+    </div>
+  );
+}

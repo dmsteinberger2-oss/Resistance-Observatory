@@ -1,9 +1,10 @@
-"use client";
+import "./forecast.css";
+import { loadAlertFeed } from "@/lib/forecast/alerts.server";
+import { ForecastApp } from "@/components/forecast/ForecastApp";
 
-// Placeholder — Benjamin owns this route and replaces this file wholesale.
-import { useSelection } from "@/lib/selection";
+export const metadata = { title: "Forecast" };
 
 export default function ForecastPage() {
-  const { markerId } = useSelection();
-  return <h1>Forecast{markerId ? ` — ${markerId}` : ""}</h1>;
+  const feed = loadAlertFeed();
+  return <ForecastApp alertFeed={feed} />;
 }
